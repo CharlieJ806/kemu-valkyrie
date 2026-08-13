@@ -1,0 +1,262 @@
+/* ============ 卡牌版扩展样式(迁移自 standalone css) ============ */
+.btn-ghost{
+  display:inline-block;padding:10px 16px;border-radius:12px;font-size:14px;letter-spacing:1px;
+  border:1px solid var(--line);background:rgba(255,255,255,.55);color:var(--dim);
+  font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;
+  transition:transform .12s,color .12s,border-color .12s;vertical-align:middle;
+}
+.btn-ghost:hover{color:var(--txt);border-color:var(--dim)}
+.btn-ghost:active{transform:scale(.96)}
+.btn-mini.empty{opacity:.45}
+.search-input{flex:1;padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--txt);font-size:14px;outline:none;min-width:0}
+.search-input:focus{border-color:var(--cyan)}
+.btn-mini.danger{border-color:var(--red);color:#c81f4e;background:rgba(255,61,104,.08);font-weight:700}
+/* 菜单屏滚动:title-inner 占满屏幕,内容多时可滚动;标题屏保持居中 */
+.title-inner{flex:1;min-height:0;overflow-y:auto;margin-left:auto;margin-right:auto}
+#scr-title .title-inner{justify-content:center}
+/* PC 端横屏满屏:各屏宽度上限放宽,充分利用宽屏 */
+#scr-dex .title-inner{width:min(96vw,900px)} /* 图鉴:移动端 96vw,桌面被下方 @media 覆盖 */
+@media (min-width:768px){
+  .title-inner{width:min(94vw,1100px)}               /* 菜单屏(养成/抽卡/题库等) */
+  #scr-dex .title-inner{width:min(97vw,1800px)}      /* 图鉴:接近满宽网格 */
+  .map-inner{max-width:none}                          /* 地图:全宽 */
+  #scr-battle > *{max-width:min(96vw,1600px);width:100%;margin-left:auto;margin-right:auto}
+  .shop-list,.rest-list{max-width:min(96vw,1200px)}  /* 商店/营地 */
+}
+/* title-inner 的 align-items:center 会让 flex 子项收缩到内容宽度,
+   需要撑满的容器必须显式 width:100%(否则 grid 塌成一列) */
+.dex-grid,.dex-filter,.bank-list,.deck-pool,.deck-active,.exam-grid,.study-cards,.gacha-result,.title-menu,.title-menu-extra,.set-card,.rest-card,.over-btns,
+.set-row,.set-note,.bank-pagination,.dex-progress,.over-stats{width:100%}
+/* 图鉴稀有度标签 */
+.dc-rarity{font-size:9px;color:var(--dim)}
+/* 战斗精灵与信息区 */
+/* 3D 战斗场景:固定高度、不透明实心舞台(上浅下深:天空→地面) */
+#scr-battle .battle-stage{flex:none;height:min(54vh,520px)}
+@media (max-height:640px){
+  #scr-battle .battle-stage{height:min(44vh,360px)}
+}
+#battle-fx-canvas{
+  position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0;
+  background:linear-gradient(180deg,#cfe6f8 0%,#e9f5fe 36%,#a9cfe8 72%,#7fb5dd 100%);
+}
+.battle-stage.fx-3d > *{position:relative;z-index:1}
+/* 经典对战布局:敌方信息贴右、我方贴左 */
+.battle-stage.fx-3d .battle-enemy{align-items:flex-end}
+.battle-stage.fx-3d .enemy-info{
+  background:rgba(255,255,255,.72);border:1px solid var(--line);border-radius:12px;
+  padding:6px 12px;width:auto;max-width:min(88vw,380px);
+}
+.battle-stage.fx-3d .battle-player{
+  background:none;border-top:none;justify-content:flex-start;padding:8px 12px;
+}
+.battle-stage.fx-3d .player-info{
+  background:rgba(255,255,255,.72);border:1px solid var(--line);border-radius:12px;
+  padding:6px 12px;width:auto;text-align:left;flex:none;
+}
+.enemy-sprite{width:96px;height:80px;object-fit:contain;image-rendering:pixelated}
+.player-info{flex:1;text-align:left}
+.energy-orbs{display:inline-flex;gap:3px;margin-left:6px;flex-wrap:wrap}
+.set-card{width:100%;display:flex;flex-direction:column;gap:8px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+.title-menu{display:flex;flex-direction:column;gap:12px;width:100%}
+.title-menu-extra{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.title-menu-extra .btn-mini{flex:0 0 auto}
+.pkm-img-fallback,.enemy-sprite-fallback,.player-sprite-fallback{width:56px;height:56px;display:flex;align-items:center;justify-content:center;font-size:34px;background:var(--panel);border:1px solid var(--line);border-radius:14px;color:var(--dim)}
+
+/* ---------- 全屏背景图(16:9,cover 裁切,手机竖屏自动裁两侧) ---------- */
+.screen::before{content:'';position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;pointer-events:none}
+.screen > *{position:relative;z-index:1}
+#scr-title::before{background-image:linear-gradient(rgba(255,255,255,.5),rgba(255,255,255,.82)),url('/bg/main.webp')}
+#scr-map::before{background-image:linear-gradient(rgba(255,255,255,.55),rgba(255,255,255,.85)),url('/bg/map.webp')}
+#scr-battle::before{background-image:linear-gradient(rgba(255,255,255,.6),rgba(255,255,255,.88)),url('/bg/battle.webp')}
+#scr-starter::before,#scr-dex::before,#scr-review::before,#scr-bank::before,#scr-train::before,
+#scr-gacha::before,#scr-deckbuild::before,#scr-settings::before,#scr-study::before,
+#scr-exam::before,#scr-wrong::before,#scr-over::before,#scr-shop::before,#scr-rest::before{
+  background-image:linear-gradient(rgba(255,255,255,.62),rgba(255,255,255,.9)),url('/bg/menu.webp')
+}
+/* 让背景透出的半透明处理 */
+.battle-stage{background:rgba(255,255,255,.75)}
+.battle-q-area{background:linear-gradient(180deg,rgba(255,255,255,.72),rgba(242,248,255,.85))}
+.hand-area{background:linear-gradient(180deg,rgba(242,248,255,.9),rgba(231,242,253,.94))}
+
+/* ---------- 战斗屏(卡牌版布局) ---------- */
+#scr-battle .battle-topbar{position:static;display:flex;align-items:center;padding:calc(8px + var(--safe-t)) 12px 8px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.88)}
+.battle-combo{font-weight:900;color:var(--gold);margin-left:auto;font-size:14px}
+.battle-enemy{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 12px 4px}
+.enemy-sprite-wrap img{width:96px;height:80px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 0 14px rgba(255,82,82,.45))}
+.enemy-info{width:min(88vw,380px);text-align:center}
+.enemy-name-inline{font-size:15px;font-weight:800}
+.enemy-hp-bar{height:12px;border-radius:6px;background:#f7e8e8;border:1px solid #ecc4c4;overflow:hidden;margin-top:5px}
+.enemy-hp-fill{height:100%;background:linear-gradient(90deg,#ff5f6d,#ff0044);border-radius:6px;transition:width .35s}
+.enemy-hp-text{font-size:11px;color:var(--dim);margin-top:3px}
+.enemy-intent{font-size:12px;color:var(--gold);margin-top:2px;min-height:16px}
+.battle-player{display:flex;align-items:center;gap:12px;padding:8px 18px;border-top:1px solid var(--line);background:rgba(255,255,255,.55)}
+.player-sprite-wrap img{width:64px;height:54px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 0 10px rgba(0,240,255,.4))}
+.player-name{font-size:14px;font-weight:800}
+.battle-player-info{font-size:12px;color:var(--dim);margin-top:3px}
+
+/* ---------- 答题区 ---------- */
+.battle-q-area{background:linear-gradient(180deg,var(--bg2),var(--bg));border-top:1px solid var(--line);padding:10px 12px;display:flex;flex-direction:column;gap:8px;transition:opacity .3s}
+.battle-q-text{font-size:15px;line-height:1.55;min-height:44px}
+.battle-options{display:flex;flex-direction:column;gap:8px}
+.battle-opt-btn{display:block;width:100%;text-align:left;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font-size:14px;line-height:1.4;cursor:pointer;transition:.12s;font-family:inherit}
+.battle-opt-btn:hover{border-color:var(--cyan)}
+.battle-opt-btn:active{transform:scale(.98);border-color:var(--cyan)}
+.battle-opt-btn.correct{border-color:var(--green);background:rgba(0,255,136,.12)}
+.battle-opt-btn.wrong{border-color:var(--red);background:rgba(255,0,68,.12);animation:shake .3s}
+.battle-opt-btn.reveal{border-color:var(--green)}
+.battle-opt-btn.disabled{pointer-events:none}
+.battle-options:has(.battle-opt-btn.correct) .battle-opt-btn{pointer-events:none}
+
+/* ---------- 手牌 ---------- */
+.hand-area{display:flex;gap:8px;overflow-x:auto;padding:10px 12px;min-height:118px;background:linear-gradient(180deg,var(--bg),rgba(240,248,255,.85));border-top:1px solid var(--line);scroll-snap-type:x mandatory}
+.hand-card{flex:0 0 auto;width:96px;scroll-snap-align:start;border-radius:12px;padding:8px 6px;border:1px solid var(--line);background:linear-gradient(180deg,var(--panel2),var(--panel));text-align:center;cursor:pointer;transition:.12s;position:relative;display:flex;flex-direction:column;gap:3px}
+.hand-card:active{transform:scale(.93);border-color:var(--cyan)}
+.hand-card.unaffordable{opacity:.45;filter:grayscale(.4)}
+.card-cost{position:absolute;top:-6px;left:-6px;width:22px;height:22px;border-radius:50%;background:var(--cyan);color:#04121a;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg)}
+.card-icon{font-size:26px;line-height:1.2}
+.card-name{font-size:11px;font-weight:800}
+.card-desc{font-size:8px;color:var(--dim);line-height:1.3}
+.hand-card.type-atk{border-color:rgba(255,82,82,.55)}
+.hand-card.type-def{border-color:rgba(68,138,255,.55)}
+.hand-card.type-heal{border-color:rgba(0,255,136,.45)}
+.hand-card.type-control{border-color:rgba(136,68,255,.5)}
+.hand-card.type-status{border-color:rgba(224,64,251,.5)}
+.energy-display{display:flex;align-items:center;gap:6px;font-weight:800;color:var(--cyan)}
+.energy-orb{width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 6px var(--cyan);display:inline-block}
+.end-turn-btn{padding:10px 18px;border-radius:12px;border:1px solid var(--cyan);color:#04121a;background:linear-gradient(180deg,#4df7ff,var(--cyan));font-weight:800;cursor:pointer;font-family:inherit;font-size:14px;letter-spacing:1px;transition:transform .12s,filter .12s}
+.end-turn-btn:hover{filter:brightness(1.07)}
+.end-turn-btn:active{transform:scale(.95)}
+
+/* ---------- 地图(卡牌版) ---------- */
+.map-inner{flex:1;display:flex;flex-direction:column;min-height:0;position:relative;width:100%}
+.map-topbar{display:flex;align-items:center;gap:8px;padding:calc(8px + var(--safe-t)) 12px 8px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.88)}
+.map-floor{font-weight:900;color:var(--cyan);font-size:14px}
+.map-hud{font-size:12px;color:var(--dim);display:flex;gap:8px;flex:1;justify-content:flex-end}
+.map-canvas-wrap{flex:1;position:relative;min-height:0}
+#map-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:manipulation}
+
+/* ---------- 牌组面板 ---------- */
+.deck-panel{position:absolute;right:10px;top:46px;z-index:20;width:min(78vw,260px);max-height:60vh;overflow-y:auto;background:rgba(255,255,255,.97);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.deck-panel h3{font-size:14px;color:var(--cyan)}
+.deck-card-list{display:flex;flex-wrap:wrap;gap:6px}
+.deck-mini-card{display:flex;flex-direction:column;align-items:center;gap:2px;width:56px;padding:6px 4px;border:1px solid var(--line);border-radius:9px;background:var(--panel);font-size:9px}
+.deck-active{display:flex;flex-wrap:wrap;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);min-height:56px;max-height:26vh;overflow-y:auto}
+.deck-chip{padding:7px 12px;border-radius:20px;border:1px solid var(--cyan);background:rgba(0,240,255,.08);color:var(--txt);font-size:12px;cursor:pointer;flex:0 0 auto}
+.deck-pool{flex:1;overflow-y:auto;padding:10px 14px 16px;display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start}
+.deck-pick-card{width:calc(50% - 4px);border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:10px;text-align:center;cursor:pointer;transition:.12s}
+.deck-pick-card:active{transform:scale(.95);border-color:var(--cyan)}
+.deck-pick-card.in-deck{border-color:var(--cyan);box-shadow:inset 0 0 10px rgba(0,240,255,.15)}
+.deck-pick-card.locked{opacity:.4;cursor:default}
+.dp-name{font-size:12px;font-weight:800;margin-top:3px}
+.dp-meta{font-size:9px;color:var(--dim);line-height:1.4}
+
+/* ---------- 捕获弹窗 ---------- */
+.capture-title{font-size:20px;font-weight:900;text-align:center;margin-bottom:10px;color:var(--gold)}
+.ball-row-wrap{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.ball-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);cursor:pointer;font-size:13px;font-family:inherit;width:100%}
+.ball-row:active{transform:scale(.97);border-color:var(--cyan)}
+.ball-row.empty{opacity:.4;cursor:default}
+.ball-row.ball-master{border-color:var(--gold)}
+.b-icon{font-size:22px}
+.b-name{flex:1;text-align:left;font-weight:700}
+.b-cnt{color:var(--gold);font-size:11px;margin-left:6px}
+.b-rate{color:var(--cyan);font-weight:800;font-size:12px}
+
+/* ---------- 奖励弹窗 ---------- */
+.reward-gold{text-align:center;color:var(--gold);font-weight:800;margin-bottom:8px}
+.reward-cards{display:flex;gap:8px;margin-bottom:12px}
+.reward-card{flex:1;border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:10px 6px;text-align:center;cursor:pointer;transition:.12s;display:flex;flex-direction:column;gap:3px;align-items:center}
+.reward-card:active{transform:scale(.94);border-color:var(--cyan)}
+.reward-card.type-atk{border-color:rgba(255,82,82,.5)}
+.reward-card.type-def{border-color:rgba(68,138,255,.5)}
+.reward-card.type-heal{border-color:rgba(0,255,136,.4)}
+.reward-card.type-control{border-color:rgba(136,68,255,.45)}
+.reward-card.type-status{border-color:rgba(224,64,251,.45)}
+
+/* ---------- 商店 ---------- */
+.shop-title{font-size:20px;font-weight:900;text-align:center;color:var(--gold)}
+.shop-gold{text-align:center;font-size:13px;color:var(--dim)}
+.shop-section{font-size:13px;font-weight:800;color:var(--cyan);text-align:center;margin-top:6px}
+/* 商店底部固定操作区 */
+.shop-foot{
+  padding:12px 14px calc(14px + var(--safe-b));border-top:1px solid var(--line);
+  display:flex;flex-direction:column;gap:10px;background:rgba(255,255,255,.9);
+}
+.shop-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:13px;border:1px solid var(--line);background:var(--panel);cursor:pointer;transition:.12s}
+.shop-item:active{transform:scale(.97);border-color:var(--cyan)}
+.shop-item.empty{opacity:.5;cursor:default}
+.shop-price{font-weight:800;color:var(--gold);white-space:nowrap}
+
+/* ---------- 初始选择(浅色美化版) ---------- */
+.starter-row{flex:1;display:flex;flex-direction:column;gap:16px;justify-content:center;padding:20px;width:100%}
+.starter-card{
+  position:relative;overflow:hidden;
+  display:flex;align-items:center;gap:18px;
+  padding:18px 20px;border-radius:18px;
+  border:2px solid var(--line);
+  background:linear-gradient(135deg,#ffffff,var(--panel2));
+  box-shadow:0 6px 16px rgba(40,100,160,.12);
+  cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s;
+}
+.starter-card:hover{border-color:var(--cyan);box-shadow:0 8px 22px rgba(0,180,216,.22)}
+.starter-card:active{transform:scale(.97)}
+.sc-icon-wrap{
+  flex:0 0 auto;width:84px;height:84px;border-radius:50%;
+  background:radial-gradient(circle at 50% 40%,#e8f6ff,var(--panel2));
+  display:flex;align-items:center;justify-content:center;border:1px solid var(--line);
+}
+.starter-card img{width:72px;height:72px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 4px 8px rgba(40,100,160,.35))}
+.sc-fallback{font-size:36px}
+.sc-body{flex:1;min-width:0}
+.sc-name{font-size:20px;font-weight:800;display:flex;align-items:center;gap:6px}
+.sc-desc{font-size:12px;color:var(--dim);margin-top:5px;line-height:1.5}
+.sc-stats{font-size:11px;color:var(--gold);margin-top:6px;font-weight:700}
+
+/* ---------- 题库/错题本 ---------- */
+.bank-list{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.bank-item{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:12px;display:flex;flex-direction:column;gap:6px}
+.bank-item.wrong{border-color:rgba(255,0,68,.5)}
+.bank-q-num{font-size:10px;color:var(--dim)}
+.bank-q-text{font-size:14px;line-height:1.5}
+.bank-opts{display:flex;flex-direction:column;gap:4px}
+.bank-opt{font-size:12px;color:var(--dim);line-height:1.5;padding-left:8px;border-left:2px solid var(--line)}
+.bank-opt.is-ans{color:var(--green);border-left-color:var(--green)}
+.bank-pagination{display:flex;align-items:center;justify-content:center;gap:16px;padding:10px;border-top:1px solid var(--line);font-size:13px;color:var(--dim)}
+
+/* ---------- 考试 ---------- */
+.exam-timer{font-weight:900;color:var(--gold);font-size:16px}
+.exam-q{font-size:16px;line-height:1.6;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+/* 考试双栏布局:题目左 / 题号导航右(桌面端 ≥900px) */
+.exam-body{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;width:100%}
+.exam-main{flex:1;min-height:0;overflow-y:auto;padding:12px 4px;display:flex;flex-direction:column;gap:12px}
+.exam-nav{border-top:1px solid var(--line);padding:10px 4px calc(12px + var(--safe-b));display:flex;flex-direction:column;gap:10px;max-height:40%}
+@media (min-width:900px){
+  .exam-body{flex-direction:row}
+  .exam-main{flex:1;padding:12px 14px}
+  .exam-nav{width:300px;max-height:none;border-top:none;border-left:1px solid var(--line);padding:14px 12px}
+}
+.exam-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;width:100%;max-height:30vh;overflow-y:auto}
+.exam-cell{aspect-ratio:1;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--dim);font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit}
+.exam-cell.current{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 8px rgba(0,240,255,.4)}
+.exam-cell.answered{background:rgba(0,240,255,.15);color:var(--txt)}
+.exam-cell.marked{border-color:var(--gold);color:var(--gold)}
+
+/* ---------- 学习中心 ---------- */
+.study-cards{display:flex;flex-direction:column;gap:12px;width:100%}
+.study-cards .btn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px}
+
+/* ---------- 抽卡 ---------- */
+.gacha-result{width:100%;min-height:110px;text-align:center;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--panel);display:flex;flex-direction:column;align-items:center;gap:4px}
+
+/* ---------- 图鉴 ---------- */
+.dex-team-bar{display:flex;align-items:center;justify-content:center;gap:10px;padding:8px 14px 0;flex-wrap:wrap}
+.dex-team-label{font-size:13px;color:var(--dim);font-weight:700}
+.dex-team-slot{width:78px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border:1px solid var(--line);border-radius:12px;background:var(--panel);cursor:pointer;transition:.12s}
+.dex-team-slot:active{transform:scale(.94)}
+.dex-team-slot img{width:38px;height:32px;object-fit:contain;image-rendering:pixelated}
+.dex-team-slot .dts-name{font-size:10px;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:72px}
+.dex-team-slot.empty{color:var(--dim);font-size:18px;opacity:.55;cursor:default}
+.dex-team-slot.active{border-color:var(--cyan);box-shadow:0 0 10px rgba(0,180,216,.4)}
+.dc-img{width:44px;height:36px;object-fit:contain;image-rendering:pixelated}
+.dex-cell.collected{cursor:pointer}
+.dex-cell.locked{opacity:.5}

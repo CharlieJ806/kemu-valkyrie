@@ -1,0 +1,18 @@
+{
+  "name": "驾考女武神",
+  "short_name": "女武神",
+  "description": "交规里世界净化战！答题·组牌·点火觉醒的科目一卡牌肉鸽",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#fdf7f2",
+  "background_color": "#fdf7f2",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "256x256",
+      "type": "image/x-icon"
+    }
+  ],
+  "lang": "zh-CN"
+}

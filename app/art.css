@@ -1,0 +1,180 @@
+/* ================================================================
+   浅色风格覆盖层
+   保留布局/尺寸/动效/交互(active、hover、keyframes),
+   颜色统一为浅色主题(白 + 青):不再使用深色像素素材板。
+   ================================================================ */
+.px-icon{image-rendering:pixelated;display:inline-block;vertical-align:middle;object-fit:contain;flex:0 0 auto}
+
+/* ---------- 按钮(浅色渐变,青色为主色) ---------- */
+.btn{
+  background:linear-gradient(180deg,var(--panel2),var(--panel));
+  border:1px solid var(--line);border-radius:12px;
+  color:var(--txt);text-shadow:none;box-shadow:none;
+  padding:11px 18px;
+}
+.btn:hover{border-color:var(--cyan);filter:brightness(1.03)}
+.btn:active{transform:scale(.96);filter:brightness(1.08)}
+.btn-primary{
+  border-color:var(--cyan);
+  background:linear-gradient(180deg,#4df7ff,var(--cyan));
+  color:#04121a;font-weight:800;
+  box-shadow:0 0 18px rgba(0,180,216,.35),inset 0 0 10px rgba(255,255,255,.35);
+}
+.btn-primary:hover{filter:brightness(1.06)}
+.btn-danger{
+  border-color:var(--red);background:rgba(255,61,104,.08);
+  color:#c81f4e;font-weight:700;
+}
+.btn-mini{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:10px;color:var(--txt)}
+.btn-ghost{
+  border:1px solid var(--line);border-radius:12px;
+  background:rgba(255,255,255,.65);color:var(--dim);text-shadow:none;box-shadow:none;
+}
+.btn-ghost:hover{color:var(--txt);border-color:var(--cyan)}
+
+/* ---------- chip 筛选胶囊 ---------- */
+.chip{
+  border:1px solid var(--line);border-radius:20px;
+  background:var(--panel);color:var(--dim);text-shadow:none;
+  padding:6px 12px;
+}
+.chip.active{
+  background:var(--cyan);border-color:var(--cyan);
+  color:#04121a;font-weight:800;text-shadow:none;
+}
+
+/* ---------- 答题选项条 ---------- */
+.battle-opt-btn{
+  border:1px solid var(--line);border-radius:12px;
+  background:var(--panel2);color:var(--txt);text-shadow:none;
+  padding:10px 14px;
+}
+.battle-opt-btn:hover{border-color:var(--cyan);filter:brightness(1.03)}
+.battle-opt-btn.correct{border-color:var(--green);background:rgba(0,196,140,.12)}
+.battle-opt-btn.wrong{border-color:var(--red);background:rgba(255,61,104,.1);animation:shake .3s}
+.battle-opt-btn.reveal{border-color:var(--green);background:rgba(0,196,140,.06)}
+
+/* ---------- 弹窗 / Toast ---------- */
+.modal{
+  border:1px solid var(--line);border-radius:18px;
+  background:linear-gradient(180deg,var(--panel2),var(--panel));
+  padding:18px 16px;box-shadow:0 10px 24px rgba(30,80,130,.18);
+}
+.modal .btn-ghost{background:rgba(255,255,255,.8);color:var(--txt);border-color:var(--line)}
+.modal .btn-ghost:hover{border-color:var(--cyan)}
+#toast{
+  border:1px solid var(--cyan);border-radius:12px;
+  background:rgba(255,255,255,.97);color:var(--txt);text-shadow:none;
+  padding:10px 22px;box-shadow:0 0 18px rgba(0,180,216,.25);
+}
+
+/* ---------- 输入框 ---------- */
+.review-bar input,.search-input{
+  border:1px solid var(--line);border-radius:12px;
+  background:var(--panel);color:var(--txt);text-shadow:none;
+  padding:9px 14px;
+}
+.review-bar input:focus,.search-input:focus{border-color:var(--cyan);filter:brightness(1.02)}
+.review-bar input::placeholder,.search-input::placeholder{color:var(--dim)}
+
+/* ---------- HUD ---------- */
+.hud-item,.bt-item{
+  border:1px solid var(--line);border-radius:10px;
+  background:var(--panel);color:var(--txt);text-shadow:none;
+  padding:6px 10px;
+}
+.hud-item.gold,.bt-item.gold{color:var(--gold);font-weight:700}
+
+/* ---------- 连击徽章(保留金色) ---------- */
+.combo-badge{
+  border:none;border-radius:8px;
+  background:linear-gradient(180deg,#ffe259,#ffa751);
+  color:#1a0d00;box-shadow:0 0 16px rgba(255,167,81,.5);
+  padding:5px 12px;
+}
+
+/* ---------- 血条/能量条(浅色轨道) ---------- */
+.enemy-hp-bar{
+  border:1px solid #ecc4c4;border-radius:8px;
+  background:#f7e8e8;overflow:hidden;height:16px;
+}
+.enemy-hp-fill{
+  border:none;border-radius:8px;
+  background:linear-gradient(90deg,#ff5f6d,#ff0044);
+}
+.team-slot .ts-hp{height:4px;background:#dce9f5;border-radius:2px}
+.team-slot .ts-hp i{background:var(--green);border-radius:2px}
+
+/* ---------- 设置滑块(保留青色) ---------- */
+.set-row input[type=range]{accent-color:var(--cyan);height:14px;background:transparent}
+.set-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--cyan);cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,120,150,.4)}
+.set-row input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--cyan);cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,120,150,.4)}
+
+/* ---------- 学习中心三卡(浅色渐变 + 三色描边) ---------- */
+.study-cards .btn{
+  border:2px solid #3b82f6;border-radius:16px;
+  background:linear-gradient(160deg,#e8f1ff,var(--panel));
+  color:var(--txt);text-shadow:none;padding:16px 14px;
+  box-shadow:0 0 12px rgba(59,130,246,.15);
+}
+.study-cards .btn:nth-child(2){border-color:#8b5cf6;box-shadow:0 0 12px rgba(139,92,246,.15)}
+.study-cards .btn:nth-child(3){border-color:#3f9e4d;box-shadow:0 0 12px rgba(63,158,77,.15)}
+.study-cards .btn .dim{color:var(--dim)}
+
+/* ---------- 图鉴交易卡(浅色底 + 稀有度彩色边框,保留流光) ---------- */
+.dex-cell{
+  border-style:solid;border-width:2px;border-radius:14px;
+  background:linear-gradient(160deg,#ffffff,var(--panel2));
+  box-shadow:0 6px 14px rgba(40,100,160,.14);
+  position:relative;isolation:isolate;overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;
+  padding:10px 4px 8px;min-height:112px;text-align:center;cursor:pointer;
+  transition:transform .14s,box-shadow .14s,filter .14s;
+  -webkit-appearance:none;appearance:none;font:inherit;
+}
+.dex-cell:not(:disabled):active{transform:scale(.96)}
+.dex-cell:hover{filter:brightness(1.04)}
+.dex-cell.r-c{border-color:rgba(0,180,216,.45)}
+.dex-cell.r-u{border-color:rgba(0,140,255,.6);box-shadow:0 6px 14px rgba(0,140,255,.18)}
+.dex-cell.r-r{border-color:rgba(232,165,0,.65);box-shadow:0 6px 14px rgba(232,165,0,.22)}
+.dex-cell.r-l{border-color:rgba(255,61,104,.7);box-shadow:0 6px 16px rgba(255,61,104,.25)}
+.dex-cell.locked{
+  border-color:var(--line);background:var(--panel);
+  opacity:.55;cursor:default;box-shadow:none;
+}
+/* 流光扫过(保留动效) */
+.dex-cell::after{
+  content:"";pointer-events:none;position:absolute;inset:0;border-radius:inherit;
+  opacity:.5;mix-blend-mode:screen;
+  background:
+    linear-gradient(115deg,transparent 20%,rgba(255,255,255,.5) 40%,transparent 55%,rgba(0,220,255,.3) 70%,transparent 85%);
+  background-size:220% 220%;
+  animation:dexFoil 7s linear infinite;
+}
+.dex-cell.r-r::after{opacity:.7;animation-duration:5.5s}
+.dex-cell.r-l::after{opacity:.8;animation-duration:4.5s}
+.dex-cell.locked::after{display:none}
+@keyframes dexFoil{
+  0%{background-position:0% 40%}
+  100%{background-position:100% 60%}
+}
+@media (prefers-reduced-motion:reduce){
+  .dex-cell::after{animation:none!important}
+}
+
+/* ---------- 图鉴详情卡(浅色 + 稀有度描边) ---------- */
+.dex-detail-card{
+  position:relative;isolation:isolate;overflow:hidden;
+  border-style:solid;border-width:2px;border-radius:18px;
+  background:linear-gradient(160deg,#ffffff,var(--panel2));
+  padding:16px 14px 14px;text-align:center;
+  box-shadow:0 10px 28px rgba(30,80,130,.16);
+}
+.dex-detail-card.r-c{border-color:rgba(0,180,216,.5)}
+.dex-detail-card.r-u{border-color:rgba(0,140,255,.6)}
+.dex-detail-card.r-r{border-color:rgba(232,165,0,.65);box-shadow:0 10px 28px rgba(232,165,0,.2)}
+.dex-detail-card.r-l{border-color:rgba(255,61,104,.7);box-shadow:0 12px 30px rgba(255,61,104,.25)}
+
+/* ---------- 地图 HUD 球图标 ---------- */
+.ball-hud-item{display:inline-flex;align-items:center;gap:3px;margin-right:6px;font-weight:700;color:var(--txt)}
+.ball-hud-item .px-icon{width:16px;height:16px;filter:drop-shadow(0 1px 2px rgba(40,80,130,.4))}

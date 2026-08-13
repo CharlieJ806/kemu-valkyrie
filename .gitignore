@@ -1,0 +1,15 @@
+# 依赖与构建产物
+node_modules/
+.next/
+out/
+
+# 临时文件
+*.tsbuildinfo
+.DS_Store
+
+# 图标抓取缓存与测试截图
+icons-fetch/
+scripts/shots/
+
+# 环境变量
+.env*
