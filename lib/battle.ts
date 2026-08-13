@@ -1,5 +1,6 @@
 import type { MapNode, Question, RunState } from "./types";
-import { applyCardFx, hydrateCard, type BattleCtx } from "./cards";
+import { applyCardFx, hydrateCard, findCard, type BattleCtx } from "./cards";
+import { getQuestionCat, type AttrKey } from "@/data";
 import {
   getEnemyStats,
   getPlayerAtk,
@@ -110,13 +111,39 @@ export function damagePlayer(run: RunState, amount: number): number {
 
 /* ============ 抽题(迁移自 nextBattleQuestion) ============ */
 
+/** 牌组众数板块(用于抽题弱联动;牌组无板块信息时返回 null) */
+export function dominantDeckAttr(run: RunState): AttrKey | null {
+  const counts: Partial<Record<AttrKey, number>> = {};
+  let best: AttrKey | null = null;
+  let bestN = 0;
+  for (const id of run.deck) {
+    const card = findCard(id);
+    const attr = (card as { attr?: AttrKey } | null)?.attr;
+    if (!attr) continue;
+    counts[attr] = (counts[attr] || 0) + 1;
+    if (counts[attr]! > bestN) {
+      bestN = counts[attr]!;
+      best = attr;
+    }
+  }
+  return best;
+}
+
 export function pickBattleQuestion(
   run: RunState,
   allQuestions: Question[],
 ): Question | null {
   if (allQuestions.length === 0) return null;
   const recent = run.questionHistory.slice(-10);
-  const candidates = allQuestions.filter((q) => !recent.includes(q.id));
+  let candidates = allQuestions.filter((q) => !recent.includes(q.id));
+
+  // 弱联动:50% 概率从牌组众数板块抽题(导入题库无分类 → 不参与过滤,过滤后为空回退全量)
+  const dominant = dominantDeckAttr(run);
+  if (dominant && Math.random() < 0.5) {
+    const pool = candidates.filter((q) => getQuestionCat(q.id) === dominant);
+    if (pool.length > 0) candidates = pool;
+  }
+
   const q =
     candidates.length > 0
       ? candidates[Math.floor(Math.random() * candidates.length)]!

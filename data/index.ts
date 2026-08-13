@@ -1,5 +1,6 @@
 import valkyriesData from "./valkyries.json";
 import questionsData from "./questions.json";
+import questionCatsData from "./question_cats.json";
 import gameRulesData from "./game_rules.json";
 import { GAME_CONST } from "./constants";
 
@@ -85,6 +86,16 @@ export const MONSTERS = VD.monsters;
 export const QUESTIONS = questionsData as Question[];
 export const GAME_RULES = gameRulesData as GameRules;
 export { GAME_CONST };
+
+/** 题库板块分类索引(scripts/classify-questions.mjs 生成) */
+export const QUESTION_CATS = questionCatsData as Record<
+  string,
+  { cat: AttrKey; manual?: boolean }
+>;
+
+export function getQuestionCat(id: string): AttrKey | null {
+  return QUESTION_CATS[id]?.cat ?? null;
+}
 
 export const VALKYRIES_BY_ID: Record<number, Valkyrie> = {};
 for (const v of [...VD.valkyries, ...VD.monsters]) {

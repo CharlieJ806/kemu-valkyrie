@@ -1,19 +1,13 @@
-import { getValkById, type AttrKey } from "@/data";
+import { getValkById } from "@/data";
 import portraits from "@/data/portraits.json";
+import { ATTR_COLORS } from "./attr";
 
 /* ============ 立绘来源 ============
- * 1. data/portraits.json 记录了已有正式立绘的角色 id(由 scripts 处理 characters/ 时生成)
+ * 1. data/portraits.json 记录了已有正式立绘的角色 id(由 scripts/process-portraits.mjs 处理 resource/ 时生成)
  *    → 优先使用 /art/valkyrie/{id}.webp
  * 2. 未收录/文件缺失 → 程序化占位立绘(内联 SVG,日漫画风)
  * 用户可随时将自制立绘放到 public/art/valkyrie/{id}.webp 并更新 portraits.json 即可生效。
  */
-
-const ATTR_COLORS: Record<AttrKey, string> = {
-  law: "#b0483f",
-  signal: "#e0a13c",
-  safety: "#3fa97f",
-  civility: "#e86f8f",
-};
 
 const HAS_PORTRAIT: Record<string, boolean> = portraits as Record<string, boolean>;
 

@@ -8,6 +8,8 @@ import { ICON } from "@/lib/icon";
 import { AudioEngine } from "@/lib/audio";
 import { spawnDmg, spawnFxText, domBurst } from "@/lib/dom-fx";
 import { BattleFX } from "@/lib/fx3d";
+import { getQuestionCat } from "@/data";
+import { ATTR_SHORT, attrBadgeStyle } from "@/lib/attr";
 import type { Card } from "@/lib/types";
 
 function enemyStatusText(status: { type: string; turns: number } | null): string {
@@ -39,6 +41,7 @@ export default function BattleScreen() {
     picked: number;
     correct: boolean;
   } | null>(null);
+  const qCat = run?.currentQ ? getQuestionCat(run.currentQ.id) : null;
   const lastProcessedRef = useRef(0);
   const nextTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fxCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -333,9 +336,18 @@ export default function BattleScreen() {
         {run.turnPhase === "question" ? (
           <>
             <div className="battle-q-text">
-              {run.currentQ
-                ? `[⚡已获得${run.turnCorrect}能量] ${run.currentQ.q}`
-                : "准备答题..."}
+              {run.currentQ ? (
+                <>
+                  {qCat && (
+                    <span className="attr-badge" style={attrBadgeStyle(qCat)}>
+                      {ATTR_SHORT[qCat]}
+                    </span>
+                  )}{" "}
+                  [⚡已获得{run.turnCorrect}能量] {run.currentQ.q}
+                </>
+              ) : (
+                "准备答题..."
+              )}
             </div>
             <div className="battle-options">
               {run.currentQ?.opts.map((opt, i) => (

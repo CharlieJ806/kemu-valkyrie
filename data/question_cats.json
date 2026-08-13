@@ -1,0 +1,3104 @@
+{
+  "q0001": {
+    "cat": "law"
+  },
+  "q0002": {
+    "cat": "law"
+  },
+  "q0003": {
+    "cat": "law"
+  },
+  "q0004": {
+    "cat": "safety"
+  },
+  "q0005": {
+    "cat": "law"
+  },
+  "q0006": {
+    "cat": "law"
+  },
+  "q0007": {
+    "cat": "law"
+  },
+  "q0008": {
+    "cat": "law"
+  },
+  "q0009": {
+    "cat": "law"
+  },
+  "q0010": {
+    "cat": "law"
+  },
+  "q0011": {
+    "cat": "law"
+  },
+  "q0012": {
+    "cat": "law"
+  },
+  "q0013": {
+    "cat": "signal"
+  },
+  "q0014": {
+    "cat": "law"
+  },
+  "q0015": {
+    "cat": "law"
+  },
+  "q0016": {
+    "cat": "law"
+  },
+  "q0017": {
+    "cat": "signal"
+  },
+  "q0018": {
+    "cat": "law"
+  },
+  "q0019": {
+    "cat": "law"
+  },
+  "q0020": {
+    "cat": "law"
+  },
+  "q0021": {
+    "cat": "law"
+  },
+  "q0022": {
+    "cat": "law"
+  },
+  "q0023": {
+    "cat": "law"
+  },
+  "q0024": {
+    "cat": "safety"
+  },
+  "q0025": {
+    "cat": "safety"
+  },
+  "q0026": {
+    "cat": "safety"
+  },
+  "q0027": {
+    "cat": "law"
+  },
+  "q0028": {
+    "cat": "law"
+  },
+  "q0029": {
+    "cat": "signal"
+  },
+  "q0030": {
+    "cat": "safety"
+  },
+  "q0031": {
+    "cat": "safety"
+  },
+  "q0032": {
+    "cat": "safety"
+  },
+  "q0033": {
+    "cat": "safety"
+  },
+  "q0034": {
+    "cat": "law"
+  },
+  "q0035": {
+    "cat": "law"
+  },
+  "q0036": {
+    "cat": "law"
+  },
+  "q0037": {
+    "cat": "law"
+  },
+  "q0038": {
+    "cat": "law"
+  },
+  "q0039": {
+    "cat": "law"
+  },
+  "q0040": {
+    "cat": "law"
+  },
+  "q0041": {
+    "cat": "law"
+  },
+  "q0042": {
+    "cat": "signal"
+  },
+  "q0043": {
+    "cat": "signal"
+  },
+  "q0044": {
+    "cat": "signal"
+  },
+  "q0045": {
+    "cat": "signal"
+  },
+  "q0046": {
+    "cat": "safety"
+  },
+  "q0047": {
+    "cat": "signal"
+  },
+  "q0048": {
+    "cat": "signal"
+  },
+  "q0049": {
+    "cat": "safety"
+  },
+  "q0050": {
+    "cat": "signal"
+  },
+  "q0051": {
+    "cat": "safety"
+  },
+  "q0052": {
+    "cat": "safety"
+  },
+  "q0053": {
+    "cat": "safety"
+  },
+  "q0054": {
+    "cat": "safety"
+  },
+  "q0055": {
+    "cat": "safety"
+  },
+  "q0056": {
+    "cat": "safety"
+  },
+  "q0057": {
+    "cat": "safety"
+  },
+  "q0058": {
+    "cat": "civility"
+  },
+  "q0059": {
+    "cat": "law"
+  },
+  "q0060": {
+    "cat": "safety"
+  },
+  "q0061": {
+    "cat": "safety"
+  },
+  "q0062": {
+    "cat": "safety"
+  },
+  "q0063": {
+    "cat": "safety"
+  },
+  "q0064": {
+    "cat": "safety"
+  },
+  "q0065": {
+    "cat": "safety"
+  },
+  "q0066": {
+    "cat": "safety"
+  },
+  "q0067": {
+    "cat": "safety"
+  },
+  "q0068": {
+    "cat": "safety"
+  },
+  "q0069": {
+    "cat": "signal"
+  },
+  "q0070": {
+    "cat": "safety"
+  },
+  "q0071": {
+    "cat": "safety"
+  },
+  "q0072": {
+    "cat": "safety"
+  },
+  "q0073": {
+    "cat": "safety"
+  },
+  "q0074": {
+    "cat": "civility"
+  },
+  "q0075": {
+    "cat": "civility"
+  },
+  "q0076": {
+    "cat": "civility"
+  },
+  "q0077": {
+    "cat": "safety"
+  },
+  "q0078": {
+    "cat": "safety"
+  },
+  "q0079": {
+    "cat": "safety"
+  },
+  "q0080": {
+    "cat": "safety"
+  },
+  "q0081": {
+    "cat": "safety"
+  },
+  "q0082": {
+    "cat": "safety"
+  },
+  "q0083": {
+    "cat": "signal"
+  },
+  "q0084": {
+    "cat": "safety"
+  },
+  "q0085": {
+    "cat": "civility"
+  },
+  "q0086": {
+    "cat": "civility"
+  },
+  "q0087": {
+    "cat": "safety"
+  },
+  "q0088": {
+    "cat": "safety"
+  },
+  "q0089": {
+    "cat": "safety"
+  },
+  "q0090": {
+    "cat": "safety"
+  },
+  "q0091": {
+    "cat": "civility"
+  },
+  "q0092": {
+    "cat": "safety"
+  },
+  "q0093": {
+    "cat": "civility"
+  },
+  "q0094": {
+    "cat": "civility"
+  },
+  "q0095": {
+    "cat": "signal"
+  },
+  "q0096": {
+    "cat": "safety"
+  },
+  "q0097": {
+    "cat": "signal"
+  },
+  "q0098": {
+    "cat": "safety"
+  },
+  "q0099": {
+    "cat": "civility"
+  },
+  "q0100": {
+    "cat": "signal"
+  },
+  "q0101": {
+    "cat": "civility"
+  },
+  "q0102": {
+    "cat": "safety"
+  },
+  "q0103": {
+    "cat": "safety"
+  },
+  "q0104": {
+    "cat": "safety"
+  },
+  "q0105": {
+    "cat": "safety"
+  },
+  "q0106": {
+    "cat": "safety"
+  },
+  "q0107": {
+    "cat": "safety"
+  },
+  "q0108": {
+    "cat": "safety"
+  },
+  "q0109": {
+    "cat": "signal"
+  },
+  "q0110": {
+    "cat": "safety"
+  },
+  "q0111": {
+    "cat": "safety"
+  },
+  "q0112": {
+    "cat": "civility"
+  },
+  "q0113": {
+    "cat": "safety"
+  },
+  "q0114": {
+    "cat": "safety"
+  },
+  "q0115": {
+    "cat": "civility"
+  },
+  "q0116": {
+    "cat": "safety"
+  },
+  "q0117": {
+    "cat": "signal"
+  },
+  "q0118": {
+    "cat": "safety"
+  },
+  "q0119": {
+    "cat": "safety"
+  },
+  "q0120": {
+    "cat": "safety"
+  },
+  "q0121": {
+    "cat": "safety"
+  },
+  "q0122": {
+    "cat": "civility"
+  },
+  "q0123": {
+    "cat": "safety"
+  },
+  "q0124": {
+    "cat": "signal"
+  },
+  "q0125": {
+    "cat": "safety"
+  },
+  "q0126": {
+    "cat": "safety"
+  },
+  "q0127": {
+    "cat": "safety"
+  },
+  "q0128": {
+    "cat": "safety"
+  },
+  "q0129": {
+    "cat": "safety"
+  },
+  "q0130": {
+    "cat": "signal"
+  },
+  "q0131": {
+    "cat": "safety"
+  },
+  "q0132": {
+    "cat": "signal"
+  },
+  "q0133": {
+    "cat": "safety"
+  },
+  "q0134": {
+    "cat": "safety"
+  },
+  "q0135": {
+    "cat": "safety"
+  },
+  "q0136": {
+    "cat": "safety"
+  },
+  "q0137": {
+    "cat": "safety"
+  },
+  "q0138": {
+    "cat": "safety"
+  },
+  "q0139": {
+    "cat": "safety"
+  },
+  "q0140": {
+    "cat": "safety"
+  },
+  "q0141": {
+    "cat": "safety"
+  },
+  "q0142": {
+    "cat": "safety"
+  },
+  "q0143": {
+    "cat": "safety"
+  },
+  "q0144": {
+    "cat": "safety"
+  },
+  "q0145": {
+    "cat": "safety"
+  },
+  "q0146": {
+    "cat": "safety"
+  },
+  "q0147": {
+    "cat": "safety"
+  },
+  "q0148": {
+    "cat": "law"
+  },
+  "q0149": {
+    "cat": "safety"
+  },
+  "q0150": {
+    "cat": "safety"
+  },
+  "q0151": {
+    "cat": "law"
+  },
+  "q0152": {
+    "cat": "law"
+  },
+  "q0153": {
+    "cat": "safety"
+  },
+  "q0154": {
+    "cat": "safety"
+  },
+  "q0155": {
+    "cat": "law"
+  },
+  "q0156": {
+    "cat": "law"
+  },
+  "q0157": {
+    "cat": "law"
+  },
+  "q0158": {
+    "cat": "safety"
+  },
+  "q0159": {
+    "cat": "safety"
+  },
+  "q0160": {
+    "cat": "civility"
+  },
+  "q0161": {
+    "cat": "civility"
+  },
+  "q0162": {
+    "cat": "safety"
+  },
+  "q0163": {
+    "cat": "safety"
+  },
+  "q0164": {
+    "cat": "safety"
+  },
+  "q0165": {
+    "cat": "law"
+  },
+  "q0166": {
+    "cat": "law"
+  },
+  "q0167": {
+    "cat": "law"
+  },
+  "q0168": {
+    "cat": "law"
+  },
+  "q0169": {
+    "cat": "law"
+  },
+  "q0170": {
+    "cat": "law"
+  },
+  "q0171": {
+    "cat": "law"
+  },
+  "q0172": {
+    "cat": "safety"
+  },
+  "q0173": {
+    "cat": "law"
+  },
+  "q0174": {
+    "cat": "law"
+  },
+  "q0175": {
+    "cat": "law"
+  },
+  "q0176": {
+    "cat": "law"
+  },
+  "q0177": {
+    "cat": "law"
+  },
+  "q0178": {
+    "cat": "law"
+  },
+  "q0179": {
+    "cat": "law"
+  },
+  "q0180": {
+    "cat": "law"
+  },
+  "q0181": {
+    "cat": "law"
+  },
+  "q0182": {
+    "cat": "law"
+  },
+  "q0183": {
+    "cat": "law"
+  },
+  "q0184": {
+    "cat": "law"
+  },
+  "q0185": {
+    "cat": "law"
+  },
+  "q0186": {
+    "cat": "law"
+  },
+  "q0187": {
+    "cat": "law"
+  },
+  "q0188": {
+    "cat": "law"
+  },
+  "q0189": {
+    "cat": "law"
+  },
+  "q0190": {
+    "cat": "law"
+  },
+  "q0191": {
+    "cat": "law"
+  },
+  "q0192": {
+    "cat": "law"
+  },
+  "q0193": {
+    "cat": "signal"
+  },
+  "q0194": {
+    "cat": "law"
+  },
+  "q0195": {
+    "cat": "law"
+  },
+  "q0196": {
+    "cat": "law"
+  },
+  "q0197": {
+    "cat": "law"
+  },
+  "q0198": {
+    "cat": "law"
+  },
+  "q0199": {
+    "cat": "law"
+  },
+  "q0200": {
+    "cat": "law"
+  },
+  "q0201": {
+    "cat": "signal"
+  },
+  "q0202": {
+    "cat": "law"
+  },
+  "q0203": {
+    "cat": "law"
+  },
+  "q0204": {
+    "cat": "law"
+  },
+  "q0205": {
+    "cat": "law"
+  },
+  "q0206": {
+    "cat": "law"
+  },
+  "q0207": {
+    "cat": "law"
+  },
+  "q0208": {
+    "cat": "law"
+  },
+  "q0209": {
+    "cat": "safety"
+  },
+  "q0210": {
+    "cat": "safety"
+  },
+  "q0211": {
+    "cat": "safety"
+  },
+  "q0212": {
+    "cat": "signal"
+  },
+  "q0213": {
+    "cat": "safety"
+  },
+  "q0214": {
+    "cat": "safety"
+  },
+  "q0215": {
+    "cat": "safety"
+  },
+  "q0216": {
+    "cat": "law"
+  },
+  "q0217": {
+    "cat": "law"
+  },
+  "q0218": {
+    "cat": "law"
+  },
+  "q0219": {
+    "cat": "law"
+  },
+  "q0220": {
+    "cat": "law"
+  },
+  "q0221": {
+    "cat": "law"
+  },
+  "q0222": {
+    "cat": "law"
+  },
+  "q0223": {
+    "cat": "safety"
+  },
+  "q0224": {
+    "cat": "law"
+  },
+  "q0225": {
+    "cat": "law"
+  },
+  "q0226": {
+    "cat": "law"
+  },
+  "q0227": {
+    "cat": "law"
+  },
+  "q0228": {
+    "cat": "law"
+  },
+  "q0229": {
+    "cat": "law"
+  },
+  "q0230": {
+    "cat": "law"
+  },
+  "q0231": {
+    "cat": "law"
+  },
+  "q0232": {
+    "cat": "safety"
+  },
+  "q0233": {
+    "cat": "safety"
+  },
+  "q0234": {
+    "cat": "law"
+  },
+  "q0235": {
+    "cat": "law"
+  },
+  "q0236": {
+    "cat": "signal"
+  },
+  "q0237": {
+    "cat": "law"
+  },
+  "q0238": {
+    "cat": "law"
+  },
+  "q0239": {
+    "cat": "law"
+  },
+  "q0240": {
+    "cat": "signal"
+  },
+  "q0241": {
+    "cat": "safety"
+  },
+  "q0242": {
+    "cat": "safety"
+  },
+  "q0243": {
+    "cat": "law"
+  },
+  "q0244": {
+    "cat": "safety"
+  },
+  "q0245": {
+    "cat": "safety"
+  },
+  "q0246": {
+    "cat": "safety"
+  },
+  "q0247": {
+    "cat": "safety"
+  },
+  "q0248": {
+    "cat": "law"
+  },
+  "q0249": {
+    "cat": "signal"
+  },
+  "q0250": {
+    "cat": "signal"
+  },
+  "q0251": {
+    "cat": "law"
+  },
+  "q0252": {
+    "cat": "law"
+  },
+  "q0253": {
+    "cat": "safety"
+  },
+  "q0254": {
+    "cat": "law"
+  },
+  "q0255": {
+    "cat": "safety"
+  },
+  "q0256": {
+    "cat": "safety"
+  },
+  "q0257": {
+    "cat": "signal"
+  },
+  "q0258": {
+    "cat": "safety"
+  },
+  "q0259": {
+    "cat": "safety"
+  },
+  "q0260": {
+    "cat": "law"
+  },
+  "q0261": {
+    "cat": "safety"
+  },
+  "q0262": {
+    "cat": "law"
+  },
+  "q0263": {
+    "cat": "law"
+  },
+  "q0264": {
+    "cat": "law"
+  },
+  "q0265": {
+    "cat": "law"
+  },
+  "q0266": {
+    "cat": "safety"
+  },
+  "q0267": {
+    "cat": "law"
+  },
+  "q0268": {
+    "cat": "signal"
+  },
+  "q0269": {
+    "cat": "law"
+  },
+  "q0270": {
+    "cat": "signal"
+  },
+  "q0271": {
+    "cat": "civility"
+  },
+  "q0272": {
+    "cat": "signal"
+  },
+  "q0273": {
+    "cat": "safety"
+  },
+  "q0274": {
+    "cat": "safety"
+  },
+  "q0275": {
+    "cat": "safety"
+  },
+  "q0276": {
+    "cat": "signal"
+  },
+  "q0277": {
+    "cat": "safety"
+  },
+  "q0278": {
+    "cat": "safety"
+  },
+  "q0279": {
+    "cat": "civility"
+  },
+  "q0280": {
+    "cat": "civility"
+  },
+  "q0281": {
+    "cat": "safety"
+  },
+  "q0282": {
+    "cat": "safety"
+  },
+  "q0283": {
+    "cat": "law"
+  },
+  "q0284": {
+    "cat": "safety"
+  },
+  "q0285": {
+    "cat": "safety"
+  },
+  "q0286": {
+    "cat": "civility"
+  },
+  "q0287": {
+    "cat": "law"
+  },
+  "q0288": {
+    "cat": "safety"
+  },
+  "q0289": {
+    "cat": "safety"
+  },
+  "q0290": {
+    "cat": "law"
+  },
+  "q0291": {
+    "cat": "law"
+  },
+  "q0292": {
+    "cat": "law"
+  },
+  "q0293": {
+    "cat": "law"
+  },
+  "q0294": {
+    "cat": "law"
+  },
+  "q0295": {
+    "cat": "law"
+  },
+  "q0296": {
+    "cat": "law"
+  },
+  "q0297": {
+    "cat": "civility"
+  },
+  "q0298": {
+    "cat": "civility"
+  },
+  "q0299": {
+    "cat": "safety"
+  },
+  "q0300": {
+    "cat": "safety"
+  },
+  "q0301": {
+    "cat": "law"
+  },
+  "q0302": {
+    "cat": "law"
+  },
+  "q0303": {
+    "cat": "law"
+  },
+  "q0304": {
+    "cat": "civility"
+  },
+  "q0305": {
+    "cat": "law"
+  },
+  "q0306": {
+    "cat": "safety"
+  },
+  "q0307": {
+    "cat": "law"
+  },
+  "q0308": {
+    "cat": "safety"
+  },
+  "q0309": {
+    "cat": "safety"
+  },
+  "q0310": {
+    "cat": "safety"
+  },
+  "q0311": {
+    "cat": "law"
+  },
+  "q0312": {
+    "cat": "law"
+  },
+  "q0313": {
+    "cat": "law"
+  },
+  "q0314": {
+    "cat": "law"
+  },
+  "q0315": {
+    "cat": "safety"
+  },
+  "q0316": {
+    "cat": "signal"
+  },
+  "q0317": {
+    "cat": "law"
+  },
+  "q0318": {
+    "cat": "law"
+  },
+  "q0319": {
+    "cat": "law"
+  },
+  "q0320": {
+    "cat": "law"
+  },
+  "q0321": {
+    "cat": "signal"
+  },
+  "q0322": {
+    "cat": "safety"
+  },
+  "q0323": {
+    "cat": "safety"
+  },
+  "q0324": {
+    "cat": "law"
+  },
+  "q0325": {
+    "cat": "law"
+  },
+  "q0326": {
+    "cat": "safety"
+  },
+  "q0327": {
+    "cat": "law"
+  },
+  "q0328": {
+    "cat": "safety"
+  },
+  "q0329": {
+    "cat": "safety"
+  },
+  "q0330": {
+    "cat": "signal"
+  },
+  "q0331": {
+    "cat": "signal"
+  },
+  "q0332": {
+    "cat": "safety"
+  },
+  "q0333": {
+    "cat": "law"
+  },
+  "q0334": {
+    "cat": "law"
+  },
+  "q0335": {
+    "cat": "law"
+  },
+  "q0336": {
+    "cat": "law"
+  },
+  "q0337": {
+    "cat": "law"
+  },
+  "q0338": {
+    "cat": "civility"
+  },
+  "q0339": {
+    "cat": "safety"
+  },
+  "q0340": {
+    "cat": "law"
+  },
+  "q0341": {
+    "cat": "law"
+  },
+  "q0342": {
+    "cat": "safety"
+  },
+  "q0343": {
+    "cat": "safety"
+  },
+  "q0344": {
+    "cat": "civility"
+  },
+  "q0345": {
+    "cat": "safety"
+  },
+  "q0346": {
+    "cat": "signal"
+  },
+  "q0347": {
+    "cat": "safety"
+  },
+  "q0348": {
+    "cat": "safety"
+  },
+  "q0349": {
+    "cat": "law"
+  },
+  "q0350": {
+    "cat": "safety"
+  },
+  "q0351": {
+    "cat": "safety"
+  },
+  "q0352": {
+    "cat": "law"
+  },
+  "q0353": {
+    "cat": "signal"
+  },
+  "q0354": {
+    "cat": "safety"
+  },
+  "q0355": {
+    "cat": "law"
+  },
+  "q0356": {
+    "cat": "law"
+  },
+  "q0357": {
+    "cat": "safety"
+  },
+  "q0358": {
+    "cat": "safety"
+  },
+  "q0359": {
+    "cat": "signal"
+  },
+  "q0360": {
+    "cat": "safety"
+  },
+  "q0361": {
+    "cat": "safety"
+  },
+  "q0362": {
+    "cat": "law"
+  },
+  "q0363": {
+    "cat": "safety"
+  },
+  "q0364": {
+    "cat": "safety"
+  },
+  "q0365": {
+    "cat": "civility"
+  },
+  "q0366": {
+    "cat": "signal"
+  },
+  "q0367": {
+    "cat": "civility"
+  },
+  "q0368": {
+    "cat": "safety"
+  },
+  "q0369": {
+    "cat": "safety"
+  },
+  "q0370": {
+    "cat": "safety"
+  },
+  "q0371": {
+    "cat": "civility"
+  },
+  "q0372": {
+    "cat": "safety"
+  },
+  "q0373": {
+    "cat": "safety"
+  },
+  "q0374": {
+    "cat": "law"
+  },
+  "q0375": {
+    "cat": "safety"
+  },
+  "q0376": {
+    "cat": "civility"
+  },
+  "q0377": {
+    "cat": "civility"
+  },
+  "q0378": {
+    "cat": "civility"
+  },
+  "q0379": {
+    "cat": "civility"
+  },
+  "q0380": {
+    "cat": "safety"
+  },
+  "q0381": {
+    "cat": "safety"
+  },
+  "q0382": {
+    "cat": "law"
+  },
+  "q0383": {
+    "cat": "signal"
+  },
+  "q0384": {
+    "cat": "law"
+  },
+  "q0385": {
+    "cat": "civility"
+  },
+  "q0386": {
+    "cat": "safety"
+  },
+  "q0387": {
+    "cat": "civility"
+  },
+  "q0388": {
+    "cat": "safety"
+  },
+  "q0389": {
+    "cat": "safety"
+  },
+  "q0390": {
+    "cat": "safety"
+  },
+  "q0391": {
+    "cat": "civility"
+  },
+  "q0392": {
+    "cat": "law"
+  },
+  "q0393": {
+    "cat": "safety"
+  },
+  "q0394": {
+    "cat": "safety"
+  },
+  "q0395": {
+    "cat": "safety"
+  },
+  "q0396": {
+    "cat": "safety"
+  },
+  "q0397": {
+    "cat": "law"
+  },
+  "q0398": {
+    "cat": "signal"
+  },
+  "q0399": {
+    "cat": "law"
+  },
+  "q0400": {
+    "cat": "signal"
+  },
+  "q0401": {
+    "cat": "civility"
+  },
+  "q0402": {
+    "cat": "law"
+  },
+  "q0403": {
+    "cat": "safety"
+  },
+  "q0404": {
+    "cat": "law"
+  },
+  "q0405": {
+    "cat": "law"
+  },
+  "q0406": {
+    "cat": "safety"
+  },
+  "q0407": {
+    "cat": "safety"
+  },
+  "q0408": {
+    "cat": "safety"
+  },
+  "q0409": {
+    "cat": "safety"
+  },
+  "q0410": {
+    "cat": "civility"
+  },
+  "q0411": {
+    "cat": "civility"
+  },
+  "q0412": {
+    "cat": "civility"
+  },
+  "q0413": {
+    "cat": "safety"
+  },
+  "q0414": {
+    "cat": "signal"
+  },
+  "q0415": {
+    "cat": "safety"
+  },
+  "q0416": {
+    "cat": "law"
+  },
+  "q0417": {
+    "cat": "safety"
+  },
+  "q0418": {
+    "cat": "signal"
+  },
+  "q0419": {
+    "cat": "civility"
+  },
+  "q0420": {
+    "cat": "law"
+  },
+  "q0421": {
+    "cat": "law"
+  },
+  "q0422": {
+    "cat": "law"
+  },
+  "q0423": {
+    "cat": "law"
+  },
+  "q0424": {
+    "cat": "safety"
+  },
+  "q0425": {
+    "cat": "signal"
+  },
+  "q0426": {
+    "cat": "law"
+  },
+  "q0427": {
+    "cat": "law"
+  },
+  "q0428": {
+    "cat": "law"
+  },
+  "q0429": {
+    "cat": "signal"
+  },
+  "q0430": {
+    "cat": "law"
+  },
+  "q0431": {
+    "cat": "law"
+  },
+  "q0432": {
+    "cat": "law"
+  },
+  "q0433": {
+    "cat": "law"
+  },
+  "q0434": {
+    "cat": "civility"
+  },
+  "q0435": {
+    "cat": "safety"
+  },
+  "q0436": {
+    "cat": "civility"
+  },
+  "q0437": {
+    "cat": "signal"
+  },
+  "q0438": {
+    "cat": "safety"
+  },
+  "q0439": {
+    "cat": "law"
+  },
+  "q0440": {
+    "cat": "safety"
+  },
+  "q0441": {
+    "cat": "signal"
+  },
+  "q0442": {
+    "cat": "law"
+  },
+  "q0443": {
+    "cat": "safety"
+  },
+  "q0444": {
+    "cat": "civility"
+  },
+  "q0445": {
+    "cat": "law"
+  },
+  "q0446": {
+    "cat": "safety"
+  },
+  "q0447": {
+    "cat": "law"
+  },
+  "q0448": {
+    "cat": "signal"
+  },
+  "q0449": {
+    "cat": "law"
+  },
+  "q0450": {
+    "cat": "safety"
+  },
+  "q0451": {
+    "cat": "signal"
+  },
+  "q0452": {
+    "cat": "law"
+  },
+  "q0453": {
+    "cat": "law"
+  },
+  "q0454": {
+    "cat": "law"
+  },
+  "q0455": {
+    "cat": "law"
+  },
+  "q0456": {
+    "cat": "civility"
+  },
+  "q0457": {
+    "cat": "safety"
+  },
+  "q0458": {
+    "cat": "law"
+  },
+  "q0459": {
+    "cat": "safety"
+  },
+  "q0460": {
+    "cat": "civility"
+  },
+  "q0461": {
+    "cat": "law"
+  },
+  "q0462": {
+    "cat": "safety"
+  },
+  "q0463": {
+    "cat": "law"
+  },
+  "q0464": {
+    "cat": "law"
+  },
+  "q0465": {
+    "cat": "law"
+  },
+  "q0466": {
+    "cat": "law"
+  },
+  "q0467": {
+    "cat": "law"
+  },
+  "q0468": {
+    "cat": "signal"
+  },
+  "q0469": {
+    "cat": "safety"
+  },
+  "q0470": {
+    "cat": "law"
+  },
+  "q0471": {
+    "cat": "safety"
+  },
+  "q0472": {
+    "cat": "law"
+  },
+  "q0473": {
+    "cat": "safety"
+  },
+  "q0474": {
+    "cat": "signal"
+  },
+  "q0475": {
+    "cat": "law"
+  },
+  "q0476": {
+    "cat": "law"
+  },
+  "q0477": {
+    "cat": "law"
+  },
+  "q0478": {
+    "cat": "law"
+  },
+  "q0479": {
+    "cat": "law"
+  },
+  "q0480": {
+    "cat": "law"
+  },
+  "q0481": {
+    "cat": "law"
+  },
+  "q0482": {
+    "cat": "law"
+  },
+  "q0483": {
+    "cat": "law"
+  },
+  "q0484": {
+    "cat": "safety"
+  },
+  "q0485": {
+    "cat": "safety"
+  },
+  "q0486": {
+    "cat": "safety"
+  },
+  "q0487": {
+    "cat": "signal"
+  },
+  "q0488": {
+    "cat": "safety"
+  },
+  "q0489": {
+    "cat": "civility"
+  },
+  "q0490": {
+    "cat": "law"
+  },
+  "q0491": {
+    "cat": "safety"
+  },
+  "q0492": {
+    "cat": "safety"
+  },
+  "q0493": {
+    "cat": "safety"
+  },
+  "q0494": {
+    "cat": "law"
+  },
+  "q0495": {
+    "cat": "safety"
+  },
+  "q0496": {
+    "cat": "law"
+  },
+  "q0497": {
+    "cat": "law"
+  },
+  "q0498": {
+    "cat": "civility"
+  },
+  "q0499": {
+    "cat": "safety"
+  },
+  "q0500": {
+    "cat": "law"
+  },
+  "q0501": {
+    "cat": "safety"
+  },
+  "q0502": {
+    "cat": "safety"
+  },
+  "q0503": {
+    "cat": "safety"
+  },
+  "q0504": {
+    "cat": "law"
+  },
+  "q0505": {
+    "cat": "law"
+  },
+  "q0506": {
+    "cat": "signal"
+  },
+  "q0507": {
+    "cat": "signal"
+  },
+  "q0508": {
+    "cat": "civility"
+  },
+  "q0509": {
+    "cat": "safety"
+  },
+  "q0510": {
+    "cat": "safety"
+  },
+  "q0511": {
+    "cat": "law"
+  },
+  "q0512": {
+    "cat": "law"
+  },
+  "q0513": {
+    "cat": "law"
+  },
+  "q0514": {
+    "cat": "law"
+  },
+  "q0515": {
+    "cat": "law"
+  },
+  "q0516": {
+    "cat": "safety"
+  },
+  "q0517": {
+    "cat": "law"
+  },
+  "q0518": {
+    "cat": "safety"
+  },
+  "q0519": {
+    "cat": "law"
+  },
+  "q0520": {
+    "cat": "safety"
+  },
+  "q0521": {
+    "cat": "law"
+  },
+  "q0522": {
+    "cat": "signal"
+  },
+  "q0523": {
+    "cat": "law"
+  },
+  "q0524": {
+    "cat": "safety"
+  },
+  "q0525": {
+    "cat": "safety"
+  },
+  "q0526": {
+    "cat": "safety"
+  },
+  "q0527": {
+    "cat": "safety"
+  },
+  "q0528": {
+    "cat": "civility"
+  },
+  "q0529": {
+    "cat": "safety"
+  },
+  "q0530": {
+    "cat": "safety"
+  },
+  "q0531": {
+    "cat": "law"
+  },
+  "q0532": {
+    "cat": "safety"
+  },
+  "q0533": {
+    "cat": "safety"
+  },
+  "q0534": {
+    "cat": "signal"
+  },
+  "q0535": {
+    "cat": "civility"
+  },
+  "q0536": {
+    "cat": "safety"
+  },
+  "q0537": {
+    "cat": "safety"
+  },
+  "q0538": {
+    "cat": "law"
+  },
+  "q0539": {
+    "cat": "safety"
+  },
+  "q0540": {
+    "cat": "safety"
+  },
+  "q0541": {
+    "cat": "safety"
+  },
+  "q0542": {
+    "cat": "signal"
+  },
+  "q0543": {
+    "cat": "safety"
+  },
+  "q0544": {
+    "cat": "safety"
+  },
+  "q0545": {
+    "cat": "safety"
+  },
+  "q0546": {
+    "cat": "law"
+  },
+  "q0547": {
+    "cat": "safety"
+  },
+  "q0548": {
+    "cat": "safety"
+  },
+  "q0549": {
+    "cat": "law"
+  },
+  "q0550": {
+    "cat": "law"
+  },
+  "q0551": {
+    "cat": "law"
+  },
+  "q0552": {
+    "cat": "law"
+  },
+  "q0553": {
+    "cat": "law"
+  },
+  "q0554": {
+    "cat": "civility"
+  },
+  "q0555": {
+    "cat": "law"
+  },
+  "q0556": {
+    "cat": "safety"
+  },
+  "q0557": {
+    "cat": "safety"
+  },
+  "q0558": {
+    "cat": "safety"
+  },
+  "q0559": {
+    "cat": "signal"
+  },
+  "q0560": {
+    "cat": "signal"
+  },
+  "q0561": {
+    "cat": "signal"
+  },
+  "q0562": {
+    "cat": "signal"
+  },
+  "q0563": {
+    "cat": "signal"
+  },
+  "q0564": {
+    "cat": "signal"
+  },
+  "q0565": {
+    "cat": "safety"
+  },
+  "q0566": {
+    "cat": "signal"
+  },
+  "q0567": {
+    "cat": "safety"
+  },
+  "q0568": {
+    "cat": "signal"
+  },
+  "q0569": {
+    "cat": "signal"
+  },
+  "q0570": {
+    "cat": "signal"
+  },
+  "q0571": {
+    "cat": "signal"
+  },
+  "q0572": {
+    "cat": "signal"
+  },
+  "q0573": {
+    "cat": "signal"
+  },
+  "q0574": {
+    "cat": "safety"
+  },
+  "q0575": {
+    "cat": "signal"
+  },
+  "q0576": {
+    "cat": "signal"
+  },
+  "q0577": {
+    "cat": "civility"
+  },
+  "q0578": {
+    "cat": "civility"
+  },
+  "q0579": {
+    "cat": "safety"
+  },
+  "q0580": {
+    "cat": "safety"
+  },
+  "q0581": {
+    "cat": "safety"
+  },
+  "q0582": {
+    "cat": "civility"
+  },
+  "q0583": {
+    "cat": "safety"
+  },
+  "q0584": {
+    "cat": "safety"
+  },
+  "q0585": {
+    "cat": "safety"
+  },
+  "q0586": {
+    "cat": "safety"
+  },
+  "q0587": {
+    "cat": "safety"
+  },
+  "q0588": {
+    "cat": "signal"
+  },
+  "q0589": {
+    "cat": "safety"
+  },
+  "q0590": {
+    "cat": "safety"
+  },
+  "q0591": {
+    "cat": "safety"
+  },
+  "q0592": {
+    "cat": "safety"
+  },
+  "q0593": {
+    "cat": "safety"
+  },
+  "q0594": {
+    "cat": "safety"
+  },
+  "q0595": {
+    "cat": "safety"
+  },
+  "q0596": {
+    "cat": "safety"
+  },
+  "q0597": {
+    "cat": "safety"
+  },
+  "q0598": {
+    "cat": "civility"
+  },
+  "q0599": {
+    "cat": "civility"
+  },
+  "q0600": {
+    "cat": "civility"
+  },
+  "q0601": {
+    "cat": "civility"
+  },
+  "q0602": {
+    "cat": "civility"
+  },
+  "q0603": {
+    "cat": "civility"
+  },
+  "q0604": {
+    "cat": "civility"
+  },
+  "q0605": {
+    "cat": "civility"
+  },
+  "q0606": {
+    "cat": "civility"
+  },
+  "q0607": {
+    "cat": "safety"
+  },
+  "q0608": {
+    "cat": "safety"
+  },
+  "q0609": {
+    "cat": "law"
+  },
+  "q0610": {
+    "cat": "safety"
+  },
+  "q0611": {
+    "cat": "safety"
+  },
+  "q0612": {
+    "cat": "safety"
+  },
+  "q0613": {
+    "cat": "safety"
+  },
+  "q0614": {
+    "cat": "civility"
+  },
+  "q0615": {
+    "cat": "safety"
+  },
+  "q0616": {
+    "cat": "safety"
+  },
+  "q0617": {
+    "cat": "safety"
+  },
+  "q0618": {
+    "cat": "safety"
+  },
+  "q0619": {
+    "cat": "civility"
+  },
+  "q0620": {
+    "cat": "civility"
+  },
+  "q0621": {
+    "cat": "signal"
+  },
+  "q0622": {
+    "cat": "civility"
+  },
+  "q0623": {
+    "cat": "civility"
+  },
+  "q0624": {
+    "cat": "signal"
+  },
+  "q0625": {
+    "cat": "civility"
+  },
+  "q0626": {
+    "cat": "civility"
+  },
+  "q0627": {
+    "cat": "safety"
+  },
+  "q0628": {
+    "cat": "safety"
+  },
+  "q0629": {
+    "cat": "safety"
+  },
+  "q0630": {
+    "cat": "safety"
+  },
+  "q0631": {
+    "cat": "civility"
+  },
+  "q0632": {
+    "cat": "signal"
+  },
+  "q0633": {
+    "cat": "safety"
+  },
+  "q0634": {
+    "cat": "safety"
+  },
+  "q0635": {
+    "cat": "civility"
+  },
+  "q0636": {
+    "cat": "civility"
+  },
+  "q0637": {
+    "cat": "civility"
+  },
+  "q0638": {
+    "cat": "civility"
+  },
+  "q0639": {
+    "cat": "civility"
+  },
+  "q0640": {
+    "cat": "civility"
+  },
+  "q0641": {
+    "cat": "civility"
+  },
+  "q0642": {
+    "cat": "safety"
+  },
+  "q0643": {
+    "cat": "civility"
+  },
+  "q0644": {
+    "cat": "civility"
+  },
+  "q0645": {
+    "cat": "signal"
+  },
+  "q0646": {
+    "cat": "safety"
+  },
+  "q0647": {
+    "cat": "safety"
+  },
+  "q0648": {
+    "cat": "safety"
+  },
+  "q0649": {
+    "cat": "signal"
+  },
+  "q0650": {
+    "cat": "civility"
+  },
+  "q0651": {
+    "cat": "civility"
+  },
+  "q0652": {
+    "cat": "signal"
+  },
+  "q0653": {
+    "cat": "safety"
+  },
+  "q0654": {
+    "cat": "safety"
+  },
+  "q0655": {
+    "cat": "safety"
+  },
+  "q0656": {
+    "cat": "safety"
+  },
+  "q0657": {
+    "cat": "safety"
+  },
+  "q0658": {
+    "cat": "safety"
+  },
+  "q0659": {
+    "cat": "civility"
+  },
+  "q0660": {
+    "cat": "safety"
+  },
+  "q0661": {
+    "cat": "safety"
+  },
+  "q0662": {
+    "cat": "civility"
+  },
+  "q0663": {
+    "cat": "safety"
+  },
+  "q0664": {
+    "cat": "safety"
+  },
+  "q0665": {
+    "cat": "safety"
+  },
+  "q0666": {
+    "cat": "safety"
+  },
+  "q0667": {
+    "cat": "safety"
+  },
+  "q0668": {
+    "cat": "safety"
+  },
+  "q0669": {
+    "cat": "signal"
+  },
+  "q0670": {
+    "cat": "safety"
+  },
+  "q0671": {
+    "cat": "civility"
+  },
+  "q0672": {
+    "cat": "civility"
+  },
+  "q0673": {
+    "cat": "signal"
+  },
+  "q0674": {
+    "cat": "safety"
+  },
+  "q0675": {
+    "cat": "civility"
+  },
+  "q0676": {
+    "cat": "safety"
+  },
+  "q0677": {
+    "cat": "civility"
+  },
+  "q0678": {
+    "cat": "safety"
+  },
+  "q0679": {
+    "cat": "signal"
+  },
+  "q0680": {
+    "cat": "safety"
+  },
+  "q0681": {
+    "cat": "safety"
+  },
+  "q0682": {
+    "cat": "signal"
+  },
+  "q0683": {
+    "cat": "signal"
+  },
+  "q0684": {
+    "cat": "safety"
+  },
+  "q0685": {
+    "cat": "safety"
+  },
+  "q0686": {
+    "cat": "signal"
+  },
+  "q0687": {
+    "cat": "signal"
+  },
+  "q0688": {
+    "cat": "safety"
+  },
+  "q0689": {
+    "cat": "safety"
+  },
+  "q0690": {
+    "cat": "safety"
+  },
+  "q0691": {
+    "cat": "safety"
+  },
+  "q0692": {
+    "cat": "safety"
+  },
+  "q0693": {
+    "cat": "safety"
+  },
+  "q0694": {
+    "cat": "safety"
+  },
+  "q0695": {
+    "cat": "safety"
+  },
+  "q0696": {
+    "cat": "safety"
+  },
+  "q0697": {
+    "cat": "safety"
+  },
+  "q0698": {
+    "cat": "safety"
+  },
+  "q0699": {
+    "cat": "safety"
+  },
+  "q0700": {
+    "cat": "safety"
+  },
+  "q0701": {
+    "cat": "safety"
+  },
+  "q0702": {
+    "cat": "civility"
+  },
+  "q0703": {
+    "cat": "safety"
+  },
+  "q0704": {
+    "cat": "safety"
+  },
+  "q0705": {
+    "cat": "safety"
+  },
+  "q0706": {
+    "cat": "law"
+  },
+  "q0707": {
+    "cat": "safety"
+  },
+  "q0708": {
+    "cat": "safety"
+  },
+  "q0709": {
+    "cat": "safety"
+  },
+  "q0710": {
+    "cat": "safety"
+  },
+  "q0711": {
+    "cat": "safety"
+  },
+  "q0712": {
+    "cat": "safety"
+  },
+  "q0713": {
+    "cat": "civility"
+  },
+  "q0714": {
+    "cat": "safety"
+  },
+  "q0715": {
+    "cat": "safety"
+  },
+  "q0716": {
+    "cat": "safety"
+  },
+  "q0717": {
+    "cat": "civility"
+  },
+  "q0718": {
+    "cat": "safety"
+  },
+  "q0719": {
+    "cat": "safety"
+  },
+  "q0720": {
+    "cat": "civility"
+  },
+  "q0721": {
+    "cat": "safety"
+  },
+  "q0722": {
+    "cat": "safety"
+  },
+  "q0723": {
+    "cat": "safety"
+  },
+  "q0724": {
+    "cat": "civility"
+  },
+  "q0725": {
+    "cat": "safety"
+  },
+  "q0726": {
+    "cat": "civility"
+  },
+  "q0727": {
+    "cat": "safety"
+  },
+  "q0728": {
+    "cat": "safety"
+  },
+  "q0729": {
+    "cat": "safety"
+  },
+  "q0730": {
+    "cat": "safety"
+  },
+  "q0731": {
+    "cat": "safety"
+  },
+  "q0732": {
+    "cat": "civility"
+  },
+  "q0733": {
+    "cat": "civility"
+  },
+  "q0734": {
+    "cat": "signal"
+  },
+  "q0735": {
+    "cat": "safety"
+  },
+  "q0736": {
+    "cat": "civility"
+  },
+  "q0737": {
+    "cat": "safety"
+  },
+  "q0738": {
+    "cat": "safety"
+  },
+  "q0739": {
+    "cat": "civility"
+  },
+  "q0740": {
+    "cat": "safety"
+  },
+  "q0741": {
+    "cat": "safety"
+  },
+  "q0742": {
+    "cat": "civility"
+  },
+  "q0743": {
+    "cat": "safety"
+  },
+  "q0744": {
+    "cat": "civility"
+  },
+  "q0745": {
+    "cat": "safety"
+  },
+  "q0746": {
+    "cat": "civility"
+  },
+  "q0747": {
+    "cat": "safety"
+  },
+  "q0748": {
+    "cat": "safety"
+  },
+  "q0749": {
+    "cat": "safety"
+  },
+  "q0750": {
+    "cat": "safety"
+  },
+  "q0751": {
+    "cat": "safety"
+  },
+  "q0752": {
+    "cat": "safety"
+  },
+  "q0753": {
+    "cat": "safety"
+  },
+  "q0754": {
+    "cat": "safety"
+  },
+  "q0755": {
+    "cat": "safety"
+  },
+  "q0756": {
+    "cat": "safety"
+  },
+  "q0757": {
+    "cat": "safety"
+  },
+  "q0758": {
+    "cat": "safety"
+  },
+  "q0759": {
+    "cat": "safety"
+  },
+  "q0760": {
+    "cat": "safety"
+  },
+  "q0761": {
+    "cat": "safety"
+  },
+  "q0762": {
+    "cat": "safety"
+  },
+  "q0763": {
+    "cat": "safety"
+  },
+  "q0764": {
+    "cat": "civility"
+  },
+  "q0765": {
+    "cat": "civility"
+  },
+  "q0766": {
+    "cat": "safety"
+  },
+  "q0767": {
+    "cat": "safety"
+  },
+  "q0768": {
+    "cat": "safety"
+  },
+  "q0769": {
+    "cat": "civility"
+  },
+  "q0770": {
+    "cat": "civility"
+  },
+  "q0771": {
+    "cat": "civility"
+  },
+  "q0772": {
+    "cat": "safety"
+  },
+  "q0773": {
+    "cat": "safety"
+  },
+  "q0774": {
+    "cat": "civility"
+  },
+  "q0775": {
+    "cat": "civility"
+  },
+  "q0776": {
+    "cat": "safety"
+  },
+  "q0777": {
+    "cat": "civility"
+  },
+  "q0778": {
+    "cat": "safety"
+  },
+  "q0779": {
+    "cat": "safety"
+  },
+  "q0780": {
+    "cat": "signal"
+  },
+  "q0781": {
+    "cat": "law"
+  },
+  "q0782": {
+    "cat": "law"
+  },
+  "q0783": {
+    "cat": "safety"
+  },
+  "q0784": {
+    "cat": "law"
+  },
+  "q0785": {
+    "cat": "signal"
+  },
+  "q0786": {
+    "cat": "law"
+  },
+  "q0787": {
+    "cat": "safety"
+  },
+  "q0788": {
+    "cat": "law"
+  },
+  "q0789": {
+    "cat": "safety"
+  },
+  "q0790": {
+    "cat": "safety"
+  },
+  "q0791": {
+    "cat": "safety"
+  },
+  "q0792": {
+    "cat": "safety"
+  },
+  "q0793": {
+    "cat": "signal"
+  },
+  "q0794": {
+    "cat": "civility"
+  },
+  "q0795": {
+    "cat": "safety"
+  },
+  "q0796": {
+    "cat": "safety"
+  },
+  "q0797": {
+    "cat": "safety"
+  },
+  "q0798": {
+    "cat": "safety"
+  },
+  "q0799": {
+    "cat": "safety"
+  },
+  "q0800": {
+    "cat": "safety"
+  },
+  "q0801": {
+    "cat": "safety"
+  },
+  "q0802": {
+    "cat": "civility"
+  },
+  "q0803": {
+    "cat": "safety"
+  },
+  "q0804": {
+    "cat": "signal"
+  },
+  "q0805": {
+    "cat": "safety"
+  },
+  "q0806": {
+    "cat": "safety"
+  },
+  "q0807": {
+    "cat": "law"
+  },
+  "q0808": {
+    "cat": "law"
+  },
+  "q0809": {
+    "cat": "law"
+  },
+  "q0810": {
+    "cat": "law"
+  },
+  "q0811": {
+    "cat": "law"
+  },
+  "q0812": {
+    "cat": "safety"
+  },
+  "q0813": {
+    "cat": "law"
+  },
+  "q0814": {
+    "cat": "safety"
+  },
+  "q0815": {
+    "cat": "safety"
+  },
+  "q0816": {
+    "cat": "civility"
+  },
+  "q0817": {
+    "cat": "signal"
+  },
+  "q0818": {
+    "cat": "law"
+  },
+  "q0819": {
+    "cat": "law"
+  },
+  "q0820": {
+    "cat": "safety"
+  },
+  "q0821": {
+    "cat": "safety"
+  },
+  "q0822": {
+    "cat": "safety"
+  },
+  "q0823": {
+    "cat": "civility"
+  },
+  "q0824": {
+    "cat": "safety"
+  },
+  "q0825": {
+    "cat": "civility"
+  },
+  "q0826": {
+    "cat": "civility"
+  },
+  "q0827": {
+    "cat": "safety"
+  },
+  "q0828": {
+    "cat": "safety"
+  },
+  "q0829": {
+    "cat": "safety"
+  },
+  "q0830": {
+    "cat": "safety"
+  },
+  "q0831": {
+    "cat": "safety"
+  },
+  "q0832": {
+    "cat": "signal"
+  },
+  "q0833": {
+    "cat": "safety"
+  },
+  "q0834": {
+    "cat": "safety"
+  },
+  "q0835": {
+    "cat": "safety"
+  },
+  "q0836": {
+    "cat": "civility"
+  },
+  "q0837": {
+    "cat": "safety"
+  },
+  "q0838": {
+    "cat": "safety"
+  },
+  "q0839": {
+    "cat": "signal"
+  },
+  "q0840": {
+    "cat": "signal"
+  },
+  "q0841": {
+    "cat": "safety"
+  },
+  "q0842": {
+    "cat": "safety"
+  },
+  "q0843": {
+    "cat": "safety"
+  },
+  "q0844": {
+    "cat": "safety"
+  },
+  "q0845": {
+    "cat": "safety"
+  },
+  "q0846": {
+    "cat": "safety"
+  },
+  "q0847": {
+    "cat": "civility"
+  },
+  "q0848": {
+    "cat": "signal"
+  },
+  "q0849": {
+    "cat": "safety"
+  },
+  "q0850": {
+    "cat": "signal"
+  },
+  "q0851": {
+    "cat": "safety"
+  },
+  "q0852": {
+    "cat": "safety"
+  },
+  "q0853": {
+    "cat": "civility"
+  },
+  "q0854": {
+    "cat": "safety"
+  },
+  "q0855": {
+    "cat": "safety"
+  },
+  "q0856": {
+    "cat": "safety"
+  },
+  "q0857": {
+    "cat": "civility"
+  },
+  "q0858": {
+    "cat": "safety"
+  },
+  "q0859": {
+    "cat": "safety"
+  },
+  "q0860": {
+    "cat": "safety"
+  },
+  "q0861": {
+    "cat": "safety"
+  },
+  "q0862": {
+    "cat": "safety"
+  },
+  "q0863": {
+    "cat": "civility"
+  },
+  "q0864": {
+    "cat": "safety"
+  },
+  "q0865": {
+    "cat": "civility"
+  },
+  "q0866": {
+    "cat": "safety"
+  },
+  "q0867": {
+    "cat": "signal"
+  },
+  "q0868": {
+    "cat": "safety"
+  },
+  "q0869": {
+    "cat": "safety"
+  },
+  "q0870": {
+    "cat": "safety"
+  },
+  "q0871": {
+    "cat": "safety"
+  },
+  "q0872": {
+    "cat": "signal"
+  },
+  "q0873": {
+    "cat": "law"
+  },
+  "q0874": {
+    "cat": "safety"
+  },
+  "q0875": {
+    "cat": "safety"
+  },
+  "q0876": {
+    "cat": "civility"
+  },
+  "q0877": {
+    "cat": "safety"
+  },
+  "q0878": {
+    "cat": "safety"
+  },
+  "q0879": {
+    "cat": "signal"
+  },
+  "q0880": {
+    "cat": "safety"
+  },
+  "q0881": {
+    "cat": "safety"
+  },
+  "q0882": {
+    "cat": "safety"
+  },
+  "q0883": {
+    "cat": "safety"
+  },
+  "q0884": {
+    "cat": "safety"
+  },
+  "q0885": {
+    "cat": "safety"
+  },
+  "q0886": {
+    "cat": "safety"
+  },
+  "q0887": {
+    "cat": "safety"
+  },
+  "q0888": {
+    "cat": "civility"
+  },
+  "q0889": {
+    "cat": "signal"
+  },
+  "q0890": {
+    "cat": "safety"
+  },
+  "q0891": {
+    "cat": "civility"
+  },
+  "q0892": {
+    "cat": "safety"
+  },
+  "q0893": {
+    "cat": "safety"
+  },
+  "q0894": {
+    "cat": "safety"
+  },
+  "q0895": {
+    "cat": "safety"
+  },
+  "q0896": {
+    "cat": "safety"
+  },
+  "q0897": {
+    "cat": "safety"
+  },
+  "q0898": {
+    "cat": "signal"
+  },
+  "q0899": {
+    "cat": "signal"
+  },
+  "q0900": {
+    "cat": "law"
+  },
+  "q0901": {
+    "cat": "safety"
+  },
+  "q0902": {
+    "cat": "safety"
+  },
+  "q0903": {
+    "cat": "safety"
+  },
+  "q0904": {
+    "cat": "civility"
+  },
+  "q0905": {
+    "cat": "safety"
+  },
+  "q0906": {
+    "cat": "safety"
+  },
+  "q0907": {
+    "cat": "safety"
+  },
+  "q0908": {
+    "cat": "civility"
+  },
+  "q0909": {
+    "cat": "safety"
+  },
+  "q0910": {
+    "cat": "safety"
+  },
+  "q0911": {
+    "cat": "safety"
+  },
+  "q0912": {
+    "cat": "law"
+  },
+  "q0913": {
+    "cat": "safety"
+  },
+  "q0914": {
+    "cat": "safety"
+  },
+  "q0915": {
+    "cat": "safety"
+  },
+  "q0916": {
+    "cat": "civility"
+  },
+  "q0917": {
+    "cat": "civility"
+  },
+  "q0918": {
+    "cat": "safety"
+  },
+  "q0919": {
+    "cat": "safety"
+  },
+  "q0920": {
+    "cat": "safety"
+  },
+  "q0921": {
+    "cat": "signal"
+  },
+  "q0922": {
+    "cat": "safety"
+  },
+  "q0923": {
+    "cat": "safety"
+  },
+  "q0924": {
+    "cat": "safety"
+  },
+  "q0925": {
+    "cat": "safety"
+  },
+  "q0926": {
+    "cat": "safety"
+  },
+  "q0927": {
+    "cat": "safety"
+  },
+  "q0928": {
+    "cat": "safety"
+  },
+  "q0929": {
+    "cat": "safety"
+  },
+  "q0930": {
+    "cat": "safety"
+  },
+  "q0931": {
+    "cat": "safety"
+  },
+  "q0932": {
+    "cat": "safety"
+  },
+  "q0933": {
+    "cat": "safety"
+  },
+  "q0934": {
+    "cat": "safety"
+  },
+  "q0935": {
+    "cat": "safety"
+  },
+  "q0936": {
+    "cat": "safety"
+  },
+  "q0937": {
+    "cat": "safety"
+  },
+  "q0938": {
+    "cat": "civility"
+  },
+  "q0939": {
+    "cat": "safety"
+  },
+  "q0940": {
+    "cat": "safety"
+  },
+  "q0941": {
+    "cat": "safety"
+  },
+  "q0942": {
+    "cat": "safety"
+  },
+  "q0943": {
+    "cat": "safety"
+  },
+  "q0944": {
+    "cat": "safety"
+  },
+  "q0945": {
+    "cat": "safety"
+  },
+  "q0946": {
+    "cat": "safety"
+  },
+  "q0947": {
+    "cat": "safety"
+  },
+  "q0948": {
+    "cat": "safety"
+  },
+  "q0949": {
+    "cat": "safety"
+  },
+  "q0950": {
+    "cat": "safety"
+  },
+  "q0951": {
+    "cat": "safety"
+  },
+  "q0952": {
+    "cat": "safety"
+  },
+  "q0953": {
+    "cat": "safety"
+  },
+  "q0954": {
+    "cat": "safety"
+  },
+  "q0955": {
+    "cat": "safety"
+  },
+  "q0956": {
+    "cat": "safety"
+  },
+  "q0957": {
+    "cat": "safety"
+  },
+  "q0958": {
+    "cat": "safety"
+  },
+  "q0959": {
+    "cat": "safety"
+  },
+  "q0960": {
+    "cat": "safety"
+  },
+  "q0961": {
+    "cat": "safety"
+  },
+  "q0962": {
+    "cat": "safety"
+  },
+  "q0963": {
+    "cat": "safety"
+  },
+  "q0964": {
+    "cat": "safety"
+  },
+  "q0965": {
+    "cat": "safety"
+  },
+  "q0966": {
+    "cat": "safety"
+  },
+  "q0967": {
+    "cat": "safety"
+  },
+  "q0968": {
+    "cat": "safety"
+  },
+  "q0969": {
+    "cat": "safety"
+  },
+  "q0970": {
+    "cat": "safety"
+  },
+  "q0971": {
+    "cat": "safety"
+  },
+  "q0972": {
+    "cat": "safety"
+  },
+  "q0973": {
+    "cat": "safety"
+  },
+  "q0974": {
+    "cat": "safety"
+  },
+  "q0975": {
+    "cat": "safety"
+  },
+  "q0976": {
+    "cat": "safety"
+  },
+  "q0977": {
+    "cat": "law"
+  },
+  "q0978": {
+    "cat": "safety"
+  },
+  "q0979": {
+    "cat": "law"
+  },
+  "q0980": {
+    "cat": "safety"
+  },
+  "q0981": {
+    "cat": "signal"
+  },
+  "q0982": {
+    "cat": "safety"
+  },
+  "q0983": {
+    "cat": "safety"
+  },
+  "q0984": {
+    "cat": "safety"
+  },
+  "q0985": {
+    "cat": "civility"
+  },
+  "q0986": {
+    "cat": "safety"
+  },
+  "q0987": {
+    "cat": "signal"
+  },
+  "q0988": {
+    "cat": "safety"
+  },
+  "q0989": {
+    "cat": "law"
+  },
+  "q0990": {
+    "cat": "law"
+  },
+  "q0991": {
+    "cat": "law"
+  },
+  "q0992": {
+    "cat": "safety"
+  },
+  "q0993": {
+    "cat": "safety"
+  },
+  "q0994": {
+    "cat": "safety"
+  },
+  "q0995": {
+    "cat": "law"
+  },
+  "q0996": {
+    "cat": "safety"
+  },
+  "q0997": {
+    "cat": "safety"
+  },
+  "q0998": {
+    "cat": "safety"
+  },
+  "q0999": {
+    "cat": "safety"
+  },
+  "q1000": {
+    "cat": "safety"
+  },
+  "q1001": {
+    "cat": "signal"
+  },
+  "q1002": {
+    "cat": "civility"
+  },
+  "q1003": {
+    "cat": "safety"
+  },
+  "q1004": {
+    "cat": "safety"
+  },
+  "q1005": {
+    "cat": "safety"
+  },
+  "q1006": {
+    "cat": "safety"
+  },
+  "q1007": {
+    "cat": "signal"
+  },
+  "q1008": {
+    "cat": "safety"
+  },
+  "q1009": {
+    "cat": "signal"
+  },
+  "q1010": {
+    "cat": "safety"
+  },
+  "q1011": {
+    "cat": "safety"
+  },
+  "q1012": {
+    "cat": "safety"
+  },
+  "q1013": {
+    "cat": "safety"
+  },
+  "q1014": {
+    "cat": "signal"
+  },
+  "q1015": {
+    "cat": "signal"
+  },
+  "q1016": {
+    "cat": "civility"
+  },
+  "q1017": {
+    "cat": "civility"
+  },
+  "q1018": {
+    "cat": "safety"
+  },
+  "q1019": {
+    "cat": "safety"
+  },
+  "q1020": {
+    "cat": "safety"
+  },
+  "q1021": {
+    "cat": "safety"
+  },
+  "q1022": {
+    "cat": "safety"
+  },
+  "q1023": {
+    "cat": "safety"
+  },
+  "q1024": {
+    "cat": "safety"
+  },
+  "q1025": {
+    "cat": "signal"
+  },
+  "q1026": {
+    "cat": "signal"
+  },
+  "q1027": {
+    "cat": "safety"
+  },
+  "q1028": {
+    "cat": "law"
+  },
+  "q1029": {
+    "cat": "safety"
+  },
+  "q1030": {
+    "cat": "safety"
+  },
+  "q1031": {
+    "cat": "safety"
+  },
+  "q1032": {
+    "cat": "safety"
+  },
+  "q1033": {
+    "cat": "law"
+  },
+  "q1034": {
+    "cat": "safety"
+  }
+}
