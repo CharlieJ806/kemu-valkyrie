@@ -1,10 +1,10 @@
 import type { MapNode, MetaState, RunState } from "./types";
 import { cardFromIdList } from "./cards";
 
-/** 沿用本地版(localStorage)键名,保证老存档可读 */
-export const META_KEY = "dungeonDrive_meta";
-export const RUN_KEY = "dungeonDrive_save";
-export const IMPORTED_KEY = "dungeonDrive_importedQuestions";
+/** 新游戏独立存档键(与旧项目 dungeonDrive_* 不串档) */
+export const META_KEY = "kemuValkyrie_meta";
+export const RUN_KEY = "kemuValkyrie_save";
+export const IMPORTED_KEY = "kemuValkyrie_importedQuestions";
 
 export function defaultPokeBalls() {
   return { normal: 3, great: 0, ultra: 0, beast: 0, master: 0 };

@@ -13,3 +13,7 @@ scripts/shots/
 
 # 环境变量
 .env*
+
+# 角色立绘原始素材(AI生成稿,处理后进 public/art/valkyrie/)
+resource/
+resource/

@@ -1,9 +1,11 @@
 import {
   GAME_RULES,
-  PKM_BST,
+  MONSTERS,
   POKEMON,
+  VALKYRIES_BY_ID,
   type Pokemon,
   type Rarity,
+  type Valkyrie,
 } from "@/data";
 import { RARITY_CAPTURE, RARITY_DMG_MULT, RARITY_HP_MULT } from "@/data/constants";
 import type { NodeType } from "./types";
@@ -19,7 +21,7 @@ export const RARITY_CSS: Record<Rarity, string> = {
 };
 
 export const PKMN_BY_ID: Record<number, Pokemon> = {};
-for (const p of POKEMON) {
+for (const p of [...POKEMON, ...MONSTERS]) {
   PKMN_BY_ID[p.id] = p;
 }
 
@@ -58,15 +60,15 @@ export function getPkmName(id: number): string {
   return PKMN_BY_ID[id]?.c ?? "???";
 }
 
-/** 种族值;null/缺失回退 300(迁移自 getBST) */
+/** 种族值等效(直接读角色数据;缺失回退 300) */
 export function getBST(id: number): number {
-  const v = PKM_BST[String(id)];
-  return typeof v === "number" ? v : 300;
+  const v = VALKYRIES_BY_ID[id];
+  return typeof v?.bst === "number" ? v.bst : 300;
 }
 
-const TIER1 = new Set([150, 249, 250, 382, 383, 384, 483, 484, 487, 493, 643, 644, 646, 716, 717, 718]);
-const TIER2 = new Set([144, 145, 146, 243, 244, 245, 377, 378, 379, 380, 381, 480, 481, 482, 485, 486, 488, 638, 639, 640, 641, 642, 645]);
-const MYTHICAL = new Set([151, 251, 385, 386, 489, 490, 491, 492, 494, 647, 648, 649, 719, 720, 721]);
+const TIER1 = new Set<number>([]);
+const TIER2 = new Set<number>([]);
+const MYTHICAL = new Set<number>([]);
 
 export function isTier1Legend(id: number): boolean {
   return TIER1.has(id);
@@ -111,7 +113,7 @@ export function getEnemyStats(
   return { hp, dmg, captureRate, isBoss: false };
 }
 
-/** 按稀有度权重随机宝可梦(迁移自 getRandomPokemon) */
+/** 按稀有度权重随机违章魔物(敌方池;迁移自 getRandomPokemon) */
 export function getRandomPokemon(
   rarityWeights: Partial<Record<Rarity, number>> | null = null,
 ): Pokemon {
@@ -122,10 +124,15 @@ export function getRandomPokemon(
   for (const [rarity, w] of Object.entries(weights)) {
     r -= w;
     if (r <= 0) {
-      const pool = POKEMON.filter((p) => p.r === rarity);
+      const pool = MONSTERS.filter((p) => p.r === rarity);
       if (pool.length > 0) return pool[Math.floor(Math.random() * pool.length)]!;
     }
   }
+  return MONSTERS[Math.floor(Math.random() * MONSTERS.length)]!;
+}
+
+/** 随机一名女武神学员(标题飘动/展示用) */
+export function getRandomValkyrie(): Valkyrie {
   return POKEMON[Math.floor(Math.random() * POKEMON.length)]!;
 }
 
@@ -146,16 +153,15 @@ export function getMaxHpFromMeta(metaHpLv: number): number {
 }
 
 /**
- * 玩家队伍中某只宝可梦的最大 HP:养成基础 × 稀有度倍率 × 种族值因子。
- * 种族值因子 0.75~1.21(BST 175~720):同稀有度下种族值越高的宝可梦越能扛,
+ * 玩家队伍中某名学员的最大 HP:养成基础 × 稀有度倍率 × 个体 hp 因子。
+ * 个体因子 hp/80(女武神 hp 60~170):同稀有度下 hp 越高的角色越能扛,
  * 与敌方 getEnemyStats 的 BST 公式风格一致。
  */
 export function getPkmMaxHp(pkmId: number, metaHpLv: number): number {
   const pkm = getPkmById(pkmId);
   const mult = RARITY_HP_MULT[pkm?.r || "c"] || 1;
-  const bst = getBST(pkmId);
-  const bstFactor = 0.75 + (bst / 720) * 0.46;
-  return Math.round(getMaxHpFromMeta(metaHpLv) * mult * bstFactor);
+  const hpFactor = (pkm?.hp ?? 80) / 80;
+  return Math.round(getMaxHpFromMeta(metaHpLv) * mult * hpFactor);
 }
 
 export function upgradeCost(level: number): number {

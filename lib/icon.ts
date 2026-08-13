@@ -1,6 +1,6 @@
-import { PKMN_ICONS } from "@/data";
+import { portraitUrl } from "./portrait";
 
-/** Icon data URL for a pokemon id (from pokemon-icons.json). */
+/** 立绘 URL for a valkyrie/monster id(正式立绘优先,占位 SVG 兜底)。 */
 export function ICON(id: number): string {
-  return PKMN_ICONS[String(id)] || "";
+  return portraitUrl(id);
 }

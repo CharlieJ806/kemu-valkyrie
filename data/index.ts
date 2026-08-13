@@ -1,19 +1,63 @@
-import pokemonData from "./pokemon.json";
+import valkyriesData from "./valkyries.json";
 import questionsData from "./questions.json";
-import pkmnIconsData from "./pokemon-icons.json";
-import bstData from "./bst.json";
 import gameRulesData from "./game_rules.json";
 import { GAME_CONST } from "./constants";
 
 export type Rarity = "c" | "u" | "r" | "l";
 
-export type Pokemon = {
+/** 科目一四大板块(卡牌属性/角色主修) */
+export type AttrKey = "law" | "signal" | "safety" | "civility";
+
+export type ValkyrieLook = {
+  hair: "long" | "short" | "twin" | "bob" | "ponytail";
+  hairColor: string;
+  eyeColor: string;
+  skin: string;
+  outfit: string;
+  /** 违章魔物:立绘加暗色滤镜+红瞳 */
+  dark?: boolean;
+};
+
+export type CardFxLike = {
+  dmg?: number;
+  hits?: number;
+  pierce?: number;
+  ignoreBlock?: boolean;
+  block?: number;
+  selfBlock?: number;
+  selfDmg?: number;
+  healFlat?: number;
+  healPct?: number;
+  lifesteal?: number;
+  energy?: number;
+  mult?: number;
+  defMult?: number;
+  enemyWeak?: number;
+  status?: string;
+  statusChance?: number;
+  statusTurns?: number;
+  draw?: number;
+};
+
+/** 女武神(学员)/违章魔物 共用结构 */
+export type Valkyrie = {
   id: number;
   n: string;
   c: string;
   r: Rarity;
   i: number;
+  attr: AttrKey;
+  attr2: AttrKey;
+  hp: number;
+  atk: number;
+  bst: number;
+  look: ValkyrieLook;
+  ult: { name: string; desc: string; fx: CardFxLike };
+  flavor: string;
 };
+
+/** 兼容别名(旧代码大量引用 Pokemon,Phase 6 统一换名) */
+export type Pokemon = Valkyrie;
 
 export type Question = {
   id: string;
@@ -32,12 +76,29 @@ export type GameRules = {
   icon_fallback_colors: string[];
 };
 
-export const POKEMON = pokemonData as Pokemon[];
+const VD = valkyriesData as { valkyries: Valkyrie[]; monsters: Valkyrie[] };
+
+/** 玩家可收集的女武神(旧名 POKEMON,Phase 6 换名) */
+export const POKEMON = VD.valkyries;
+/** 违章魔物(敌方池) */
+export const MONSTERS = VD.monsters;
 export const QUESTIONS = questionsData as Question[];
-export const PKMN_ICONS = pkmnIconsData as Record<string, string>;
-export const PKM_BST = bstData as Record<string, number | null>;
 export const GAME_RULES = gameRulesData as GameRules;
 export { GAME_CONST };
+
+export const VALKYRIES_BY_ID: Record<number, Valkyrie> = {};
+for (const v of [...VD.valkyries, ...VD.monsters]) {
+  VALKYRIES_BY_ID[v.id] = v;
+}
+
+export function getValkById(id: number): Valkyrie | null {
+  return VALKYRIES_BY_ID[id] ?? null;
+}
+
+/** 是否玩家学员(而非魔物) */
+export function isValkyrie(id: number): boolean {
+  return id >= 1 && id < 100;
+}
 
 export {
   TIER1_LEGEND,

@@ -16,7 +16,7 @@ export const MYTHICAL_PKMN = new Set([
   151, 251, 385, 386, 489, 490, 491, 492, 494, 647, 648, 649, 719, 720, 721,
 ]);
 
-export const DEFAULT_POKEMON_ID = 25; // Pikachu
+export const DEFAULT_POKEMON_ID = 1; // 林小律
 export const SPAWN_INTERVAL = 3800;
 export const SPAWN_MAX = 5;
 export const MAX_UPGRADE_LEVEL = 10;
@@ -74,7 +74,7 @@ export const RARITY_DMG_MULT: Record<Rarity, number> = {
   l: 2.2,
 };
 
-/** Poke Ball types with exact capture rates per rarity [c, u, r, l] */
+/** 火花钥匙(净化魔物用) with exact capture rates per rarity [c, u, r, l] */
 export const POKE_BALLS: Record<BallKey, {
   id: BallKey;
   name: string;
@@ -83,11 +83,11 @@ export const POKE_BALLS: Record<BallKey, {
   rates: Record<Rarity, number>;
   desc: string;
 }> = {
-  normal: { id: "normal", name: "精灵球", icon: "🔴", price: 30, rates: { c: 0.3, u: 0.2, r: 0.1, l: 0.01 }, desc: "基础捕获" },
-  great: { id: "great", name: "超级球", icon: "🔵", price: 75, rates: { c: 0.5, u: 0.3, r: 0.2, l: 0.05 }, desc: "较好捕获" },
-  ultra: { id: "ultra", name: "高级球", icon: "🟡", price: 150, rates: { c: 0.6, u: 0.4, r: 0.3, l: 0.08 }, desc: "强力捕获" },
-  beast: { id: "beast", name: "究极球", icon: "🟣", price: 300, rates: { c: 0.7, u: 0.5, r: 0.4, l: 0.1 }, desc: "究极捕获" },
-  master: { id: "master", name: "大师球", icon: "⭐", price: 1000, rates: { c: 1.0, u: 1.0, r: 1.0, l: 1.0 }, desc: "100%必定捕获！" },
+  normal: { id: "normal", name: "火花钥匙", icon: "🔑", price: 30, rates: { c: 0.3, u: 0.2, r: 0.1, l: 0.01 }, desc: "基础净化" },
+  great: { id: "great", name: "高级火花钥匙", icon: "🗝️", price: 75, rates: { c: 0.5, u: 0.3, r: 0.2, l: 0.05 }, desc: "较好净化" },
+  ultra: { id: "ultra", name: "白金火花钥匙", icon: "⚡", price: 150, rates: { c: 0.6, u: 0.4, r: 0.3, l: 0.08 }, desc: "强力净化" },
+  beast: { id: "beast", name: "烈焰火花钥匙", icon: "🌟", price: 300, rates: { c: 0.7, u: 0.5, r: 0.4, l: 0.1 }, desc: "究极净化" },
+  master: { id: "master", name: "大师钥匙", icon: "👑", price: 1000, rates: { c: 1.0, u: 1.0, r: 1.0, l: 1.0 }, desc: "100%必定净化！" },
 };
 
 /* ============ 考试常量(线上版 scr-exam) ============ */

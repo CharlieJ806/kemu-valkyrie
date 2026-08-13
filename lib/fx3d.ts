@@ -1,8 +1,8 @@
 /* 3D battle scene (Three.js) + particle FX — browser-only */
 
 import * as THREE from "three";
-import { PKMN_ICONS } from "@/data";
 import type { Rarity } from "@/data";
+import { portraitUrl } from "./portrait";
 
 export type BattleSide = "player" | "enemy";
 
@@ -182,7 +182,7 @@ function makeBallTexture(): THREE.CanvasTexture {
 }
 
 function spriteTexture(id: number | string): THREE.Texture {
-  const url = PKMN_ICONS[String(id)] ?? "";
+  const url = portraitUrl(Number(id));
   const tex = new THREE.TextureLoader().load(url);
   tex.magFilter = THREE.NearestFilter;
   tex.minFilter = THREE.NearestFilter;
