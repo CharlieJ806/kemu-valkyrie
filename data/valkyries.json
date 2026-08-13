@@ -889,6 +889,110 @@
         "fx": {}
       },
       "flavor": "最终 Boss。让整条环城高架永远堵死的车河幽灵,被击败后会暴走。"
+    },
+    {
+      "id": 126,
+      "n": "yellow-rusher",
+      "c": "抢黄灯冲刺怪",
+      "r": "c",
+      "i": 1,
+      "attr": "signal",
+      "attr2": "signal",
+      "hp": 100,
+      "atk": 3,
+      "bst": 380,
+      "look": {
+        "hair": "short",
+        "hairColor": "#c8a020",
+        "eyeColor": "#ff3b5f",
+        "skin": "#d8c8e8",
+        "outfit": "#8a6a10",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
+      "flavor": "黄灯亮起的瞬间就是它的发令枪,加速冲过路口。"
+    },
+    {
+      "id": 127,
+      "n": "serpent-drifter",
+      "c": "蛇形飙车怪",
+      "r": "c",
+      "i": 1,
+      "attr": "signal",
+      "attr2": "signal",
+      "hp": 103,
+      "atk": 3,
+      "bst": 390,
+      "look": {
+        "hair": "short",
+        "hairColor": "#3a5a5a",
+        "eyeColor": "#ff3b5f",
+        "skin": "#d8c8e8",
+        "outfit": "#4a6a6a",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
+      "flavor": "在车流里画 S 形的小鬼,后视镜里甩不掉它。"
+    },
+    {
+      "id": 128,
+      "n": "overload-maw",
+      "c": "超载大嘴怪",
+      "r": "c",
+      "i": 1,
+      "attr": "safety",
+      "attr2": "safety",
+      "hp": 106,
+      "atk": 3,
+      "bst": 400,
+      "look": {
+        "hair": "short",
+        "hairColor": "#6a4a2a",
+        "eyeColor": "#ff7a00",
+        "skin": "#d8c8e8",
+        "outfit": "#7a5a35",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
+      "flavor": "什么都往车厢里塞的大嘴怪,塞得车尾都拖地了。"
+    },
+    {
+      "id": 129,
+      "n": "glare-demon",
+      "c": "远光眩目妖",
+      "r": "c",
+      "i": 1,
+      "attr": "civility",
+      "attr2": "civility",
+      "hp": 108,
+      "atk": 3,
+      "bst": 410,
+      "look": {
+        "hair": "short",
+        "hairColor": "#e8e8f0",
+        "eyeColor": "#ffffff",
+        "skin": "#d8c8e8",
+        "outfit": "#c8c8d8",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
+      "flavor": "会车时永远开着远光灯,照得对向司机睁不开眼。"
     }
   ]
 }

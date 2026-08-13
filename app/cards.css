@@ -66,10 +66,10 @@
 .screen::before{content:'';position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;pointer-events:none}
 .screen > *{position:relative;z-index:1}
 #scr-title::before{background-image:linear-gradient(rgba(255,255,255,.5),rgba(255,255,255,.82)),url('/bg/main.webp')}
-#scr-map::before{background-image:linear-gradient(rgba(255,255,255,.55),rgba(255,255,255,.85)),url('/bg/map.webp')}
-#scr-battle::before{background-image:linear-gradient(rgba(255,255,255,.6),rgba(255,255,255,.88)),url('/bg/battle.webp')}
-#scr-story::before{background-image:linear-gradient(rgba(255,255,255,.45),rgba(255,255,255,.8)),url('/bg/story.webp')}
-#scr-over::before{background-image:linear-gradient(rgba(255,255,255,.6),rgba(255,255,255,.88)),url('/bg/over.webp')}
+/* 章节场景背景(地图/战斗/剧情/结算屏):由 GameApp 按当前章节注入 --chap-bg */
+#scr-map::before,#scr-battle::before,#scr-story::before,#scr-over::before{
+  background-image:linear-gradient(rgba(255,255,255,.55),rgba(255,255,255,.86)),var(--chap-bg,url('/bg/chap1.webp'))
+}
 #scr-starter::before,#scr-dex::before,#scr-review::before,#scr-bank::before,#scr-train::before,
 #scr-gacha::before,#scr-deckbuild::before,#scr-settings::before,#scr-study::before,
 #scr-exam::before,#scr-wrong::before,#scr-shop::before,#scr-rest::before{
@@ -339,7 +339,7 @@
   inset: 0;
   background:
     radial-gradient(circle at 50% 20%, rgba(255, 143, 174, 0.2), transparent 55%),
-    linear-gradient(180deg, var(--bg2), var(--bg));
+    linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.65));
 }
 .story-clicker {
   position: absolute;

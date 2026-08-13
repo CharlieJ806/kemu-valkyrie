@@ -28,7 +28,7 @@ function check(name) {
 check("valkyries.json");
 const vd = JSON.parse(fs.readFileSync(path.join(DATA, "valkyries.json"), "utf8"));
 assert(Array.isArray(vd.valkyries) && vd.valkyries.length === 8, `学员应为 8 名(实际 ${vd.valkyries?.length})`);
-assert(Array.isArray(vd.monsters) && vd.monsters.length === 25, `魔物应为 25 只(实际 ${vd.monsters?.length})`);
+assert(Array.isArray(vd.monsters) && vd.monsters.length === 29, `魔物应为 29 只(实际 ${vd.monsters?.length})`);
 
 const all = [...(vd.valkyries || []), ...(vd.monsters || [])];
 const ids = new Set(all.map((x) => x.id));

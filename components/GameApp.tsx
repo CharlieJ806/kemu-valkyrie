@@ -29,7 +29,14 @@ export default function GameApp() {
   const hydrate = useGameStore((s) => s.hydrate);
   const meta = useGameStore((s) => s.meta);
   const gameOver = useGameStore((s) => s.gameOver);
+  const run = useGameStore((s) => s.run);
   const overSfxDone = useRef(false);
+
+  // 章节场景背景:地图/战斗/剧情/结算屏按当前章节换背景图
+  const chapter = run?.chapter ?? 0;
+  const chapBgStyle = {
+    "--chap-bg": `url('/bg/chap${chapter >= 1 ? chapter : 1}.webp')`,
+  } as React.CSSProperties;
 
   useEffect(() => {
     hydrate();
@@ -124,7 +131,7 @@ export default function GameApp() {
 
   return (
     <div id="app">
-      <div id="shake-wrap">
+      <div id="shake-wrap" style={chapBgStyle}>
         {screen === "title" && <TitleScreen />}
         {screen === "story" && <StoryScreen />}
         {screen === "map" && <MapScreen />}

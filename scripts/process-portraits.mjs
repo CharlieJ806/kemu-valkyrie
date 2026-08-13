@@ -23,6 +23,7 @@ const MAP = JSON.parse(
 
 // 收集任务: { src, outName }
 // boss 素材可能放在 enemies/{name} 或 enemies/boss/{name}(新旧两种目录结构都兼容)
+// minions 组:值直接是文件名(平铺在 enemies/小怪/,无 poses)
 const jobs = [];
 for (const [group, folders] of [
   ["characters", ["characters"]],
@@ -38,6 +39,12 @@ for (const [group, folders] of [
       jobs.push({ src: path.join(dir, file), outName: `${def.id}_${pose}.webp` });
     }
   }
+}
+for (const [id, file] of Object.entries(MAP.minions || {})) {
+  jobs.push({
+    src: path.join(SRC_ROOT, "enemies", "小怪", file),
+    outName: `${id}.webp`,
+  });
 }
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
@@ -115,6 +122,9 @@ for (const [group] of [
     );
     portraits[id] = poses.length > 0 ? { poses } : true;
   }
+}
+for (const id of Object.keys(MAP.minions || {})) {
+  if (fs.existsSync(path.join(OUT_DIR, `${id}.webp`))) portraits[id] = true;
 }
 fs.writeFileSync(
   path.join(ROOT, "data", "portraits.json"),
