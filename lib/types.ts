@@ -1,6 +1,6 @@
-import type { Rarity, Pokemon, Question, AttrKey } from "@/data";
+import type { Rarity, Valkyrie, Question, AttrKey } from "@/data";
 
-export type { Rarity, Pokemon, Question, AttrKey };
+export type { Rarity, Valkyrie, Question, AttrKey };
 
 /* ============ 卡牌系统 ============ */
 
@@ -81,7 +81,7 @@ export type MapNode = {
   type: NodeType;
   col: number;
   row: number;
-  enemyPkm: Pokemon | null;
+  enemyPkm: Valkyrie | null;
   visited: boolean;
   reachable: boolean;
   rewards: { gold: number; cardChoices: number };
@@ -153,7 +153,7 @@ export type RunState = {
   ultMax: number; // 大招槽上限(=9)
 
   // ── 战斗现场(仅在 inBattle 时有意义) ──
-  enemyPkm: Pokemon | null;
+  enemyPkm: Valkyrie | null;
   enemyHp: number;
   enemyMaxHp: number;
   enemyBlock: number;

@@ -1,7 +1,6 @@
 import valkyriesData from "./valkyries.json";
 import questionsData from "./questions.json";
 import questionCatsData from "./question_cats.json";
-import gameRulesData from "./game_rules.json";
 import { GAME_CONST } from "./constants";
 
 export type Rarity = "c" | "u" | "r" | "l";
@@ -57,8 +56,6 @@ export type Valkyrie = {
   flavor: string;
 };
 
-/** 兼容别名(旧代码大量引用 Pokemon,Phase 6 统一换名) */
-export type Pokemon = Valkyrie;
 
 export type Question = {
   id: string;
@@ -67,24 +64,15 @@ export type Question = {
   ans: number;
 };
 
-export type GameRules = {
-  rarity_labels: Record<Rarity, string>;
-  rarity_colors: Record<Rarity, string>;
-  hp_formula: string;
-  rarity_hp_mult: Record<Rarity, number>;
-  speed_base: string;
-  rarity_speed_mult: Record<Rarity, number>;
-  icon_fallback_colors: string[];
-};
+
 
 const VD = valkyriesData as { valkyries: Valkyrie[]; monsters: Valkyrie[] };
 
-/** 玩家可收集的女武神(旧名 POKEMON,Phase 6 换名) */
-export const POKEMON = VD.valkyries;
+/** 玩家可收集的女武神(学员池) */
+export const VALKYRIES = VD.valkyries;
 /** 违章魔物(敌方池) */
 export const MONSTERS = VD.monsters;
 export const QUESTIONS = questionsData as Question[];
-export const GAME_RULES = gameRulesData as GameRules;
 export { GAME_CONST };
 
 /** 题库板块分类索引(scripts/classify-questions.mjs 生成) */
@@ -115,7 +103,7 @@ export {
   TIER1_LEGEND,
   TIER2_LEGEND,
   MYTHICAL_PKMN,
-  DEFAULT_POKEMON_ID,
+  DEFAULT_VALKYRIES_ID,
   SPAWN_INTERVAL,
   SPAWN_MAX,
   MAX_UPGRADE_LEVEL,

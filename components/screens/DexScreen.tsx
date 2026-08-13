@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { POKEMON } from "@/data";
+import { VALKYRIES } from "@/data";
 import { useGameStore } from "@/lib/store";
 import { MAX_TEAM_SIZE, RARITY_NAMES } from "@/data/constants";
-import { getPkmName } from "@/lib/formulas";
+import { getValkName } from "@/lib/formulas";
 import { ICON } from "@/lib/icon";
 import { AudioEngine } from "@/lib/audio";
 import type { Rarity } from "@/lib/types";
@@ -17,7 +17,7 @@ export default function DexScreen() {
   const openModal = useGameStore((s) => s.openModal);
   const [filter, setFilter] = useState<DexFilter>("all");
 
-  let list = POKEMON.filter((p) => p.i === 1);
+  let list = VALKYRIES.filter((p) => p.i === 1);
   if (filter === "collected") list = list.filter((p) => meta.collected[String(p.id)]);
   else if (filter === "locked") list = list.filter((p) => !meta.collected[String(p.id)]);
   else if (["c", "u", "r", "l"].includes(filter)) list = list.filter((p) => p.r === filter);
@@ -28,7 +28,7 @@ export default function DexScreen() {
     <section className="screen active" id="scr-dex">
       <div className="title-inner" style={{ justifyContent: "flex-start", paddingTop: 24 }}>
         <div className="dex-progress">
-          已结识: {collectedCount} / {POKEMON.length}
+          已结识: {collectedCount} / {VALKYRIES.length}
         </div>
         {/* 出战队伍:点击已出战的学员可调整 */}
         <div className="dex-team-bar">
@@ -54,7 +54,7 @@ export default function DexScreen() {
                     ) : (
                       <div className="pkm-img-fallback">👾</div>
                     )}
-                    <span className="dts-name">{getPkmName(id)}</span>
+                    <span className="dts-name">{getValkName(id)}</span>
                   </>
                 ) : (
                   <span className="dts-plus">＋</span>

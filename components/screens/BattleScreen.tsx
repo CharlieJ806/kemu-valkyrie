@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useGameStore } from "@/lib/store";
-import { getPkmName, getPlayerAtk } from "@/lib/formulas";
+import { getValkName, getPlayerAtk } from "@/lib/formulas";
 import { hydrateCard, buildUltCard, ULT_PREFIX } from "@/lib/cards";
 import { ICON } from "@/lib/icon";
 import { AudioEngine } from "@/lib/audio";
@@ -257,7 +257,7 @@ export default function BattleScreen() {
   return (
     <section className="screen active" id="scr-battle">
       <div className="battle-topbar">
-        <div>⚔️ 战斗 · {getPkmName(enemy.id)}</div>
+        <div>⚔️ 战斗 · {getValkName(enemy.id)}</div>
         <div className="battle-combo">
           {run.combo > 1 ? `🔥 x${run.combo}` : ""}
         </div>
@@ -278,7 +278,7 @@ export default function BattleScreen() {
           </div>
           <div className="enemy-info">
             <div className="enemy-name-inline">
-              {getPkmName(enemy.id)}
+              {getValkName(enemy.id)}
               <span style={{ fontSize: 10, color: "var(--dim)" }}>
                 {" "}
                 {enemyStatusText(run.enemyStatus)}
@@ -314,7 +314,7 @@ export default function BattleScreen() {
           {run.team.map((id, i) => (
             <div
               key={id}
-              title={getPkmName(id) + (run.leaderId === id ? "（领队）" : "")}
+              title={getValkName(id) + (run.leaderId === id ? "（领队）" : "")}
               className={`team-slot ${
                 i === run.activeIdx ? "active" : ""
               } ${(run.teamHp[i] || 0) <= 0 ? "fainted" : ""}`}
@@ -360,7 +360,7 @@ export default function BattleScreen() {
           </div>
           <div className="player-info">
             <div className="player-name">
-              {getPkmName(run.team[run.activeIdx] ?? 25)}
+              {getValkName(run.team[run.activeIdx] ?? 25)}
               {run.team.length > 1 ? ` (${run.activeIdx + 1}/${run.team.length})` : ""}
             </div>
             <div className="battle-player-info">

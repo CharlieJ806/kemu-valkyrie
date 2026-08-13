@@ -2,8 +2,8 @@
 
 import { useGameStore } from "@/lib/store";
 import {
-  getPkmName,
-  getPkmById,
+  getValkName,
+  getValkById,
   getBST,
 } from "@/lib/formulas";
 import {
@@ -62,7 +62,7 @@ export default function Modal() {
             className="capture-info"
             style={{ color: RARITY_COLORS[pkm.r] }}
           >
-            {getPkmName(pkm.id)} ({RARITY_NAMES[pkm.r] || "?"})
+            {getValkName(pkm.id)} ({RARITY_NAMES[pkm.r] || "?"})
           </div>
           <div className="ball-row-wrap">
             {(Object.keys(POKE_BALLS) as BallKey[]).map((key) => {
@@ -96,13 +96,13 @@ export default function Modal() {
                         AudioEngine.sfx("caught");
                         if (BattleFX.ok) setTimeout(() => BattleFX.endCapture(), 400);
                         if (layer) {
-                          spawnFxText(layer, 50, 38, `成功净化 ${getPkmName(res.pkmId)}！`, "#ffd700");
+                          spawnFxText(layer, 50, 38, `成功净化 ${getValkName(res.pkmId)}！`, "#ffd700");
                           domBurst(layer, 50, 40, "#ffd700", 26);
                         }
                       } else {
                         AudioEngine.sfx("escape");
                         if (layer) {
-                          spawnFxText(layer, 50, 38, `${getPkmName(res.pkmId)} 挣脱了火花钥匙，逃走了…`, "#ff8800");
+                          spawnFxText(layer, 50, 38, `${getValkName(res.pkmId)} 挣脱了火花钥匙，逃走了…`, "#ff8800");
                         }
                       }
                       setTimeout(() => {
@@ -241,7 +241,7 @@ export default function Modal() {
 
   /* ── 学员详情 ── */
   if (modal.kind === "pkmDetail") {
-    const pkm = getPkmById(modal.id);
+    const pkm = getValkById(modal.id);
     if (!pkm) return null;
     const inTeam = meta.team.includes(pkm.id);
     const isActive = meta.team.length > 0 && meta.team[0] === pkm.id;

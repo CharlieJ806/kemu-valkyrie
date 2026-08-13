@@ -1,7 +1,7 @@
 "use client";
 
 import { STARTERS, useGameStore } from "@/lib/store";
-import { getBST, getPkmById, getPkmMaxHp, RARITY_CSS, RARITY_LABEL } from "@/lib/formulas";
+import { getBST, getValkById, getValkMaxHp, RARITY_CSS, RARITY_LABEL } from "@/lib/formulas";
 import { ICON } from "@/lib/icon";
 import { AudioEngine } from "@/lib/audio";
 
@@ -18,7 +18,7 @@ export default function StarterScreen() {
 
       <div className="starter-row" id="starter-row">
         {STARTERS.map((s) => {
-          const pkm = getPkmById(s.id);
+          const pkm = getValkById(s.id);
           if (!pkm) return null;
           return (
             <div
@@ -45,7 +45,7 @@ export default function StarterScreen() {
                 </div>
                 <div className="sc-desc">{s.desc}</div>
                 <div className="sc-stats">
-                  初始HP {getPkmMaxHp(pkm.id, 0)} · 面板 {getBST(pkm.id)}
+                  初始HP {getValkMaxHp(pkm.id, 0)} · 面板 {getBST(pkm.id)}
                 </div>
               </div>
             </div>

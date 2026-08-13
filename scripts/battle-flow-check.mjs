@@ -6,6 +6,8 @@ import puppeteer from "puppeteer-core";
 
 const EDGE = "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe";
 
+const PORT = process.argv[2] || 3000;
+
 async function run(width, height, label) {
   const browser = await puppeteer.launch({
     executablePath: EDGE,
@@ -17,7 +19,7 @@ async function run(width, height, label) {
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message.slice(0, 150)));
 
-  await page.goto("http://localhost:3000", { waitUntil: "networkidle0" });
+  await page.goto(`http://localhost:${PORT}`, { waitUntil: "networkidle0" });
   await new Promise((r) => setTimeout(r, 1200));
   // 清存档 → 首次游玩:新的冒险先进初始选择,选第一只后开局
   await page.evaluate(() => {

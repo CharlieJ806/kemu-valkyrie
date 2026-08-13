@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { QUESTIONS, type Question } from "@/data";
 import {
   DECK_MAX,
-  DEFAULT_POKEMON_ID,
+  DEFAULT_VALKYRIES_ID,
   GACHA_COST,
   MAX_TEAM_SIZE,
   POKE_BALLS,
@@ -30,8 +30,8 @@ import {
 } from "./cards";
 import {
   getMaxHpFromMeta,
-  getPkmMaxHp,
-  getPkmName,
+  getValkMaxHp,
+  getValkName,
   rarityWeight,
   upgradeCost,
 } from "./formulas";
@@ -292,7 +292,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const run0 = get().run;
     if (run0 && !run0.gameOver && run0.maxHp) {
       const run = cloneRun(run0);
-      run.teamMaxHp = run.team.map((id) => getPkmMaxHp(id, meta.metaHpLv));
+      run.teamMaxHp = run.team.map((id) => getValkMaxHp(id, meta.metaHpLv));
       run.teamHp = run.teamHp.map((h, i) =>
         Math.min(run.teamMaxHp[i] ?? h, h + 3),
       );
@@ -331,7 +331,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     meta.team.push(id);
     set({ meta });
     persistMeta(meta);
-    get().showToast(`${getPkmName(id)} 加入队伍!`, 1500);
+    get().showToast(`${getValkName(id)} 加入队伍!`, 1500);
   },
 
   removeFromTeam: (id) => {
@@ -340,7 +340,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     meta.team = meta.team.filter((x) => x !== id);
     set({ meta });
     persistMeta(meta);
-    get().showToast(`${getPkmName(id)} 已移出队伍`, 1500);
+    get().showToast(`${getValkName(id)} 已移出队伍`, 1500);
   },
 
   setActiveTeam: (id) => {
@@ -349,7 +349,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     meta.team = [id, ...meta.team.filter((x) => x !== id)];
     set({ meta });
     persistMeta(meta);
-    get().showToast(`${getPkmName(id)} 设为出战!`, 1500);
+    get().showToast(`${getValkName(id)} 设为出战!`, 1500);
   },
 
   doGachaOnce: () => {
@@ -474,10 +474,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
       ...(starterId != null ? [starterId] : []),
       ...(meta.team || []).filter((id) => id !== starterId),
     ].slice(0, MAX_TEAM_SIZE);
-    if (team.length === 0) team.push(DEFAULT_POKEMON_ID); // 兜底(理论上不会发生)
+    if (team.length === 0) team.push(DEFAULT_VALKYRIES_ID); // 兜底(理论上不会发生)
     meta.team = [...team];
 
-    const teamMaxHp = team.map((id) => getPkmMaxHp(id, meta.metaHpLv));
+    const teamMaxHp = team.map((id) => getValkMaxHp(id, meta.metaHpLv));
     const teamHp = [...teamMaxHp];
     const mapNodes = generateMapNodes(1);
     if (mapNodes[0].length > 0) mapNodes[0][0]!.reachable = true;
@@ -544,7 +544,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     persistMeta(meta);
     persistRun(run);
     get().showToast(
-      `上阵队伍: ${team.map((id) => getPkmName(id)).join(" / ")}`,
+      `上阵队伍: ${team.map((id) => getValkName(id)).join(" / ")}`,
       2200,
     );
   },
@@ -738,7 +738,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (run.hp <= 0 && run.team.length > 1 && switchToNextAlive(run)) {
       set({ run, modal: null, activeEventId: null });
       persistRun(run);
-      if (msg) get().showToast(`${msg} · ${getPkmName(run.team[run.activeIdx]!)} 顶了上来！`, 2000);
+      if (msg) get().showToast(`${msg} · ${getValkName(run.team[run.activeIdx]!)} 顶了上来！`, 2000);
       return;
     }
     const dead = run.hp <= 0;
@@ -801,7 +801,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
     set({ run });
     persistRun(run);
-    get().showToast(`${getPkmName(run.team[idx]!)} 出战!`, 1200);
+    get().showToast(`${getValkName(run.team[idx]!)} 出战!`, 1200);
   },
 
   answer: (idx) => {
@@ -974,7 +974,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       if (meta.team.length < MAX_TEAM_SIZE && !meta.team.includes(pkm.id)) {
         meta.team.push(pkm.id);
         run.team.push(pkm.id);
-        run.teamMaxHp.push(getPkmMaxHp(pkm.id, meta.metaHpLv));
+        run.teamMaxHp.push(getValkMaxHp(pkm.id, meta.metaHpLv));
         run.teamHp.push(run.teamMaxHp[run.teamMaxHp.length - 1]!);
       } else if (!meta.team.includes(pkm.id)) {
         get().showToast("队伍已满,新伙伴将在名册中待命", 1800);

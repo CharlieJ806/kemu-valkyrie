@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useGameStore } from "@/lib/store";
-import { getPkmName } from "@/lib/formulas";
+import { getValkName } from "@/lib/formulas";
 import { ICON } from "@/lib/icon";
-import { POKEMON } from "@/data";
+import { VALKYRIES } from "@/data";
 import { AudioEngine } from "@/lib/audio";
 
 export default function TitleScreen() {
@@ -17,7 +17,7 @@ export default function TitleScreen() {
   const [titlePkmId, setTitlePkmId] = useState(1);
   useEffect(() => {
     const ids = Object.keys(meta.collected).map(Number);
-    const pool = ids.length > 0 ? ids : POKEMON.map((v) => v.id);
+    const pool = ids.length > 0 ? ids : VALKYRIES.map((v) => v.id);
     const pick = () => {
       setTitlePkmId((prev) => {
         let next = pool[Math.floor(Math.random() * pool.length)]!;
@@ -67,13 +67,13 @@ export default function TitleScreen() {
         </div>
         <div className="title-pkmn">
           {ICON(titlePkmId) ? (
-            <img key={titlePkmId} src={ICON(titlePkmId)} alt={getPkmName(titlePkmId)} />
+            <img key={titlePkmId} src={ICON(titlePkmId)} alt={getValkName(titlePkmId)} />
           ) : null}
         </div>
 
         <div className="title-stats">
           <div>🏆 最佳记录: {meta.bestScore > 0 ? `${meta.bestScore} 分 (第${meta.bestFloor}街区)` : "暂无"}</div>
-          <div>📖 名册: {Object.keys(meta.collected).length} / {POKEMON.length}</div>
+          <div>📖 名册: {Object.keys(meta.collected).length} / {VALKYRIES.length}</div>
           <div>💰 金币: {meta.metaGold}</div>
         </div>
 
@@ -87,7 +87,7 @@ export default function TitleScreen() {
                 ) : (
                   <span>👾</span>
                 )}
-                <em>{getPkmName(id)}</em>
+                <em>{getValkName(id)}</em>
               </span>
             ))
           ) : (

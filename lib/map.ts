@@ -2,7 +2,7 @@ import { NODE_ICONS } from "./formulas";
 import {
   enemyPoolForNode,
   generateRewardsFor,
-  getRandomPokemon,
+  getRandomEnemy,
 } from "./formulas";
 import type { MapNode, NodeType } from "./types";
 
@@ -34,7 +34,7 @@ export function generateMapNodes(floor: number): MapNode[][] {
         type,
         col,
         row,
-        enemyPkm: getRandomPokemon(enemyPoolForNode(type)),
+        enemyPkm: getRandomEnemy(enemyPoolForNode(type)),
         visited: false,
         reachable: col === 0,
         rewards: generateRewardsFor(type),

@@ -1,18 +1,16 @@
 import {
-  GAME_RULES,
   MONSTERS,
-  POKEMON,
+  VALKYRIES,
   VALKYRIES_BY_ID,
-  type Pokemon,
-  type Rarity,
   type Valkyrie,
+  type Rarity,
 } from "@/data";
-import { RARITY_CAPTURE, RARITY_DMG_MULT, RARITY_HP_MULT } from "@/data/constants";
+import { RARITY_CAPTURE, RARITY_DMG_MULT, RARITY_HP_MULT, RARITY_NAMES } from "@/data/constants";
 import type { NodeType } from "./types";
 
 /* ============ 通用工具(兼容参考工程同名函数) ============ */
 
-export const RARITY_LABEL = GAME_RULES.rarity_labels;
+export const RARITY_LABEL = RARITY_NAMES;
 export const RARITY_CSS: Record<Rarity, string> = {
   c: "tag-c",
   u: "tag-u",
@@ -20,9 +18,9 @@ export const RARITY_CSS: Record<Rarity, string> = {
   l: "tag-l",
 };
 
-export const PKMN_BY_ID: Record<number, Pokemon> = {};
-for (const p of [...POKEMON, ...MONSTERS]) {
-  PKMN_BY_ID[p.id] = p;
+export const VALK_BY_ID: Record<number, Valkyrie> = {};
+for (const p of [...VALKYRIES, ...MONSTERS]) {
+  VALK_BY_ID[p.id] = p;
 }
 
 export function rand(a: number, b: number): number {
@@ -52,12 +50,12 @@ export function shuffle<T>(arr: readonly T[]): T[] {
 
 /* ============ 学员查询(迁移自 standalone game.js) ============ */
 
-export function getPkmById(id: number): Pokemon | null {
-  return PKMN_BY_ID[id] ?? null;
+export function getValkById(id: number): Valkyrie | null {
+  return VALK_BY_ID[id] ?? null;
 }
 
-export function getPkmName(id: number): string {
-  return PKMN_BY_ID[id]?.c ?? "???";
+export function getValkName(id: number): string {
+  return VALK_BY_ID[id]?.c ?? "???";
 }
 
 /** 种族值等效(直接读角色数据;缺失回退 300) */
@@ -82,7 +80,7 @@ export function isMythical(id: number): boolean {
 
 /** 敌方数值(迁移自 standalone getEnemyStats) */
 export function getEnemyStats(
-  pkm: Pokemon,
+  pkm: Valkyrie,
   floor: number,
 ): {
   hp: number;
@@ -113,10 +111,10 @@ export function getEnemyStats(
   return { hp, dmg, captureRate, isBoss: false };
 }
 
-/** 按稀有度权重随机违章魔物(敌方池;迁移自 getRandomPokemon) */
-export function getRandomPokemon(
+/** 按稀有度权重随机违章魔物(敌方池;迁移自 getRandomEnemy) */
+export function getRandomEnemy(
   rarityWeights: Partial<Record<Rarity, number>> | null = null,
-): Pokemon {
+): Valkyrie {
   const defaults: Record<Rarity, number> = { c: 60, u: 25, r: 10, l: 5 };
   const weights = { ...defaults, ...(rarityWeights || {}) };
   const total = Object.values(weights).reduce((a, b) => a + b, 0);
@@ -133,7 +131,7 @@ export function getRandomPokemon(
 
 /** 随机一名女武神学员(标题飘动/展示用) */
 export function getRandomValkyrie(): Valkyrie {
-  return POKEMON[Math.floor(Math.random() * POKEMON.length)]!;
+  return VALKYRIES[Math.floor(Math.random() * VALKYRIES.length)]!;
 }
 
 /* ============ 养成数值(迁移自 standalone battle.js) ============ */
@@ -157,8 +155,8 @@ export function getMaxHpFromMeta(metaHpLv: number): number {
  * 个体因子 hp/80(女武神 hp 60~170):同稀有度下 hp 越高的角色越能扛,
  * 与敌方 getEnemyStats 的 BST 公式风格一致。
  */
-export function getPkmMaxHp(pkmId: number, metaHpLv: number): number {
-  const pkm = getPkmById(pkmId);
+export function getValkMaxHp(pkmId: number, metaHpLv: number): number {
+  const pkm = getValkById(pkmId);
   const mult = RARITY_HP_MULT[pkm?.r || "c"] || 1;
   const hpFactor = (pkm?.hp ?? 80) / 80;
   return Math.round(getMaxHpFromMeta(metaHpLv) * mult * hpFactor);

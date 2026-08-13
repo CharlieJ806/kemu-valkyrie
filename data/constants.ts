@@ -16,7 +16,7 @@ export const MYTHICAL_PKMN = new Set([
   151, 251, 385, 386, 489, 490, 491, 492, 494, 647, 648, 649, 719, 720, 721,
 ]);
 
-export const DEFAULT_POKEMON_ID = 1; // 林小律
+export const DEFAULT_VALKYRIES_ID = 1; // 林小律
 export const SPAWN_INTERVAL = 3800;
 export const SPAWN_MAX = 5;
 export const MAX_UPGRADE_LEVEL = 10;
@@ -103,7 +103,7 @@ export const GAME_CONST = {
   MYTHICAL: Array.from(MYTHICAL_PKMN),
   MAX_LEVEL: MAX_UPGRADE_LEVEL,
   MAX_TEAM: MAX_MONSTERS,
-  DEFAULT_POKEMON_ID,
+  DEFAULT_VALKYRIES_ID,
   SPAWN_INTERVAL,
   SPAWN_MAX,
   BANK_PAGE_SIZE,
