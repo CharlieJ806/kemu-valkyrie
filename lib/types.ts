@@ -219,4 +219,4 @@ export type GameOverInfo = {
 };
 
 /** 剧情对白条目(StoryScreen 队列) */
-export type StoryLine = { speaker: "narrator" | number; text: string };
+export type StoryLine = { speaker: "narrator" | number; text: string; cg?: string };

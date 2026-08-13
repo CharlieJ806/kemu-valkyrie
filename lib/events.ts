@@ -8,6 +8,8 @@ export type GameEventDef = {
   id: string;
   title: string;
   text: string;
+  /** 事件插画 key(public/cg/{cg}.webp),可选 */
+  cg?: string;
   choices: {
     id: string;
     text: string | ((run: RunState) => string);
@@ -22,11 +24,11 @@ export function resolveChoiceText(
 ): string {
   return typeof choice.text === "function" ? choice.text(run) : choice.text;
 }
-
 export const GAME_EVENTS: GameEventDef[] = [
   {
     id: "garage",
     title: "神秘车库",
+    cg: "cg-awaken",
     text: "里世界深处停着一辆蒙尘的旧车，车钥匙孔发出微光……拔出钥匙，即可为一名学员点火觉醒：获得第二板块、成为领队、解锁必杀技！（每局限一次）",
     choices: [
       {

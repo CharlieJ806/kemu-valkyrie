@@ -71,7 +71,7 @@ for (const ch of story.chapters || []) {
   }
   for (const line of [...(ch.intro || []), ...(ch.outro || [])]) {
     const okSpeaker =
-      line.speaker === "narrator" || (vd.valkyries || []).some((v) => v.id === line.speaker);
+      line.speaker === "narrator" || all.some((v) => v.id === line.speaker);
     assert(okSpeaker, `第 ${ch.id} 章存在非法 speaker`);
     assert(typeof line.text === "string" && line.text.length > 0, `第 ${ch.id} 章存在空对白`);
   }

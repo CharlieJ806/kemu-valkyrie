@@ -104,22 +104,25 @@ export function isValkyrie(id: number): boolean {
 
 /* ============ 剧情/关卡 ============ */
 
-export type StoryLine = { speaker: "narrator" | number; text: string };
+export type StoryLine = { speaker: "narrator" | number; text: string; cg?: string };
 
 export type ChapterDef = {
   id: number;
   name: string;
   bossId: number;
   unlockId: number | null;
+  cg: string;
   intro: StoryLine[];
   outro: StoryLine[];
 };
 
 export type StoryData = {
   prologue: StoryLine[];
+  prologueCg: string;
   chapters: ChapterDef[];
   loopOutro: StoryLine[];
 };
+
 
 export const STORY = storyData as StoryData;
 

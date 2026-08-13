@@ -67,6 +67,17 @@ export default function StoryScreen() {
   return (
     <section className="screen active" id="scr-story">
       <div className="story-bg" />
+      {line.cg && (
+        <div className="story-cg">
+          <img
+            src={`/cg/${line.cg}.webp`}
+            alt=""
+            onError={(e) => {
+              (e.currentTarget.parentElement as HTMLElement).style.display = "none";
+            }}
+          />
+        </div>
+      )}
       <div className="story-inner">
         {!isNarrator && (
           <div className="story-portrait">

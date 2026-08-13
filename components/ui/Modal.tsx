@@ -100,6 +100,16 @@ export default function Modal() {
       <div className="modal-wrap">
         <div className="modal">
           <div className="capture-title">❓ {evt.title}</div>
+          {evt.cg && (
+            <img
+              className="event-cg"
+              src={`/cg/${evt.cg}.webp`}
+              alt=""
+              onError={(e) => {
+                (e.currentTarget as HTMLElement).style.display = "none";
+              }}
+            />
+          )}
           <div
             style={{
               fontSize: 13,

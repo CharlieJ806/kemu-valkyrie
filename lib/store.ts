@@ -568,6 +568,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const queue = storyQueueWith(
       meta.storyCleared === 0 ? STORY.prologue : [],
       run,
+      STORY.prologueCg,
     );
 
     set({
@@ -989,7 +990,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     run.combo = 0;
     run.score += 50 + run.floor * 10;
 
-    let queue: StoryQueue | null = null;
+    // 通关章节的收尾对白(章末结语),稍后拼接下一章开场
+    const clearedOutro = storyQueueWith(ch?.outro ?? [], run, ch?.cg);
     if (ch) {
       // 剧情进度与角色解锁
       meta.storyCleared = Math.max(meta.storyCleared, ch.id);
@@ -1008,7 +1010,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
           if (!meta.team.includes(newbie.id)) meta.team.push(newbie.id);
         }
       }
-      queue = storyQueueWith(ch.outro, run);
       // 无解锁章节的纪念奖励(第 8 章:全角色集结)
       if (ch.unlockId == null && ch.id === TOTAL_CHAPTERS - 1) {
         const bonus = 3000;
@@ -1018,21 +1019,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
 
     // 下一章 / 下一周目
+    const parts: StoryQueue = [];
+    if (clearedOutro) parts.push(...clearedOutro);
     if (run.chapter < TOTAL_CHAPTERS) {
       run.chapter++;
     } else {
       run.loop++;
       run.chapter = 1;
-      if (run.loop > 1) {
-        // 周目总结对白(拼接在下一章 intro 前)
-        queue = storyQueueWith(
-          [...STORY.loopOutro, ...(getChapterById(1)?.intro ?? [])],
-          run,
-        );
-      }
+      // 周目总结对白(复用序章 CG)
+      const loop = storyQueueWith(STORY.loopOutro, run, STORY.prologueCg);
+      if (loop) parts.push(...loop);
     }
-    run.floor = (run.loop - 1) * TOTAL_CHAPTERS + run.chapter;
     const nextCh = getChapterById(run.chapter);
+    const intro = storyQueueWith(nextCh?.intro ?? [], run, nextCh?.cg);
+    if (intro) parts.push(...intro);
+    const queue: StoryQueue | null = parts.length > 0 ? parts : null;
+    run.floor = (run.loop - 1) * TOTAL_CHAPTERS + run.chapter;
     run.mapNodes = generateMapNodes(run.floor, nextCh?.bossId);
     run.currentNodeIdx = -1;
     run.visitedNodes = [];
@@ -1139,12 +1141,17 @@ function currentNode(run: RunState): MapNode | null {
   return col.find((n) => n.visited) ?? null;
 }
 
-/** 对白队列:替换 {loop} 占位符;空数组返回 null */
-function storyQueueWith(lines: StoryLine[], run: RunState): StoryQueue | null {
+/** 对白队列:替换 {loop} 占位符;空数组返回 null。cg 为默认剧情 CG(行级可覆盖)。 */
+function storyQueueWith(
+  lines: StoryLine[],
+  run: RunState,
+  cg?: string,
+): StoryQueue | null {
   if (!lines || lines.length === 0) return null;
   return lines.map((l) => ({
     speaker: l.speaker,
     text: l.text.replaceAll("{loop}", String(run.loop)),
+    cg: l.cg ?? cg,
   }));
 }
 

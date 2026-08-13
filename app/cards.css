@@ -154,6 +154,7 @@
 
 /* ---------- 捕获弹窗 ---------- */
 .capture-title{font-size:20px;font-weight:900;text-align:center;margin-bottom:10px;color:var(--gold)}
+.event-cg{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:12px;margin-bottom:12px;border:1px solid var(--line);display:block}
 .ball-row-wrap{display:flex;flex-direction:column;gap:8px;margin:12px 0}
 .ball-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);cursor:pointer;font-size:13px;font-family:inherit;width:100%}
 .ball-row:active{transform:scale(.97);border-color:var(--cyan)}
@@ -341,14 +342,33 @@
     radial-gradient(circle at 50% 20%, rgba(255, 143, 174, 0.2), transparent 55%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.65));
 }
-.story-clicker {
+.story-cg {
   position: absolute;
   inset: 0;
   z-index: 1;
+  background: var(--panel);
+}
+.story-cg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+.story-cg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(10, 16, 30, 0.4));
+  pointer-events: none;
+}
+.story-clicker {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
 }
 .story-inner {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   width: min(92vw, 440px);
   display: flex;
   flex-direction: column;
@@ -419,6 +439,6 @@
   position: absolute;
   top: calc(14px + var(--safe-t));
   right: 14px;
-  z-index: 3;
+  z-index: 4;
   opacity: 0.8;
 }
