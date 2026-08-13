@@ -592,12 +592,26 @@ function setPlayer(id: number | string): void {
   spawnIn(g, -0.95, 1.0, 0x00ff88);
 }
 
-function setEnemy(id: number | string, rarity?: Rarity | string, isBoss?: boolean): void {
+function setEnemy(
+  id: number | string,
+  rarity?: Rarity | string,
+  isBoss?: boolean,
+  initialPose?: string,
+): void {
   if (!S.ok || !S.scene || !S.enemyRing || !S.rimLight) return;
   clearSide("enemy");
   S.enemyId = Number(id);
   preloadPoses(S.enemyId);
   const g = makePokeMesh(id, false);
+  if (initialPose) {
+    // 初始形态(如最终 Boss 二阶段):纹理异步加载完成后自动显示
+    const tex = poseTexture(S.enemyId, initialPose);
+    if (tex) {
+      const plane = g.userData.plane as THREE.Mesh;
+      (plane.material as THREE.MeshBasicMaterial).map = tex;
+      (plane.material as THREE.MeshBasicMaterial).needsUpdate = true;
+    }
+  }
   const scale = isBoss ? 1.55 : 1;
   g.scale.setScalar(scale);
   g.position.set(0.95, 0, -0.3);
@@ -612,6 +626,18 @@ function setEnemy(id: number | string, rarity?: Rarity | string, isBoss?: boolea
   S.arenaColor = color;
   if (S.dust) (S.dust.material as THREE.PointsMaterial).color.setHex(color);
   spawnIn(g, 0.95, -0.3, color);
+}
+
+/** 战斗中切换敌方形态图(最终 Boss 二阶段等);无该 pose 素材时不动 */
+function setEnemyPose(pose: string): void {
+  if (!S.ok || !S.scene || !S.enemy) return;
+  const plane = S.enemy.userData.plane as THREE.Mesh | undefined;
+  if (!plane) return;
+  const tex = poseTexture(S.enemyId, pose);
+  if (!tex) return;
+  const mat = plane.material as THREE.MeshBasicMaterial;
+  mat.map = tex;
+  mat.needsUpdate = true;
 }
 
 function attack(side: BattleSide, opts?: AttackOpts, onImpact?: () => void): void {
@@ -929,6 +955,7 @@ export const BattleFX = {
   init,
   setPlayer,
   setEnemy,
+  setEnemyPose,
   attack,
   hit,
   heal,

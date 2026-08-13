@@ -27,8 +27,8 @@ function check(name) {
 /* 1. valkyries.json */
 check("valkyries.json");
 const vd = JSON.parse(fs.readFileSync(path.join(DATA, "valkyries.json"), "utf8"));
-assert(Array.isArray(vd.valkyries) && vd.valkyries.length === 4, `学员应为 4 名(实际 ${vd.valkyries?.length})`);
-assert(Array.isArray(vd.monsters) && vd.monsters.length === 20, `魔物应为 20 只(实际 ${vd.monsters?.length})`);
+assert(Array.isArray(vd.valkyries) && vd.valkyries.length === 8, `学员应为 8 名(实际 ${vd.valkyries?.length})`);
+assert(Array.isArray(vd.monsters) && vd.monsters.length === 25, `魔物应为 25 只(实际 ${vd.monsters?.length})`);
 
 const all = [...(vd.valkyries || []), ...(vd.monsters || [])];
 const ids = new Set(all.map((x) => x.id));
@@ -40,21 +40,29 @@ assert(all.every((x) => typeof x.hp === "number" && typeof x.atk === "number" &&
 assert(all.every((x) => x.look && ["long", "short", "twin", "bob", "ponytail"].includes(x.look.hair)), "存在非法发型");
 assert(all.every((x) => x.ult && typeof x.ult.name === "string"), "存在缺失必杀技");
 
-// 4 名学员各占一个板块
+// 8 名学员每板块 2 名
 const attrCount = {};
 for (const v of vd.valkyries || []) attrCount[v.attr] = (attrCount[v.attr] || 0) + 1;
-for (const a of ATTRS) assert(attrCount[a] === 1, `板块 ${a} 学员数 ${attrCount[a]} ≠ 1`);
+for (const a of ATTRS) assert(attrCount[a] === 2, `板块 ${a} 学员数 ${attrCount[a]} ≠ 2`);
 
-// 4 个 Boss(boss:true,id 117-120)
+// 9 个 Boss(boss:true,id 117-125,对应 9 章)
 const bosses = (vd.monsters || []).filter((m) => m.boss);
-assert(bosses.length === 4, `Boss 应为 4 只(实际 ${bosses.length})`);
-assert(bosses.every((m) => m.id >= 117 && m.id <= 120), "Boss id 应在 117-120");
+assert(bosses.length === 9, `Boss 应为 9 只(实际 ${bosses.length})`);
+assert(bosses.every((m) => m.id >= 117 && m.id <= 125), "Boss id 应在 117-125");
+assert(new Set(bosses.map((m) => m.id)).size === 9, "Boss id 不唯一");
 
 /* 1b. story.json */
 check("story.json");
 const story = JSON.parse(fs.readFileSync(path.join(DATA, "story.json"), "utf8"));
 assert(Array.isArray(story.prologue) && story.prologue.length > 0, "缺序章对白");
-assert(Array.isArray(story.chapters) && story.chapters.length === 4, `章节应为 4(实际 ${story.chapters?.length})`);
+assert(Array.isArray(story.chapters) && story.chapters.length === 9, `章节应为 9(实际 ${story.chapters?.length})`);
+// 9 章 bossId 与 Boss 池一一对应(每章一个,不重复)
+const chapterBossIds = new Set(story.chapters?.map((c) => c.bossId) || []);
+assert(chapterBossIds.size === 9, `9 章 bossId 应不重复(实际 ${chapterBossIds.size})`);
+// 解锁顺序:第 1-7 章各解锁一名学员(2-8),第 8/9 章无解锁
+const unlockIds = (story.chapters || []).map((c) => c.unlockId).filter((x) => x != null);
+assert(unlockIds.length === 7, `解锁学员应为 7 名(实际 ${unlockIds.length})`);
+assert(JSON.stringify(unlockIds) === JSON.stringify([2, 3, 4, 5, 6, 7, 8]), `解锁顺序应为 2-8(实际 ${JSON.stringify(unlockIds)})`);
 for (const ch of story.chapters || []) {
   const boss = all.find((x) => x.id === ch.bossId);
   assert(!!boss && !!boss.boss, `第 ${ch.id} 章 bossId ${ch.bossId} 不是 Boss`);

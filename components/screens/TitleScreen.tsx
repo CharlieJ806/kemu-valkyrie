@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useGameStore } from "@/lib/store";
+import { useGameStore, TOTAL_CHAPTERS } from "@/lib/store";
 import { getValkName } from "@/lib/formulas";
 import { ICON } from "@/lib/icon";
 import { VALKYRIES } from "@/data";
@@ -67,7 +67,7 @@ export default function TitleScreen() {
         <div className="title-stats">
           <div>🏆 最佳记录: {meta.bestScore > 0 ? `${meta.bestScore} 分` : "暂无"}</div>
           <div>📖 名册: {Object.keys(meta.collected).length} / {VALKYRIES.length}</div>
-          <div>🚗 剧情: {meta.storyCleared >= 4 ? "已全通关" : `第 ${meta.storyCleared + 1} 章`}</div>
+          <div>🚗 剧情: {meta.storyCleared >= TOTAL_CHAPTERS ? "已全通关" : `第 ${meta.storyCleared + 1} 章`}</div>
           <div>💰 金币: {meta.metaGold}</div>
         </div>
 

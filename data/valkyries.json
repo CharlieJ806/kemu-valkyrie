@@ -11,8 +11,22 @@
       "hp": 62,
       "atk": 2,
       "bst": 360,
-      "look": { "hair": "long", "hairColor": "#d8444a", "eyeColor": "#e05a5a", "skin": "#ffe8dc", "outfit": "#d8444a" },
-      "ult": { "name": "裁决·红灯风暴", "desc": "两段制裁各 25 点伤害，并削减敌方 25% 伤害。", "fx": { "dmg": 25, "hits": 2, "enemyWeak": 0.25 } },
+      "look": {
+        "hair": "long",
+        "hairColor": "#d8444a",
+        "eyeColor": "#e05a5a",
+        "skin": "#ffe8dc",
+        "outfit": "#d8444a"
+      },
+      "ult": {
+        "name": "裁决·红灯风暴",
+        "desc": "两段制裁各 25 点伤害，并削减敌方 25% 伤害。",
+        "fx": {
+          "dmg": 25,
+          "hits": 2,
+          "enemyWeak": 0.25
+        }
+      },
       "flavor": "热血交通骑警，违章者的天敌。口头禅是「扣分！罚款！吊销！」"
     },
     {
@@ -26,8 +40,22 @@
       "hp": 86,
       "atk": 3,
       "bst": 455,
-      "look": { "hair": "long", "hairColor": "#4a7fd8", "eyeColor": "#3fa7e8", "skin": "#ffe8dc", "outfit": "#4a7fd8" },
-      "ult": { "name": "霓虹·绿波狂潮", "desc": "绿波带三段冲击各 18 点伤害，并获得 3 点指令。", "fx": { "dmg": 18, "hits": 3, "energy": 3 } },
+      "look": {
+        "hair": "long",
+        "hairColor": "#4a7fd8",
+        "eyeColor": "#3fa7e8",
+        "skin": "#ffe8dc",
+        "outfit": "#4a7fd8"
+      },
+      "ult": {
+        "name": "霓虹·绿波狂潮",
+        "desc": "绿波带三段冲击各 18 点伤害，并获得 3 点指令。",
+        "fx": {
+          "dmg": 18,
+          "hits": 3,
+          "energy": 3
+        }
+      },
       "flavor": "冷静的信号调度员，一个手势能让千车让行。"
     },
     {
@@ -41,8 +69,22 @@
       "hp": 122,
       "atk": 4,
       "bst": 545,
-      "look": { "hair": "long", "hairColor": "#e8e8f0", "eyeColor": "#58c9d8", "skin": "#fff0e6", "outfit": "#c8d8e8" },
-      "ult": { "name": "守护·绝对安全区", "desc": "获得 60 点格挡、回复 50% 生命，本回合受伤减半。", "fx": { "block": 60, "healPct": 0.5, "defMult": 0.5 } },
+      "look": {
+        "hair": "long",
+        "hairColor": "#e8e8f0",
+        "eyeColor": "#58c9d8",
+        "skin": "#fff0e6",
+        "outfit": "#c8d8e8"
+      },
+      "ult": {
+        "name": "守护·绝对安全区",
+        "desc": "获得 60 点格挡、回复 50% 生命，本回合受伤减半。",
+        "fx": {
+          "block": 60,
+          "healPct": 0.5,
+          "defMult": 0.5
+        }
+      },
       "flavor": "驾校安全教练，车距永远留足，安全带永远系好。"
     },
     {
@@ -56,151 +98,797 @@
       "hp": 164,
       "atk": 5,
       "bst": 675,
-      "look": { "hair": "long", "hairColor": "#2b2b3d", "eyeColor": "#b48cf0", "skin": "#ffe8dc", "outfit": "#4a3a5a" },
-      "ult": { "name": "心灯·文明之光", "desc": "造成 24 点伤害并冻结车流 2 回合。", "fx": { "dmg": 24, "status": "freeze", "statusTurns": 2 } },
+      "look": {
+        "hair": "long",
+        "hairColor": "#2b2b3d",
+        "eyeColor": "#b48cf0",
+        "skin": "#ffe8dc",
+        "outfit": "#4a3a5a"
+      },
+      "ult": {
+        "name": "心灯·文明之光",
+        "desc": "造成 24 点伤害并冻结车流 2 回合。",
+        "fx": {
+          "dmg": 24,
+          "status": "freeze",
+          "statusTurns": 2
+        }
+      },
       "flavor": "沉默的文明守护者，用灯光照亮夜路，也照亮人心。"
+    },
+    {
+      "id": 5,
+      "n": "zangqing",
+      "c": "藏青",
+      "r": "r",
+      "i": 1,
+      "attr": "signal",
+      "attr2": "safety",
+      "hp": 140,
+      "atk": 4,
+      "bst": 585,
+      "look": {
+        "hair": "long",
+        "hairColor": "#2b5a8a",
+        "eyeColor": "#3fa7e8",
+        "skin": "#ffe8dc",
+        "outfit": "#2b5a8a"
+      },
+      "ult": {
+        "name": "调度·全域绿波",
+        "desc": "绿波带三段冲击各 22 点伤害，并抽 2 张牌。",
+        "fx": {
+          "dmg": 22,
+          "hits": 3,
+          "draw": 2
+        }
+      },
+      "flavor": "高速路调度官，绿波带的女王。让车队永不减速。"
+    },
+    {
+      "id": 6,
+      "n": "gerui",
+      "c": "格瑞",
+      "r": "r",
+      "i": 1,
+      "attr": "safety",
+      "attr2": "civility",
+      "hp": 156,
+      "atk": 5,
+      "bst": 635,
+      "look": {
+        "hair": "short",
+        "hairColor": "#9aa0a8",
+        "eyeColor": "#58c9d8",
+        "skin": "#fff0e6",
+        "outfit": "#7a828c"
+      },
+      "ult": {
+        "name": "鉴定·事故重演",
+        "desc": "造成 40 点伤害，并获得 40 点格挡。",
+        "fx": {
+          "dmg": 40,
+          "block": 40
+        }
+      },
+      "flavor": "事故鉴定官，看一眼刹车痕就知道事故全貌。"
+    },
+    {
+      "id": 7,
+      "n": "qinglan",
+      "c": "晴岚",
+      "r": "l",
+      "i": 1,
+      "attr": "civility",
+      "attr2": "law",
+      "hp": 172,
+      "atk": 5,
+      "bst": 690,
+      "look": {
+        "hair": "twin",
+        "hairColor": "#7fd8c8",
+        "eyeColor": "#f0c060",
+        "skin": "#ffe8dc",
+        "outfit": "#88c8b8"
+      },
+      "ult": {
+        "name": "晴空·礼让心灯",
+        "desc": "造成 30 点伤害、治疗全队 20% 生命，并点亮心灯守护。",
+        "fx": {
+          "dmg": 30,
+          "healPct": 0.2
+        }
+      },
+      "flavor": "阳光开朗的文明宣传员，远光灯能照亮整条夜路。"
+    },
+    {
+      "id": 8,
+      "n": "sha",
+      "c": "刹",
+      "r": "l",
+      "i": 1,
+      "attr": "law",
+      "attr2": "signal",
+      "hp": 190,
+      "atk": 6,
+      "bst": 750,
+      "look": {
+        "hair": "bob",
+        "hairColor": "#3a3a4a",
+        "eyeColor": "#ff5f6d",
+        "skin": "#ffe8dc",
+        "outfit": "#4a3558"
+      },
+      "ult": {
+        "name": "急停·绝对制动",
+        "desc": "造成 50 点伤害，并削弱敌方 50% 伤害。",
+        "fx": {
+          "dmg": 50,
+          "enemyWeak": 0.5
+        }
+      },
+      "flavor": "制动工程师，全城没有她踩不下来的车。"
     }
   ],
   "monsters": [
     {
-      "id": 101, "n": "kage", "c": "违章之影", "r": "c", "i": 1, "attr": "law", "attr2": "law",
-      "hp": 50, "atk": 2, "bst": 340,
-      "look": { "hair": "short", "hairColor": "#3a2a4a", "eyeColor": "#ff3b5f", "skin": "#d8c8e8", "outfit": "#4a3558", "dark": true },
-      "ult": { "name": "", "desc": "", "fx": {} },
+      "id": 101,
+      "n": "kage",
+      "c": "违章之影",
+      "r": "c",
+      "i": 1,
+      "attr": "law",
+      "attr2": "law",
+      "hp": 50,
+      "atk": 2,
+      "bst": 340,
+      "look": {
+        "hair": "short",
+        "hairColor": "#3a2a4a",
+        "eyeColor": "#ff3b5f",
+        "skin": "#d8c8e8",
+        "outfit": "#4a3558",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
       "flavor": "由违章之暗凝聚而成的影子，红灯亮起时最活跃。"
     },
     {
-      "id": 102, "n": "warikomi", "c": "加塞小鬼", "r": "c", "i": 1, "attr": "civility", "attr2": "civility",
-      "hp": 52, "atk": 2, "bst": 350,
-      "look": { "hair": "twin", "hairColor": "#5a3a2a", "eyeColor": "#ff3b5f", "skin": "#d8c8e8", "outfit": "#6a4a35", "dark": true },
-      "ult": { "name": "", "desc": "", "fx": {} },
+      "id": 102,
+      "n": "warikomi",
+      "c": "加塞小鬼",
+      "r": "c",
+      "i": 1,
+      "attr": "civility",
+      "attr2": "civility",
+      "hp": 52,
+      "atk": 2,
+      "bst": 350,
+      "look": {
+        "hair": "twin",
+        "hairColor": "#5a3a2a",
+        "eyeColor": "#ff3b5f",
+        "skin": "#d8c8e8",
+        "outfit": "#6a4a35",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
       "flavor": "排队时突然钻到你前面的讨厌小鬼，最爱见缝插针。"
     },
     {
-      "id": 103, "n": "ranpaku", "c": "乱停车怪", "r": "c", "i": 1, "attr": "law", "attr2": "law",
-      "hp": 54, "atk": 2, "bst": 355,
-      "look": { "hair": "bob", "hairColor": "#3a3a4a", "eyeColor": "#ff3b5f", "skin": "#d8c8e8", "outfit": "#50505f", "dark": true },
-      "ult": { "name": "", "desc": "", "fx": {} },
+      "id": 103,
+      "n": "ranpaku",
+      "c": "乱停车怪",
+      "r": "c",
+      "i": 1,
+      "attr": "law",
+      "attr2": "law",
+      "hp": 54,
+      "atk": 2,
+      "bst": 355,
+      "look": {
+        "hair": "bob",
+        "hairColor": "#3a3a4a",
+        "eyeColor": "#ff3b5f",
+        "skin": "#d8c8e8",
+        "outfit": "#50505f",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
       "flavor": "横在路中间的石墩状魔物，把路口堵得水泄不通。"
     },
     {
-      "id": 104, "n": "shingo", "c": "闯灯邪灵", "r": "c", "i": 1, "attr": "signal", "attr2": "signal",
-      "hp": 55, "atk": 2, "bst": 365,
-      "look": { "hair": "short", "hairColor": "#5a2a2a", "eyeColor": "#ff3b5f", "skin": "#d8c8e8", "outfit": "#7a3535", "dark": true },
-      "ult": { "name": "", "desc": "", "fx": {} },
+      "id": 104,
+      "n": "shingo",
+      "c": "闯灯邪灵",
+      "r": "c",
+      "i": 1,
+      "attr": "signal",
+      "attr2": "signal",
+      "hp": 55,
+      "atk": 2,
+      "bst": 365,
+      "look": {
+        "hair": "short",
+        "hairColor": "#5a2a2a",
+        "eyeColor": "#ff3b5f",
+        "skin": "#d8c8e8",
+        "outfit": "#7a3535",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
       "flavor": "黄灯最后一秒也要冲过去的邪灵，红灯对它形同虚设。"
     },
     {
-      "id": 105, "n": "sokudo", "c": "超速幽灵", "r": "c", "i": 1, "attr": "safety", "attr2": "safety",
-      "hp": 56, "atk": 2, "bst": 370,
-      "look": { "hair": "ponytail", "hairColor": "#3a4a5a", "eyeColor": "#ff3b5f", "skin": "#d8c8e8", "outfit": "#4a5a6a", "dark": true },
-      "ult": { "name": "", "desc": "", "fx": {} },
+      "id": 105,
+      "n": "sokudo",
+      "c": "超速幽灵",
+      "r": "c",
+      "i": 1,
+      "attr": "safety",
+      "attr2": "safety",
+      "hp": 56,
+      "atk": 2,
+      "bst": 370,
+      "look": {
+        "hair": "ponytail",
+        "hairColor": "#3a4a5a",
+        "eyeColor": "#ff3b5f",
+        "skin": "#d8c8e8",
+        "outfit": "#4a5a6a",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
       "flavor": "呼啸而过的幽灵车影，仪表盘永远在爆表。"
     },
     {
-      "id": 106, "n": "hirame", "c": "远光魔", "r": "c", "i": 1, "attr": "civility", "attr2": "civility",
-      "hp": 53, "atk": 2, "bst": 360,
-      "look": { "hair": "short", "hairColor": "#4a4a2a", "eyeColor": "#ffe84f", "skin": "#d8c8e8", "outfit": "#5f5f3a", "dark": true },
-      "ult": { "name": "", "desc": "", "fx": {} },
+      "id": 106,
+      "n": "hirame",
+      "c": "远光魔",
+      "r": "c",
+      "i": 1,
+      "attr": "civility",
+      "attr2": "civility",
+      "hp": 53,
+      "atk": 2,
+      "bst": 360,
+      "look": {
+        "hair": "short",
+        "hairColor": "#4a4a2a",
+        "eyeColor": "#ffe84f",
+        "skin": "#d8c8e8",
+        "outfit": "#5f5f3a",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
       "flavor": "两只大灯永远开远光的魔物，晃得人睁不开眼。"
     },
     {
-      "id": 107, "n": "itei", "c": "违停石像", "r": "c", "i": 1, "attr": "law", "attr2": "law",
-      "hp": 58, "atk": 2, "bst": 345,
-      "look": { "hair": "bob", "hairColor": "#4a4a4a", "eyeColor": "#ff3b5f", "skin": "#c8c8d8", "outfit": "#5a5a5a", "dark": true },
-      "ult": { "name": "", "desc": "", "fx": {} },
+      "id": 107,
+      "n": "itei",
+      "c": "违停石像",
+      "r": "c",
+      "i": 1,
+      "attr": "law",
+      "attr2": "law",
+      "hp": 58,
+      "atk": 2,
+      "bst": 345,
+      "look": {
+        "hair": "bob",
+        "hairColor": "#4a4a4a",
+        "eyeColor": "#ff3b5f",
+        "skin": "#c8c8d8",
+        "outfit": "#5a5a5a",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
       "flavor": "一动不动占据路边的石像，拖车都拖不走。"
     },
     {
-      "id": 108, "n": "meitei", "c": "鸣笛小妖", "r": "c", "i": 1, "attr": "civility", "attr2": "civility",
-      "hp": 51, "atk": 2, "bst": 350,
-      "look": { "hair": "twin", "hairColor": "#5a4a2a", "eyeColor": "#ff3b5f", "skin": "#d8c8e8", "outfit": "#6a5a35", "dark": true },
-      "ult": { "name": "", "desc": "", "fx": {} },
+      "id": 108,
+      "n": "meitei",
+      "c": "鸣笛小妖",
+      "r": "c",
+      "i": 1,
+      "attr": "civility",
+      "attr2": "civility",
+      "hp": 51,
+      "atk": 2,
+      "bst": 350,
+      "look": {
+        "hair": "twin",
+        "hairColor": "#5a4a2a",
+        "eyeColor": "#ff3b5f",
+        "skin": "#d8c8e8",
+        "outfit": "#6a5a35",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
       "flavor": "堵车时按喇叭按个不停的小妖，制造噪音污染。"
     },
     {
-      "id": 109, "n": "roado", "c": "路怒兽", "r": "u", "i": 1, "attr": "civility", "attr2": "civility",
-      "hp": 70, "atk": 3, "bst": 440,
-      "look": { "hair": "long", "hairColor": "#5a2a2a", "eyeColor": "#ff5f3b", "skin": "#d8c8e8", "outfit": "#7a3535", "dark": true },
-      "ult": { "name": "", "desc": "", "fx": {} },
+      "id": 109,
+      "n": "roado",
+      "c": "路怒兽",
+      "r": "u",
+      "i": 1,
+      "attr": "civility",
+      "attr2": "civility",
+      "hp": 70,
+      "atk": 3,
+      "bst": 440,
+      "look": {
+        "hair": "long",
+        "hairColor": "#5a2a2a",
+        "eyeColor": "#ff5f3b",
+        "skin": "#d8c8e8",
+        "outfit": "#7a3535",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
       "flavor": "被路怒支配的猛兽，别车、别车、还是别车。"
     },
     {
-      "id": 110, "n": "henzo", "c": "变道蛛", "r": "u", "i": 1, "attr": "safety", "attr2": "safety",
-      "hp": 72, "atk": 3, "bst": 450,
-      "look": { "hair": "long", "hairColor": "#3a4a2a", "eyeColor": "#ff3b5f", "skin": "#d8c8e8", "outfit": "#4a5a35", "dark": true },
-      "ult": { "name": "", "desc": "", "fx": {} },
+      "id": 110,
+      "n": "henzo",
+      "c": "变道蛛",
+      "r": "u",
+      "i": 1,
+      "attr": "safety",
+      "attr2": "safety",
+      "hp": 72,
+      "atk": 3,
+      "bst": 450,
+      "look": {
+        "hair": "long",
+        "hairColor": "#3a4a2a",
+        "eyeColor": "#ff3b5f",
+        "skin": "#d8c8e8",
+        "outfit": "#4a5a35",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
       "flavor": "八条腿八条车道来回横跳，从不打转向灯。"
     },
     {
-      "id": 111, "n": "gyakko", "c": "逆行恶鬼", "r": "u", "i": 1, "attr": "signal", "attr2": "signal",
-      "hp": 74, "atk": 3, "bst": 460,
-      "look": { "hair": "short", "hairColor": "#4a2a3a", "eyeColor": "#ff3b5f", "skin": "#d8c8e8", "outfit": "#5a3545", "dark": true },
-      "ult": { "name": "", "desc": "", "fx": {} },
+      "id": 111,
+      "n": "gyakko",
+      "c": "逆行恶鬼",
+      "r": "u",
+      "i": 1,
+      "attr": "signal",
+      "attr2": "signal",
+      "hp": 74,
+      "atk": 3,
+      "bst": 460,
+      "look": {
+        "hair": "short",
+        "hairColor": "#4a2a3a",
+        "eyeColor": "#ff3b5f",
+        "skin": "#d8c8e8",
+        "outfit": "#5a3545",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
       "flavor": "逆着车流狂奔的恶鬼，所有司机的心头噩梦。"
     },
     {
-      "id": 112, "n": "hashiri", "c": "飙车党", "r": "u", "i": 1, "attr": "safety", "attr2": "safety",
-      "hp": 71, "atk": 3, "bst": 455,
-      "look": { "hair": "ponytail", "hairColor": "#2a3a5a", "eyeColor": "#ff5f3b", "skin": "#d8c8e8", "outfit": "#354a6a", "dark": true },
-      "ult": { "name": "", "desc": "", "fx": {} },
+      "id": 112,
+      "n": "hashiri",
+      "c": "飙车党",
+      "r": "u",
+      "i": 1,
+      "attr": "safety",
+      "attr2": "safety",
+      "hp": 71,
+      "atk": 3,
+      "bst": 455,
+      "look": {
+        "hair": "ponytail",
+        "hairColor": "#2a3a5a",
+        "eyeColor": "#ff5f3b",
+        "skin": "#d8c8e8",
+        "outfit": "#354a6a",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
       "flavor": "深夜炸街的飙车集团，引擎声就是他们的战歌。"
     },
     {
-      "id": 113, "n": "hiro", "c": "疲劳魅影", "r": "u", "i": 1, "attr": "safety", "attr2": "safety",
-      "hp": 68, "atk": 3, "bst": 445,
-      "look": { "hair": "long", "hairColor": "#3a3a5a", "eyeColor": "#ff3b5f", "skin": "#c8c8d8", "outfit": "#4a4a6a", "dark": true },
-      "ult": { "name": "", "desc": "", "fx": {} },
+      "id": 113,
+      "n": "hiro",
+      "c": "疲劳魅影",
+      "r": "u",
+      "i": 1,
+      "attr": "safety",
+      "attr2": "safety",
+      "hp": 68,
+      "atk": 3,
+      "bst": 445,
+      "look": {
+        "hair": "long",
+        "hairColor": "#3a3a5a",
+        "eyeColor": "#ff3b5f",
+        "skin": "#c8c8d8",
+        "outfit": "#4a4a6a",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
       "flavor": "连开十小时不休息的魅影，眼皮底下藏着事故。"
     },
     {
-      "id": 114, "n": "inshu", "c": "酒驾之魔", "r": "r", "i": 1, "attr": "law", "attr2": "law",
-      "hp": 95, "atk": 4, "bst": 530,
-      "look": { "hair": "short", "hairColor": "#5a3a2a", "eyeColor": "#ff5f3b", "skin": "#d8c8e8", "outfit": "#6a4a35", "dark": true },
-      "ult": { "name": "", "desc": "", "fx": {} },
+      "id": 114,
+      "n": "inshu",
+      "c": "酒驾之魔",
+      "r": "r",
+      "i": 1,
+      "attr": "law",
+      "attr2": "law",
+      "hp": 95,
+      "atk": 4,
+      "bst": 530,
+      "look": {
+        "hair": "short",
+        "hairColor": "#5a3a2a",
+        "eyeColor": "#ff5f3b",
+        "skin": "#d8c8e8",
+        "outfit": "#6a4a35",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
       "flavor": "浑身酒气的魔物，走路蛇形，开车更蛇形。"
     },
     {
-      "id": 115, "n": "muken", "c": "无证影魔", "r": "r", "i": 1, "attr": "law", "attr2": "law",
-      "hp": 98, "atk": 4, "bst": 540,
-      "look": { "hair": "long", "hairColor": "#2a2a3a", "eyeColor": "#ff3b5f", "skin": "#c8c8d8", "outfit": "#3a3a4a", "dark": true },
-      "ult": { "name": "", "desc": "", "fx": {} },
+      "id": 115,
+      "n": "muken",
+      "c": "无证影魔",
+      "r": "r",
+      "i": 1,
+      "attr": "law",
+      "attr2": "law",
+      "hp": 98,
+      "atk": 4,
+      "bst": 540,
+      "look": {
+        "hair": "long",
+        "hairColor": "#2a2a3a",
+        "eyeColor": "#ff3b5f",
+        "skin": "#c8c8d8",
+        "outfit": "#3a3a4a",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
       "flavor": "没有驾照却驰骋街头的影魔，车上贴满罚单。"
     },
     {
-      "id": 116, "n": "futai", "c": "遮挡号牌者", "r": "r", "i": 1, "attr": "law", "attr2": "law",
-      "hp": 93, "atk": 4, "bst": 525,
-      "look": { "hair": "bob", "hairColor": "#4a4a3a", "eyeColor": "#ff3b5f", "skin": "#d8c8e8", "outfit": "#5a5a4a", "dark": true },
-      "ult": { "name": "", "desc": "", "fx": {} },
+      "id": 116,
+      "n": "futai",
+      "c": "遮挡号牌者",
+      "r": "r",
+      "i": 1,
+      "attr": "law",
+      "attr2": "law",
+      "hp": 93,
+      "atk": 4,
+      "bst": 525,
+      "look": {
+        "hair": "bob",
+        "hairColor": "#4a4a3a",
+        "eyeColor": "#ff3b5f",
+        "skin": "#d8c8e8",
+        "outfit": "#5a5a4a",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
       "flavor": "用泥巴糊住号牌的狡猾魔物，电子眼都认不出它。"
     },
     {
-      "id": 117, "n": "itei-boss", "c": "违停障碍怪", "r": "l", "i": 1, "attr": "law", "attr2": "law", "boss": true,
-      "hp": 135, "atk": 5, "bst": 660,
-      "look": { "hair": "short", "hairColor": "#4a4a4a", "eyeColor": "#ff3b5f", "skin": "#c8b8d8", "outfit": "#5a5a5a", "dark": true },
-      "ult": { "name": "", "desc": "", "fx": {} },
+      "id": 117,
+      "n": "itei-boss",
+      "c": "违停障碍怪",
+      "r": "l",
+      "i": 1,
+      "attr": "law",
+      "attr2": "law",
+      "boss": true,
+      "hp": 135,
+      "atk": 5,
+      "bst": 660,
+      "look": {
+        "hair": "short",
+        "hairColor": "#4a4a4a",
+        "eyeColor": "#ff3b5f",
+        "skin": "#c8b8d8",
+        "outfit": "#5a5a5a",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
       "flavor": "第 1 街区之主：把整条街堵成停车场的违停魔王。"
     },
     {
-      "id": 118, "n": "sokudo-boss", "c": "超速混乱怪", "r": "l", "i": 1, "attr": "safety", "attr2": "safety", "boss": true,
-      "hp": 138, "atk": 5, "bst": 670,
-      "look": { "hair": "long", "hairColor": "#3a4a5a", "eyeColor": "#ff3b5f", "skin": "#c8b8d8", "outfit": "#4a5a6a", "dark": true },
-      "ult": { "name": "", "desc": "", "fx": {} },
+      "id": 118,
+      "n": "sokudo-boss",
+      "c": "超速混乱怪",
+      "r": "l",
+      "i": 1,
+      "attr": "safety",
+      "attr2": "safety",
+      "boss": true,
+      "hp": 138,
+      "atk": 5,
+      "bst": 670,
+      "look": {
+        "hair": "long",
+        "hairColor": "#3a4a5a",
+        "eyeColor": "#ff3b5f",
+        "skin": "#c8b8d8",
+        "outfit": "#4a5a6a",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
       "flavor": "第 2 街区之主：车流混乱的源头，速度的化身。"
     },
     {
-      "id": 119, "n": "kiri-boss", "c": "迷雾冲突怪", "r": "l", "i": 1, "attr": "civility", "attr2": "civility", "boss": true,
-      "hp": 140, "atk": 5, "bst": 680,
-      "look": { "hair": "long", "hairColor": "#3a3a5a", "eyeColor": "#ff3b5f", "skin": "#c8b8d8", "outfit": "#4a4a6a", "dark": true },
-      "ult": { "name": "", "desc": "", "fx": {} },
+      "id": 119,
+      "n": "kiri-boss",
+      "c": "迷雾冲突怪",
+      "r": "l",
+      "i": 1,
+      "attr": "civility",
+      "attr2": "civility",
+      "boss": true,
+      "hp": 140,
+      "atk": 5,
+      "bst": 680,
+      "look": {
+        "hair": "long",
+        "hairColor": "#3a3a5a",
+        "eyeColor": "#ff3b5f",
+        "skin": "#c8b8d8",
+        "outfit": "#4a4a6a",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
       "flavor": "第 3 街区之主：浓雾与远光灯交织的夜之冲突。"
     },
     {
-      "id": 120, "n": "shingo-boss", "c": "信号错误怪", "r": "l", "i": 1, "attr": "signal", "attr2": "signal", "boss": true,
-      "hp": 145, "atk": 5, "bst": 700,
-      "look": { "hair": "short", "hairColor": "#5a2a2a", "eyeColor": "#ff3b5f", "skin": "#c8b8d8", "outfit": "#7a3535", "dark": true },
-      "ult": { "name": "", "desc": "", "fx": {} },
-      "flavor": "最终街区之主：让全城信号崩坏的违章之暗化身。"
+      "id": 120,
+      "n": "shingo-boss",
+      "c": "信号错误怪",
+      "r": "l",
+      "i": 1,
+      "attr": "signal",
+      "attr2": "signal",
+      "boss": true,
+      "hp": 182,
+      "atk": 7,
+      "bst": 760,
+      "look": {
+        "hair": "short",
+        "hairColor": "#5a2a2a",
+        "eyeColor": "#ff3b5f",
+        "skin": "#c8b8d8",
+        "outfit": "#7a3535",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
+      "flavor": "第 8 章守关者。让全城红绿灯集体发疯的信号错误怪。"
+    },
+    {
+      "id": 121,
+      "n": "barrier-troll",
+      "c": "违停路障巨魔",
+      "r": "l",
+      "i": 1,
+      "attr": "law",
+      "attr2": "law",
+      "boss": true,
+      "hp": 150,
+      "atk": 6,
+      "bst": 700,
+      "look": {
+        "hair": "short",
+        "hairColor": "#4a4a4a",
+        "eyeColor": "#ff3b5f",
+        "skin": "#c8b8d8",
+        "outfit": "#5a5a5a",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
+      "flavor": "第 4 章守关者。把违停车海垒成移动要塞的巨魔。"
+    },
+    {
+      "id": 122,
+      "n": "redlight-beast",
+      "c": "闯红灯暴走兽",
+      "r": "l",
+      "i": 1,
+      "attr": "signal",
+      "attr2": "signal",
+      "boss": true,
+      "hp": 158,
+      "atk": 6,
+      "bst": 715,
+      "look": {
+        "hair": "short",
+        "hairColor": "#3a2a2a",
+        "eyeColor": "#ff0044",
+        "skin": "#d8c0c0",
+        "outfit": "#6a2a2a",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
+      "flavor": "第 5 章守关者。红灯亮起时冲得最快的暴走兽。"
+    },
+    {
+      "id": 123,
+      "n": "fogguide-demon",
+      "c": "迷雾指路妖",
+      "r": "l",
+      "i": 1,
+      "attr": "safety",
+      "attr2": "safety",
+      "boss": true,
+      "hp": 166,
+      "atk": 6,
+      "bst": 730,
+      "look": {
+        "hair": "long",
+        "hairColor": "#5a6a8a",
+        "eyeColor": "#b8d8ff",
+        "skin": "#c8ccd8",
+        "outfit": "#5a6a8a",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
+      "flavor": "第 6 章守关者。篡改路牌把人引向死路的雾中妖。"
+    },
+    {
+      "id": 124,
+      "n": "wreck-puppet",
+      "c": "事故残骸傀儡",
+      "r": "l",
+      "i": 1,
+      "attr": "safety",
+      "attr2": "safety",
+      "boss": true,
+      "hp": 175,
+      "atk": 7,
+      "bst": 748,
+      "look": {
+        "hair": "short",
+        "hairColor": "#5a5a5a",
+        "eyeColor": "#ff7a00",
+        "skin": "#c8c0b8",
+        "outfit": "#6a5a4a",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
+      "flavor": "第 7 章守关者。用事故废车拼装身体的傀儡。"
+    },
+    {
+      "id": 125,
+      "n": "jam-ghost",
+      "c": "拥堵车流幽灵",
+      "r": "l",
+      "i": 1,
+      "attr": "civility",
+      "attr2": "civility",
+      "boss": true,
+      "hp": 195,
+      "atk": 7,
+      "bst": 780,
+      "look": {
+        "hair": "long",
+        "hairColor": "#3a3a5a",
+        "eyeColor": "#00ffcc",
+        "skin": "#b8c8d8",
+        "outfit": "#4a5a7a",
+        "dark": true
+      },
+      "ult": {
+        "name": "",
+        "desc": "",
+        "fx": {}
+      },
+      "flavor": "最终 Boss。让整条环城高架永远堵死的车河幽灵,被击败后会暴走。"
     }
   ]
 }

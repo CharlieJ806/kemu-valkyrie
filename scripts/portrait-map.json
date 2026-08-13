@@ -39,6 +39,46 @@
         "skill": "深夜 (技能1).png",
         "ult": "深夜 (技能2).png"
       }
+    },
+    "藏青": {
+      "id": 5,
+      "portrait": "藏青 (待机).png",
+      "poses": {
+        "attack": "藏青 (行动1).png",
+        "hurt": "藏青 (受击).png",
+        "skill": "藏青 (技能1).png",
+        "ult": "藏青 (技能2).png"
+      }
+    },
+    "格瑞": {
+      "id": 6,
+      "portrait": "格瑞 (待机).png",
+      "poses": {
+        "attack": "格瑞 (行动1).png",
+        "hurt": "格瑞 (受击).png",
+        "skill": "格瑞 (技能1).png",
+        "ult": "格瑞 (技能2).png"
+      }
+    },
+    "晴岚": {
+      "id": 7,
+      "portrait": "晴岚 (待机).png",
+      "poses": {
+        "attack": "晴岚 (行动1).png",
+        "hurt": "晴岚 (受击).png",
+        "skill": "晴岚 (技能1).png",
+        "ult": "晴岚 (技能2).png"
+      }
+    },
+    "刹": {
+      "id": 8,
+      "portrait": "刹 (待机).png",
+      "poses": {
+        "attack": "刹 (行动1).png",
+        "hurt": "刹 (受击).png",
+        "skill": "刹 (技能1).png",
+        "ult": "刹 (技能2).png"
+      }
     }
   },
   "bosses": {
@@ -80,6 +120,53 @@
         "hurt": "信号错误怪 (被击败).png",
         "skill": "信号错误怪 (4).png",
         "ult": "信号错误怪 (5).png"
+      }
+    },
+    "违停路障巨魔": {
+      "id": 121,
+      "portrait": "违停路障巨魔 (2).png",
+      "poses": {
+        "attack": "违停路障巨魔 (3).png",
+        "hurt": "违停路障巨魔 (被击败).png",
+        "skill": "违停路障巨魔 (4).png",
+        "ult": "违停路障巨魔 (5).png"
+      }
+    },
+    "闯红灯暴走兽": {
+      "id": 122,
+      "portrait": "闯红灯暴走兽 (1).png",
+      "poses": {
+        "attack": "闯红灯暴走兽 (3).png",
+        "hurt": "闯红灯暴走兽 (被击败).png"
+      }
+    },
+    "迷雾指路妖": {
+      "id": 123,
+      "portrait": "迷雾指路妖 (1).png",
+      "poses": {
+        "attack": "迷雾指路妖 (3).png",
+        "hurt": "迷雾指路妖 (被击败).png",
+        "skill": "迷雾指路妖 (4).png",
+        "ult": "迷雾指路妖 (5).png"
+      }
+    },
+    "事故残骸傀儡": {
+      "id": 124,
+      "portrait": "事故残骸傀儡 (1).png",
+      "poses": {
+        "attack": "事故残骸傀儡 (4).png",
+        "hurt": "事故残骸傀儡 (被击败).png",
+        "skill": "事故残骸傀儡 (5).png"
+      }
+    },
+    "拥堵车流幽灵": {
+      "id": 125,
+      "portrait": "拥堵车流幽灵 (2).png",
+      "poses": {
+        "attack": "拥堵车流幽灵 (3).png",
+        "hurt": "拥堵车流幽灵 (被击败).png",
+        "skill": "拥堵车流幽灵 (4).png",
+        "ult": "拥堵车流幽灵 (二阶段).png"
       }
     }
   }

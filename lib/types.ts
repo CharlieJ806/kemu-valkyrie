@@ -144,6 +144,7 @@ export type RunState = {
   ultMax: number; // 大招槽上限(=9)
 
   // ── 战斗现场(仅在 inBattle 时有意义) ──
+  bossPhase: number; // 最终 Boss 战斗阶段(1 常态 / 2 暴走二阶段)
   enemyPkm: Valkyrie | null;
   enemyHp: number;
   enemyMaxHp: number;

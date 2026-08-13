@@ -161,7 +161,13 @@ export default function BattleScreen() {
       const r = st.run;
       if (r?.enemyPkm) {
         BattleFX.setPlayer(r.team[r.activeIdx] ?? 1);
-        BattleFX.setEnemy(r.enemyPkm.id, r.enemyPkm.r);
+        // Boss 放大立绘;最终 Boss 二阶段切「二阶段」形态图
+        BattleFX.setEnemy(
+          r.enemyPkm.id,
+          r.enemyPkm.r,
+          !!r.enemyPkm.boss,
+          r.bossPhase === 2 ? "ult" : undefined,
+        );
       }
     }
     // 舞台尺寸变化(答题区隐藏/显示)时同步 3D 渲染尺寸,画面保持固定
@@ -187,6 +193,13 @@ export default function BattleScreen() {
     BattleFX.setPlayer(run.team[run.activeIdx] ?? 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [run?.activeIdx, run?.inBattle, fxOk]);
+
+  // 最终 Boss 二阶段 → 敌方切「二阶段」形态图
+  useEffect(() => {
+    if (!fxOk || !run || !run.inBattle) return;
+    if (run.bossPhase === 2) BattleFX.setEnemyPose("ult");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [run?.bossPhase, fxOk]);
 
   // 全灭 → 玩家倒下动画
   useEffect(() => {

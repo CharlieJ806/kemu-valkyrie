@@ -22,13 +22,17 @@ const MAP = JSON.parse(
 );
 
 // 收集任务: { src, outName }
+// boss 素材可能放在 enemies/{name} 或 enemies/boss/{name}(新旧两种目录结构都兼容)
 const jobs = [];
-for (const [group, folder] of [
-  ["characters", "characters"],
-  ["bosses", "enemies"],
+for (const [group, folders] of [
+  ["characters", ["characters"]],
+  ["bosses", ["enemies", "enemies/boss"]],
 ]) {
   for (const [name, def] of Object.entries(MAP[group] || {})) {
-    const dir = path.join(SRC_ROOT, folder, name);
+    const dir =
+      folders
+        .map((f) => path.join(SRC_ROOT, f, name))
+        .find((d) => fs.existsSync(d)) || path.join(SRC_ROOT, folders[0], name);
     jobs.push({ src: path.join(dir, def.portrait), outName: `${def.id}.webp` });
     for (const [pose, file] of Object.entries(def.poses || {})) {
       jobs.push({ src: path.join(dir, file), outName: `${def.id}_${pose}.webp` });

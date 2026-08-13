@@ -31,6 +31,38 @@
       "ult"
     ]
   },
+  "5": {
+    "poses": [
+      "attack",
+      "hurt",
+      "skill",
+      "ult"
+    ]
+  },
+  "6": {
+    "poses": [
+      "attack",
+      "hurt",
+      "skill",
+      "ult"
+    ]
+  },
+  "7": {
+    "poses": [
+      "attack",
+      "hurt",
+      "skill",
+      "ult"
+    ]
+  },
+  "8": {
+    "poses": [
+      "attack",
+      "hurt",
+      "skill",
+      "ult"
+    ]
+  },
   "117": {
     "poses": [
       "attack",
@@ -56,6 +88,43 @@
     ]
   },
   "120": {
+    "poses": [
+      "attack",
+      "hurt",
+      "skill",
+      "ult"
+    ]
+  },
+  "121": {
+    "poses": [
+      "attack",
+      "hurt",
+      "skill",
+      "ult"
+    ]
+  },
+  "122": {
+    "poses": [
+      "attack",
+      "hurt"
+    ]
+  },
+  "123": {
+    "poses": [
+      "attack",
+      "hurt",
+      "skill",
+      "ult"
+    ]
+  },
+  "124": {
+    "poses": [
+      "attack",
+      "hurt",
+      "skill"
+    ]
+  },
+  "125": {
     "poses": [
       "attack",
       "hurt",

@@ -68,9 +68,11 @@
 #scr-title::before{background-image:linear-gradient(rgba(255,255,255,.5),rgba(255,255,255,.82)),url('/bg/main.webp')}
 #scr-map::before{background-image:linear-gradient(rgba(255,255,255,.55),rgba(255,255,255,.85)),url('/bg/map.webp')}
 #scr-battle::before{background-image:linear-gradient(rgba(255,255,255,.6),rgba(255,255,255,.88)),url('/bg/battle.webp')}
+#scr-story::before{background-image:linear-gradient(rgba(255,255,255,.45),rgba(255,255,255,.8)),url('/bg/story.webp')}
+#scr-over::before{background-image:linear-gradient(rgba(255,255,255,.6),rgba(255,255,255,.88)),url('/bg/over.webp')}
 #scr-starter::before,#scr-dex::before,#scr-review::before,#scr-bank::before,#scr-train::before,
 #scr-gacha::before,#scr-deckbuild::before,#scr-settings::before,#scr-study::before,
-#scr-exam::before,#scr-wrong::before,#scr-over::before,#scr-shop::before,#scr-rest::before{
+#scr-exam::before,#scr-wrong::before,#scr-shop::before,#scr-rest::before{
   background-image:linear-gradient(rgba(255,255,255,.62),rgba(255,255,255,.9)),url('/bg/menu.webp')
 }
 /* 让背景透出的半透明处理 */

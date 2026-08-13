@@ -66,9 +66,14 @@ import { GAME_EVENTS } from "./events";
 /** 剧情对白队列(screen=story 时播放) */
 export type StoryQueue = StoryLine[];
 
-/** 已解锁学员 id 集(剧情解锁:通关章节数 + 初始赤红) */
+/** 章节总数(第 9 章为最终 Boss 战) */
+export const TOTAL_CHAPTERS = STORY.chapters.length;
+/** 最终 Boss:拥堵车流幽灵(两阶段) */
+export const FINAL_BOSS_ID = STORY.chapters[TOTAL_CHAPTERS - 1]!.bossId;
+
+/** 已解锁学员 id 集(剧情解锁:初始赤红 + 每通一章解锁一名;id 顺序即解锁顺序) */
 export function unlockedIds(storyCleared: number): number[] {
-  const n = Math.min(4, Math.max(1, storyCleared + 1));
+  const n = Math.min(VALKYRIES.length, Math.max(1, storyCleared + 1));
   return VALKYRIES.slice(0, n).map((v) => v.id);
 }
 
@@ -503,7 +508,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const teamHp = [...teamMaxHp];
     const chapter = 1;
     const loop = 1;
-    const floor = (loop - 1) * 4 + chapter;
+    const floor = (loop - 1) * TOTAL_CHAPTERS + chapter;
     const ch = getChapterById(chapter)!;
     const mapNodes = generateMapNodes(floor, ch.bossId);
     if (mapNodes[0].length > 0) mapNodes[0][0]!.reachable = true;
@@ -553,6 +558,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       cardPlayedThisTurn: false,
       turnPhase: "question",
       turnCorrect: 0,
+      bossPhase: 1,
       leaderId: null,
       awakened: {},
       ultGauge: 0,
@@ -932,6 +938,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
       // 击败 Boss:章节通关 → 解锁角色 → 下一章/下一周目
       if (node && node.type === "boss") {
+        // 最终 Boss 第一形态击破 → 暴走二阶段(同场再战,敌方满血强化)
+        if (
+          node.enemyPkm &&
+          node.enemyPkm.id === FINAL_BOSS_ID &&
+          (run.bossPhase ?? 1) === 1
+        ) {
+          run.bossPhase = 2;
+          startBattleOn(run, node, true, get().questionPool);
+          run.enemyMaxHp = Math.floor(run.enemyMaxHp * 1.25);
+          run.enemyHp = run.enemyMaxHp;
+          run.enemyBaseDamage = Math.ceil(run.enemyBaseDamage * 1.2);
+          set({ run });
+          persistRun(run);
+          get().showToast("💀 车河暴走！拥堵车流幽灵进入二阶段！", 2800);
+          return;
+        }
         get().clearChapter();
         const st = get();
         if (st.run && st.run.score > st.meta.bestScore) {
@@ -987,10 +1009,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
         }
       }
       queue = storyQueueWith(ch.outro, run);
+      // 无解锁章节的纪念奖励(第 8 章:全角色集结)
+      if (ch.unlockId == null && ch.id === TOTAL_CHAPTERS - 1) {
+        const bonus = 3000;
+        meta.metaGold += bonus;
+        run.gold += bonus;
+      }
     }
 
     // 下一章 / 下一周目
-    if (run.chapter < 4) {
+    if (run.chapter < TOTAL_CHAPTERS) {
       run.chapter++;
     } else {
       run.loop++;
@@ -1003,7 +1031,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         );
       }
     }
-    run.floor = (run.loop - 1) * 4 + run.chapter;
+    run.floor = (run.loop - 1) * TOTAL_CHAPTERS + run.chapter;
     const nextCh = getChapterById(run.chapter);
     run.mapNodes = generateMapNodes(run.floor, nextCh?.bossId);
     run.currentNodeIdx = -1;
