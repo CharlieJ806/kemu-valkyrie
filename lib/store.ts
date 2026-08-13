@@ -595,6 +595,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       modal: null,
     });
     persistMeta(meta);
+    persistRun(save); // loadRun 已净化旧档(非法角色 id),立即回写清掉脏 blob
     get().showToast("继续冒险！", 1800);
     return true;
   },

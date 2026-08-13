@@ -221,7 +221,12 @@ export function loadRun(): RunState | null {
     run.team = team.team;
     run.teamHp = team.teamHp;
     run.teamMaxHp = team.teamMaxHp;
-    if (run.team.length === 0) run.team = [1];
+    if (run.team.length === 0) {
+      // 全非法兜底:赤红单骑
+      run.team = [1];
+      run.teamHp = [80];
+      run.teamMaxHp = [80];
+    }
     if (run.activeIdx >= run.team.length) run.activeIdx = 0;
     if (run.enemyPkm && !getValkById(run.enemyPkm.id)) run.enemyPkm = null;
 
