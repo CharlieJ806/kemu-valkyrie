@@ -1,5 +1,27 @@
 import type { MapNode, MetaState, RunState } from "./types";
 import { cardFromIdList } from "./cards";
+import { VALKYRIES, getValkById } from "@/data";
+
+/** 旧版存档(16 角色时期)可能残留非法角色 id → 净化队伍/收集 */
+export function isValidTeamId(id: number): boolean {
+  return VALKYRIES.some((v) => v.id === id);
+}
+
+/** 过滤队伍中的非法角色 id,并同步血量数组 */
+export function sanitizeTeam(
+  team: number[],
+  teamHp: number[],
+  teamMaxHp: number[],
+): { team: number[]; teamHp: number[]; teamMaxHp: number[] } {
+  const valid = team
+    .map((id, i) => ({ id, hp: teamHp[i] ?? null, max: teamMaxHp[i] ?? null }))
+    .filter((t) => isValidTeamId(t.id));
+  return {
+    team: valid.map((t) => t.id),
+    teamHp: valid.map((t) => t.hp ?? t.max ?? 80),
+    teamMaxHp: valid.map((t) => t.max ?? 80),
+  };
+}
 
 /** 新游戏独立存档键(与旧项目 dungeonDrive_* 不串档) */
 export const META_KEY = "kemuValkyrie_meta";
@@ -41,8 +63,10 @@ export function loadMeta(): MetaState {
       bestScore: d.bestScore || 0,
       bestFloor: d.bestFloor || 0,
       totalRuns: d.totalRuns || 0,
-      collected: d.collected || {},
-      team: Array.isArray(d.team) ? d.team : [],
+      collected: Object.fromEntries(
+        Object.entries(d.collected || {}).filter(([k]) => isValidTeamId(Number(k))),
+      ) as Record<string, boolean>,
+      team: Array.isArray(d.team) ? d.team.filter((id: number) => isValidTeamId(id)) : [],
       soundEnabled: d.soundEnabled !== false,
       metaGold: d.metaGold || 0,
       metaHpLv: d.metaHpLv || 0,
@@ -191,6 +215,15 @@ export function loadRun(): RunState | null {
 
     // 老存档的 deck 是完整卡对象数组 → 只取 id
     recomputeReachability(run.mapNodes, run.currentNodeIdx);
+
+    // 净化队伍:旧版(16 角色)存档可能残留非法角色 id
+    const team = sanitizeTeam(run.team, run.teamHp, run.teamMaxHp);
+    run.team = team.team;
+    run.teamHp = team.teamHp;
+    run.teamMaxHp = team.teamMaxHp;
+    if (run.team.length === 0) run.team = [1];
+    if (run.activeIdx >= run.team.length) run.activeIdx = 0;
+    if (run.enemyPkm && !getValkById(run.enemyPkm.id)) run.enemyPkm = null;
 
     // 若抽牌堆空但有牌组,预置一份(与本地版 loadGame 一致)
     if (run.drawPile.length === 0 && run.deck.length > 0) {

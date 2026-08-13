@@ -160,7 +160,7 @@ export default function BattleScreen() {
       const st = useGameStore.getState();
       const r = st.run;
       if (r?.enemyPkm) {
-        BattleFX.setPlayer(r.team[r.activeIdx] ?? 25);
+        BattleFX.setPlayer(r.team[r.activeIdx] ?? 1);
         BattleFX.setEnemy(r.enemyPkm.id, r.enemyPkm.r);
       }
     }
@@ -184,7 +184,7 @@ export default function BattleScreen() {
   // 出战学员变化 → 换人入场动画
   useEffect(() => {
     if (!fxOk || !run || !run.inBattle) return;
-    BattleFX.setPlayer(run.team[run.activeIdx] ?? 25);
+    BattleFX.setPlayer(run.team[run.activeIdx] ?? 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [run?.activeIdx, run?.inBattle, fxOk]);
 
@@ -344,10 +344,10 @@ export default function BattleScreen() {
         {/* 玩家 */}
         <div className="battle-player">
           <div className="player-sprite-wrap" style={fxOk ? { display: "none" } : {}}>
-            {ICON(run.team[run.activeIdx] ?? 25) ? (
+            {ICON(run.team[run.activeIdx] ?? 1) ? (
               <img
                 id="player-pkm-sprite"
-                src={ICON(run.team[run.activeIdx] ?? 25)}
+                src={ICON(run.team[run.activeIdx] ?? 1)}
                 alt=""
               />
             ) : (
@@ -356,7 +356,7 @@ export default function BattleScreen() {
           </div>
           <div className="player-info">
             <div className="player-name">
-              {getValkName(run.team[run.activeIdx] ?? 25)}
+              {getValkName(run.team[run.activeIdx] ?? 1)}
               {run.team.length > 1 ? ` (${run.activeIdx + 1}/${run.team.length})` : ""}
             </div>
             <div className="battle-player-info">
