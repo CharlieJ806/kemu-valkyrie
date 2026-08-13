@@ -100,6 +100,8 @@ export type MetaState = {
   maxComboEver: number;
   /** 剧情进度:已通关章节数(0-4)。已解锁学员 id ≤ storyCleared+1 */
   storyCleared: number;
+  /** 已遭遇的魔物 id 集(图鉴用,跨局) */
+  seenMonsters: Record<string, boolean>;
 };
 
 /* ============ Run(单局,持久化到 dungeonDrive_save) ============ */

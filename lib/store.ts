@@ -802,6 +802,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!run0) return;
     const run = cloneRun(run0);
     startBattleOn(run, node, isBoss, get().questionPool);
+    // 图鉴:标记遭遇的魔物(跨局持久化)
+    if (run.enemyPkm) {
+      const meta = cloneMeta(get().meta);
+      meta.seenMonsters = { ...meta.seenMonsters, [String(run.enemyPkm.id)]: true };
+      set({ meta });
+      persistMeta(meta);
+    }
     set({
       run,
       screen: "battle",

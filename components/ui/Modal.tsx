@@ -145,6 +145,7 @@ export default function Modal() {
   if (modal.kind === "pkmDetail") {
     const pkm = getValkById(modal.id);
     if (!pkm) return null;
+    const isMonster = pkm.id >= 100;
     const inTeam = meta.team.includes(pkm.id);
     const isActive = meta.team.length > 0 && meta.team[0] === pkm.id;
     const teamFull = meta.team.length >= MAX_TEAM_SIZE;
@@ -154,16 +155,13 @@ export default function Modal() {
         <div className="modal" onClick={(e) => e.stopPropagation()}>
           <div className={`dex-detail-card r-${pkm.r}`}>
             <div className="capture-pkmn">
-              {ICON(pkm.id) ? (
-                <img src={ICON(pkm.id)} alt="" />
-              ) : (
-                <div className="pkm-img-fallback">👾</div>
-              )}
+              <img src={ICON(pkm.id)} alt="" />
             </div>
             <div
-              style={{ fontWeight: 800, color: RARITY_COLORS[pkm.r] }}
+              style={{ fontWeight: 800, color: isMonster ? "var(--txt)" : RARITY_COLORS[pkm.r] }}
             >
               #{pkm.id} {pkm.c}
+              {pkm.boss ? " · BOSS" : ""}
             </div>
             <div
               style={{ display: "flex", gap: 6, justifyContent: "center", marginTop: 6 }}
@@ -171,74 +169,86 @@ export default function Modal() {
               <span className="attr-badge" style={attrBadgeStyle(pkm.attr)}>
                 {ATTR_NAMES[pkm.attr]}
               </span>
-              <span
-                className="attr-badge"
-                style={{
-                  ...attrBadgeStyle(pkm.attr2),
-                  opacity: 0.75,
-                  textDecoration: "none",
-                }}
-                title="点火觉醒后获得"
-              >
-                🔑 {ATTR_SHORT[pkm.attr2]}
-              </span>
-            </div>
-          <div
-            style={{ fontSize: 12, color: "var(--dim)", marginTop: 8, lineHeight: 1.7 }}
-          >
-            稀有度: {RARITY_NAMES[pkm.r]}<br />
-            综合面板: {bst}<br />
-            必杀: {pkm.ult.name || "—"}
-            {pkm.flavor ? <><br />{pkm.flavor}</> : null}
-            {inTeam ? (isActive ? "<br/>📍 出战学员" : "<br/>📍 已在队伍中") : ""}
-          </div>
-          <div className="m-actions">
-            {inTeam ? (
-              isActive ? null : (
-                <button
-                  className="btn btn-primary"
-                  onClick={() => {
-                    setActiveTeam(pkm.id);
-                    AudioEngine.sfx("click");
+              {!isMonster && (
+                <span
+                  className="attr-badge"
+                  style={{
+                    ...attrBadgeStyle(pkm.attr2),
+                    opacity: 0.75,
+                    textDecoration: "none",
                   }}
+                  title="点火觉醒后获得"
                 >
-                  ⭐ 设为出战
-                </button>
-              )
-            ) : teamFull ? (
-              <div
-                style={{
-                  textAlign: "center",
-                  fontSize: 13,
-                  color: "var(--gold)",
-                  padding: "6px 0",
-                }}
-              >
-                队伍已满({MAX_TEAM_SIZE}名) — 先在名册中移出其他学员
+                  🔑 {ATTR_SHORT[pkm.attr2]}
+                </span>
+              )}
+            </div>
+            <div
+              style={{ fontSize: 12, color: "var(--dim)", marginTop: 8, lineHeight: 1.7 }}
+            >
+              {isMonster ? (
+                <>
+                  HP: {pkm.hp} · 攻击: {pkm.atk} · 面板: {bst}
+                </>
+              ) : (
+                <>
+                  综合面板: {bst}
+                  <br />
+                  必杀: {pkm.ult.name || "—"}
+                </>
+              )}
+              {pkm.flavor ? <><br />{pkm.flavor}</> : null}
+              {!isMonster && inTeam ? (isActive ? "<br/>📍 出战学员" : "<br/>📍 已在队伍中") : ""}
+            </div>
+            {!isMonster && (
+              <div className="m-actions">
+                {inTeam ? (
+                  isActive ? null : (
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => {
+                        setActiveTeam(pkm.id);
+                        AudioEngine.sfx("click");
+                      }}
+                    >
+                      ⭐ 设为出战
+                    </button>
+                  )
+                ) : teamFull ? (
+                  <div
+                    style={{
+                      textAlign: "center",
+                      fontSize: 13,
+                      color: "var(--gold)",
+                      padding: "6px 0",
+                    }}
+                  >
+                    队伍已满({MAX_TEAM_SIZE}名) — 先在名册中移出其他学员
+                  </div>
+                ) : (
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => {
+                      addToTeam(pkm.id);
+                      AudioEngine.sfx("click");
+                    }}
+                  >
+                    ➕ 加入队伍
+                  </button>
+                )}
+                {inTeam ? (
+                  <button
+                    className="btn btn-danger"
+                    onClick={() => {
+                      removeFromTeam(pkm.id);
+                      AudioEngine.sfx("click");
+                    }}
+                  >
+                    ➖ 移出队伍
+                  </button>
+                ) : null}
               </div>
-            ) : (
-              <button
-                className="btn btn-primary"
-                onClick={() => {
-                  addToTeam(pkm.id);
-                  AudioEngine.sfx("click");
-                }}
-              >
-                ➕ 加入队伍
-              </button>
             )}
-            {inTeam ? (
-              <button
-                className="btn btn-danger"
-                onClick={() => {
-                  removeFromTeam(pkm.id);
-                  AudioEngine.sfx("click");
-                }}
-              >
-                ➖ 移出队伍
-              </button>
-            ) : null}
-          </div>
           </div>
           <button className="btn btn-ghost" onClick={closeModal}>
             关闭

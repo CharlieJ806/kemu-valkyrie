@@ -263,6 +263,8 @@
 .dc-img{width:44px;height:36px;object-fit:contain;image-rendering:pixelated}
 .dex-cell.collected{cursor:pointer}
 .dex-cell.locked{opacity:.5}
+.dex-tabs{display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);width:100%}
+.dc-boss{font-size:8px;font-weight:800;color:#fff;background:var(--red);border-radius:6px;padding:1px 6px;margin-top:3px;display:inline-block;letter-spacing:1px}
 
 /* ═══ 女武神版:领队必杀 ═══ */
 

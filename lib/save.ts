@@ -1,6 +1,6 @@
 import type { MapNode, MetaState, RunState } from "./types";
 import { cardFromIdList } from "./cards";
-import { VALKYRIES, getValkById } from "@/data";
+import { VALKYRIES, MONSTERS, getValkById } from "@/data";
 
 /** 旧版存档(16 角色时期)可能残留非法角色 id → 净化队伍/收集 */
 export function isValidTeamId(id: number): boolean {
@@ -46,6 +46,7 @@ export function defaultMeta(): MetaState {
     totalAnswered: 0,
     maxComboEver: 0,
     storyCleared: 0,
+    seenMonsters: {},
   };
 }
 
@@ -78,6 +79,11 @@ export function loadMeta(): MetaState {
       totalAnswered: d.totalAnswered || 0,
       maxComboEver: d.maxComboEver || 0,
       storyCleared: typeof d.storyCleared === "number" ? d.storyCleared : 0,
+      seenMonsters: Object.fromEntries(
+        Object.entries(d.seenMonsters || {}).filter(([k]) =>
+          MONSTERS.some((m) => m.id === Number(k)),
+        ),
+      ) as Record<string, boolean>,
     };
     // 迁移后立即写回,补全缺省字段
     saveMeta(meta);

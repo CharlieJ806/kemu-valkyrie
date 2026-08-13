@@ -94,16 +94,16 @@ export default function StoryScreen() {
         <div className="story-hint">
           {typing ? "点击 显示全文" : "点击继续 ▸"}
         </div>
-        <button
-          className="btn-mini story-skip"
-          onClick={() => {
-            AudioEngine.sfx("click");
-            storySkip();
-          }}
-        >
-          跳过 ▸▸
-        </button>
       </div>
+      <button
+        className="btn-mini story-skip"
+        onClick={() => {
+          AudioEngine.sfx("click");
+          storySkip();
+        }}
+      >
+        跳过 ▸▸
+      </button>
       {/* 整屏点击推进(跳过按钮除外) */}
       <div className="story-clicker" onClick={handleClick} />
     </section>
