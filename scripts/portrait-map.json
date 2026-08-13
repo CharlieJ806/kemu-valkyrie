@@ -2,84 +2,84 @@
   "characters": {
     "赤红": {
       "id": 1,
-      "portrait": "赤红.png",
+      "portrait": "赤红（待机）.png",
       "poses": {
-        "attack": "赤红 (1).png",
-        "hurt": "赤红 (2).png",
-        "skill": "赤红 (3).png",
-        "ult": "赤红 (4).png"
+        "attack": "赤红 (行动1).png",
+        "hurt": "赤红 (被击败).png",
+        "skill": "赤红 (技能1).png",
+        "ult": "赤红 (技能2).png"
       }
     },
     "蔚蓝": {
       "id": 2,
-      "portrait": "蔚蓝.png",
+      "portrait": "蔚蓝 (待机).png",
       "poses": {
-        "attack": "蔚蓝 (1).png",
-        "hurt": "蔚蓝 (2).png",
-        "skill": "蔚蓝 (3).png",
-        "ult": "蔚蓝 (4).png"
+        "attack": "蔚蓝 (行动1).png",
+        "hurt": "蔚蓝（被击败）.png",
+        "skill": "蔚蓝 (技能1).png",
+        "ult": "蔚蓝 (技能2).png"
       }
     },
     "白银": {
       "id": 3,
-      "portrait": "白银.png",
+      "portrait": "白银 (待机).png",
       "poses": {
-        "attack": "白银 (1).png",
-        "hurt": "白银 (2).png",
-        "skill": "白银 (3).png",
-        "ult": "白银 (4).png"
+        "attack": "白银 (行动1).png",
+        "hurt": "白银 (受击).png",
+        "skill": "白银 (技能1).png",
+        "ult": "白银 (胜利).png"
       }
     },
     "深夜": {
       "id": 4,
-      "portrait": "深夜.png",
+      "portrait": "深夜（待机）.png",
       "poses": {
-        "attack": "深夜 (1).png",
-        "hurt": "深夜 (2).png",
-        "skill": "深夜 (3).png",
-        "ult": "深夜 (4).png"
+        "attack": "深夜 (行动1).png",
+        "hurt": "深夜 (被击败).png",
+        "skill": "深夜 (技能1).png",
+        "ult": "深夜 (技能2).png"
       }
     }
   },
   "bosses": {
     "违停障碍怪": {
       "id": 117,
-      "portrait": "违停障碍怪.png",
+      "portrait": "违停障碍怪 (1).png",
       "poses": {
-        "attack": "违停障碍怪 (1).png",
-        "hurt": "违停障碍怪 (2).png",
-        "skill": "违停障碍怪 (3).png",
-        "ult": "违停障碍怪 (4).png"
+        "attack": "违停障碍怪 (3).png",
+        "hurt": "违停障碍怪 (6).png",
+        "skill": "违停障碍怪 (4).png",
+        "ult": "违停障碍怪 (5).png"
       }
     },
     "超速混乱怪": {
       "id": 118,
-      "portrait": "超速混乱怪.png",
+      "portrait": "超速混乱怪 (1).png",
       "poses": {
-        "attack": "超速混乱怪 (1).png",
-        "hurt": "超速混乱怪 (2).png",
-        "skill": "超速混乱怪 (3).png",
-        "ult": "超速混乱怪 (4).png"
+        "attack": "超速混乱怪 (3).png",
+        "hurt": "超速混乱怪 (被击败).png",
+        "skill": "超速混乱怪 (5).png",
+        "ult": "超速混乱怪 (6).png"
       }
     },
     "迷雾冲突怪": {
       "id": 119,
-      "portrait": "迷雾冲突怪.png",
+      "portrait": "迷雾冲突怪 (1).png",
       "poses": {
-        "attack": "迷雾冲突怪 (1).png",
-        "hurt": "迷雾冲突怪 (2).png",
-        "skill": "迷雾冲突怪 (3).png",
-        "ult": "迷雾冲突怪 (4).png"
+        "attack": "迷雾冲突怪 (3).png",
+        "hurt": "迷雾冲突怪 (被击败).png",
+        "skill": "迷雾冲突怪 (5).png",
+        "ult": "迷雾冲突怪 (6).png"
       }
     },
     "信号错误怪": {
       "id": 120,
-      "portrait": "信号错误怪.png",
+      "portrait": "信号错误怪 (1).png",
       "poses": {
-        "attack": "信号错误怪 (1).png",
-        "hurt": "信号错误怪 (2).png",
-        "skill": "信号错误怪 (3).png",
-        "ult": "信号错误怪 (4).png"
+        "attack": "信号错误怪 (3).png",
+        "hurt": "信号错误怪 (被击败).png",
+        "skill": "信号错误怪 (4).png",
+        "ult": "信号错误怪 (5).png"
       }
     }
   }

@@ -21,7 +21,7 @@ async function run(width, height, label) {
 
   await page.goto(`http://localhost:${PORT}`, { waitUntil: "networkidle0" });
   await new Promise((r) => setTimeout(r, 1200));
-  // 清存档 → 首次游玩:新的冒险先进初始选择,选第一只后开局
+  // 清存档 → 首次游玩:新的冒险 → 序章剧情(点击推进+跳过) → 第 1 章地图
   await page.evaluate(() => {
     localStorage.clear();
   });
@@ -32,9 +32,12 @@ async function run(width, height, label) {
       .find((b) => b.textContent.includes("新的冒险"))
       ?.click();
   });
-  await new Promise((r) => setTimeout(r, 500));
+  await new Promise((r) => setTimeout(r, 800));
+  // 剧情屏:点「跳过」
   await page.evaluate(() => {
-    document.querySelectorAll(".starter-card")[0]?.click();
+    [...document.querySelectorAll("button")]
+      .find((b) => b.textContent.includes("跳过"))
+      ?.click();
   });
   await new Promise((r) => setTimeout(r, 1500));
   // 第一列节点 row 随机(0-2),按布局公式动态算三个 y

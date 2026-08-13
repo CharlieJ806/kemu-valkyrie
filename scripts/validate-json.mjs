@@ -27,7 +27,7 @@ function check(name) {
 /* 1. valkyries.json */
 check("valkyries.json");
 const vd = JSON.parse(fs.readFileSync(path.join(DATA, "valkyries.json"), "utf8"));
-assert(Array.isArray(vd.valkyries) && vd.valkyries.length === 16, `学员应为 16 名(实际 ${vd.valkyries?.length})`);
+assert(Array.isArray(vd.valkyries) && vd.valkyries.length === 4, `学员应为 4 名(实际 ${vd.valkyries?.length})`);
 assert(Array.isArray(vd.monsters) && vd.monsters.length === 20, `魔物应为 20 只(实际 ${vd.monsters?.length})`);
 
 const all = [...(vd.valkyries || []), ...(vd.monsters || [])];
@@ -40,12 +40,34 @@ assert(all.every((x) => typeof x.hp === "number" && typeof x.atk === "number" &&
 assert(all.every((x) => x.look && ["long", "short", "twin", "bob", "ponytail"].includes(x.look.hair)), "存在非法发型");
 assert(all.every((x) => x.ult && typeof x.ult.name === "string"), "存在缺失必杀技");
 
+// 4 名学员各占一个板块
 const attrCount = {};
 for (const v of vd.valkyries || []) attrCount[v.attr] = (attrCount[v.attr] || 0) + 1;
-for (const a of ATTRS) assert(attrCount[a] === 4, `板块 ${a} 学员数 ${attrCount[a]} ≠ 4`);
+for (const a of ATTRS) assert(attrCount[a] === 1, `板块 ${a} 学员数 ${attrCount[a]} ≠ 1`);
 
-const monsterIds = new Set((vd.monsters || []).map((x) => x.id));
-assert([...monsterIds].every((id) => id >= 101 && id < 200), "魔物 id 应在 101-199");
+// 4 个 Boss(boss:true,id 117-120)
+const bosses = (vd.monsters || []).filter((m) => m.boss);
+assert(bosses.length === 4, `Boss 应为 4 只(实际 ${bosses.length})`);
+assert(bosses.every((m) => m.id >= 117 && m.id <= 120), "Boss id 应在 117-120");
+
+/* 1b. story.json */
+check("story.json");
+const story = JSON.parse(fs.readFileSync(path.join(DATA, "story.json"), "utf8"));
+assert(Array.isArray(story.prologue) && story.prologue.length > 0, "缺序章对白");
+assert(Array.isArray(story.chapters) && story.chapters.length === 4, `章节应为 4(实际 ${story.chapters?.length})`);
+for (const ch of story.chapters || []) {
+  const boss = all.find((x) => x.id === ch.bossId);
+  assert(!!boss && !!boss.boss, `第 ${ch.id} 章 bossId ${ch.bossId} 不是 Boss`);
+  if (ch.unlockId != null) {
+    assert((vd.valkyries || []).some((v) => v.id === ch.unlockId), `第 ${ch.id} 章 unlockId ${ch.unlockId} 不是学员`);
+  }
+  for (const line of [...(ch.intro || []), ...(ch.outro || [])]) {
+    const okSpeaker =
+      line.speaker === "narrator" || (vd.valkyries || []).some((v) => v.id === line.speaker);
+    assert(okSpeaker, `第 ${ch.id} 章存在非法 speaker`);
+    assert(typeof line.text === "string" && line.text.length > 0, `第 ${ch.id} 章存在空对白`);
+  }
+}
 
 /* 2. question_cats.json 覆盖率 */
 check("question_cats.json");
@@ -58,7 +80,7 @@ assert(orphans.length === 0, `${orphans.length} 个孤儿分类 id`);
 const badCat = Object.values(cats).filter((c) => !ATTRS.includes(c?.cat));
 assert(badCat.length === 0, `${badCat.length} 条非法分类值`);
 
-/* 3. portraits.json 与 valkyries 一致性 */
+/* 3. portraits.json 与 valkyries 一致性(主立绘 + 动作 pose) */
 check("portraits.json");
 const portraits = JSON.parse(fs.readFileSync(path.join(DATA, "portraits.json"), "utf8"));
 const portraitIds = Object.keys(portraits);
@@ -66,6 +88,13 @@ assert(portraitIds.every((id) => ids.has(Number(id))), `portraits.json 存在无
 for (const id of portraitIds) {
   const f = path.join(ROOT, "public", "art", "valkyrie", `${id}.webp`);
   assert(fs.existsSync(f), `portraits.json 声明了 ${id} 但缺少 public/art/valkyrie/${id}.webp`);
+  const entry = portraits[id];
+  if (entry && typeof entry === "object" && Array.isArray(entry.poses)) {
+    for (const pose of entry.poses) {
+      const pf = path.join(ROOT, "public", "art", "valkyrie", `${id}_${pose}.webp`);
+      assert(fs.existsSync(pf), `${id} 声明了 ${pose} 动作但缺少 ${id}_${pose}.webp`);
+    }
+  }
 }
 const unclaimed = all.filter((x) => !portraits[String(x.id)]);
 if (unclaimed.length > 0) {
