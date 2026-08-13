@@ -198,7 +198,8 @@ function makePokeMesh(id: number | string, flip: boolean): PokeGroup {
     side: THREE.DoubleSide,
     alphaTest: 0.1,
   });
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 1.2), mat);
+  // 立绘 4:5 竖版 → 平面改用 0.96×1.2
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(0.96, 1.2), mat);
   if (flip) m.scale.x = -1;
   m.position.y = 0.66;
   grp.add(m);

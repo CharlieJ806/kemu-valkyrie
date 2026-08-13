@@ -21,7 +21,7 @@ import { GAME_EVENTS, resolveChoiceText } from "@/lib/events";
 import { ATTR_NAMES, ATTR_SHORT, attrBadgeStyle } from "@/lib/attr";
 import type { BallKey } from "@/lib/types";
 
-/** 捕获动画进行中标志(防止连点/StrictMode 双触发) */
+/** 净化动画进行中标志(防止连点/StrictMode 双触发) */
 let captureInFlight = false;
 
 export default function Modal() {
@@ -42,7 +42,7 @@ export default function Modal() {
 
   if (!modal) return null;
 
-  /* ── 捕获 ── */
+  /* ── 净化 ── */
   if (modal.kind === "capture") {
     if (!run) return null;
     const pkm = run.enemyPkm;

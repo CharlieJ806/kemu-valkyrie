@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useGameStore } from "@/lib/store";
 import { getPkmName } from "@/lib/formulas";
 import { ICON } from "@/lib/icon";
+import { POKEMON } from "@/data";
 import { AudioEngine } from "@/lib/audio";
 
 export default function TitleScreen() {
@@ -12,11 +13,11 @@ export default function TitleScreen() {
   const setScreen = useGameStore((s) => s.setScreen);
   const continueRun = useGameStore((s) => s.continueRun);
 
-  // 封面飘动宝可梦:每 5s 从已解锁图鉴随机换一只(图鉴为空时兜底皮卡丘)
-  const [titlePkmId, setTitlePkmId] = useState(25);
+  // 封面飘动学员:每 5s 从已结识名册随机换一位(名册为空时兜底展示全体学员)
+  const [titlePkmId, setTitlePkmId] = useState(1);
   useEffect(() => {
     const ids = Object.keys(meta.collected).map(Number);
-    const pool = ids.length > 0 ? ids : [25];
+    const pool = ids.length > 0 ? ids : POKEMON.map((v) => v.id);
     const pick = () => {
       setTitlePkmId((prev) => {
         let next = pool[Math.floor(Math.random() * pool.length)]!;
@@ -42,7 +43,7 @@ export default function TitleScreen() {
 
   const startNew = () => {
     AudioEngine.sfx("click");
-    // 首次游玩:进初始选择;之后直接使用图鉴配置的队伍开局
+    // 首次游玩:进初始选择;之后直接使用名册配置的队伍开局
     const firstTime =
       Object.keys(meta.collected).length === 0 && meta.team.length === 0;
     if (firstTime) {
@@ -60,8 +61,9 @@ export default function TitleScreen() {
       </div>
       <div className="title-inner">
         <div className="title-logo">
-          <div className="logo-top">宝可驾</div>
-          <div className="logo-sub">交 规 地 牢</div>
+          <div className="logo-top">驾考女武神</div>
+          <div className="logo-sub">交规里世界净化战</div>
+          <div className="logo-tag">答题 · 组牌 · 点火觉醒</div>
         </div>
         <div className="title-pkmn">
           {ICON(titlePkmId) ? (
@@ -70,13 +72,13 @@ export default function TitleScreen() {
         </div>
 
         <div className="title-stats">
-          <div>🏆 最佳记录: {meta.bestScore > 0 ? `${meta.bestScore} 分 (第${meta.bestFloor}层)` : "暂无"}</div>
-          <div>📖 图鉴: {Object.keys(meta.collected).length} / 1010</div>
-          <div>💰 养成金币: {meta.metaGold}</div>
+          <div>🏆 最佳记录: {meta.bestScore > 0 ? `${meta.bestScore} 分 (第${meta.bestFloor}街区)` : "暂无"}</div>
+          <div>📖 名册: {Object.keys(meta.collected).length} / {POKEMON.length}</div>
+          <div>💰 金币: {meta.metaGold}</div>
         </div>
 
         <div className="title-team">
-          当前上阵:
+          当前队伍:
           {meta.team.length > 0 ? (
             meta.team.map((id) => (
               <span key={id} className="title-team-poke">
@@ -89,13 +91,13 @@ export default function TitleScreen() {
               </span>
             ))
           ) : (
-            <span className="title-team-empty">尚未配置 — 在图鉴中选择</span>
+            <span className="title-team-empty">尚未配置 — 在学员名册中选择</span>
           )}
         </div>
 
         <div className="title-menu">
           <button className="btn btn-primary" onClick={startNew}>
-            🎮 新的冒险
+            🚗 新的冒险
           </button>
           <button
             className="btn"
@@ -110,16 +112,19 @@ export default function TitleScreen() {
         </div>
 
         <div className="title-menu-extra">
-          <button className="btn-mini" onClick={() => go("train")}>🧬 养成</button>
-          <button className="btn-mini" onClick={() => go("gacha")}>🎴 技能抽卡</button>
+          <button className="btn-mini" onClick={() => go("train")}>🔧 特训</button>
+          <button className="btn-mini" onClick={() => go("gacha")}>🎴 技能补给箱</button>
           <button className="btn-mini" onClick={() => go("deckbuild")}>🃏 构建牌组</button>
-          <button className="btn-mini" onClick={() => go("dex")}>📖 图鉴</button>
+          <button className="btn-mini" onClick={() => go("dex")}>📖 学员名册</button>
           <button className="btn-mini" onClick={() => go("bank")}>📚 题库复习</button>
           <button className="btn-mini" onClick={() => go("study")}>🏫 学习中心</button>
           <button className="btn-mini" onClick={() => go("settings")}>⚙️ 设置</button>
         </div>
 
-        <div className="title-foot">答题爬塔 · 捕捉宝可梦 · 组牌通关</div>
+        <div className="title-foot">
+          驾考之城被「违章之暗」侵蚀——作为驾校学员，与女武神并肩作战，<br />
+          用科目一知识净化里世界！拔剑点火 · 净化魔物 · 组牌通关
+        </div>
       </div>
     </section>
   );

@@ -5,6 +5,8 @@ import { useGameStore } from "@/lib/store";
 import { buildExamSession, gradeExam, isExamPass, EXAM_CONST } from "@/lib/exam";
 import { AudioEngine } from "@/lib/audio";
 import type { ExamSession } from "@/lib/types";
+import { getQuestionCat } from "@/data";
+import { ATTR_SHORT, attrBadgeStyle } from "@/lib/attr";
 
 function fmtTime(ms: number): string {
   const s = Math.max(0, Math.ceil(ms / 1000));
@@ -97,6 +99,7 @@ export default function ExamScreen() {
   /* ── 考试中 ── */
   if (session) {
     const q = session.qs[session.idx]!;
+    const qCat = getQuestionCat(q.id);
     const picked = session.picked[session.idx];
 
     const pick = (i: number) => {
@@ -135,7 +138,14 @@ export default function ExamScreen() {
 
           <div className="exam-body">
             <div className="exam-main">
-              <div className="exam-q">{q.q}</div>
+              <div className="exam-q">
+                {qCat && (
+                  <span className="attr-badge" style={attrBadgeStyle(qCat)}>
+                    {ATTR_SHORT[qCat]}
+                  </span>
+                )}{" "}
+                {q.q}
+              </div>
 
               <div className="battle-options" style={{ flexDirection: "column" }}>
                 {q.opts.map((opt, i) => (

@@ -14,7 +14,7 @@ export default function RestScreen() {
   return (
     <section className="screen active" id="scr-rest">
       <div className="rest-list">
-        <div className="shop-title">🏕️ 休息营地</div>
+        <div className="shop-title">☕ 咖啡厅</div>
         <div className="rest-card">
           <div style={{ fontSize: 12, color: "var(--dim)", marginBottom: 8 }}>
             当前 HP: {Math.ceil(run.hp)} / {run.maxHp}
@@ -26,7 +26,7 @@ export default function RestScreen() {
               restHeal();
             }}
           >
-            🛌 休息 (回复30%HP)
+            ☕ 休息一下 (回复30%HP)
           </button>
           <button
             className="btn"
@@ -35,7 +35,7 @@ export default function RestScreen() {
               restTrain();
             }}
           >
-            🔧 特训（回复+养成金）
+            🔧 简单特训（回复+金币）
           </button>
           <button
             className="btn btn-primary"
@@ -44,7 +44,7 @@ export default function RestScreen() {
               leaveRest();
             }}
           >
-            离开营地
+            离开咖啡厅
           </button>
         </div>
       </div>

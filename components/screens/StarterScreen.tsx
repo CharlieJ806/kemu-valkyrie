@@ -12,8 +12,8 @@ export default function StarterScreen() {
   return (
     <section className="screen active" id="scr-starter">
       <div className="page-head">
-        <h2>选择你的初始伙伴</h2>
-        <p className="dim">它将陪你踏入交规地牢</p>
+        <h2>选择你的初始学员</h2>
+        <p className="dim">她将陪你踏入被「违章之暗」侵蚀的驾考之城</p>
       </div>
 
       <div className="starter-row" id="starter-row">
@@ -45,7 +45,7 @@ export default function StarterScreen() {
                 </div>
                 <div className="sc-desc">{s.desc}</div>
                 <div className="sc-stats">
-                  初始HP {getPkmMaxHp(pkm.id, 0)} · 种族值 {getBST(pkm.id)}
+                  初始HP {getPkmMaxHp(pkm.id, 0)} · 面板 {getBST(pkm.id)}
                 </div>
               </div>
             </div>

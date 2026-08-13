@@ -64,9 +64,9 @@ export type StarterDef = {
 };
 
 export const STARTERS: StarterDef[] = [
-  { id: 1, desc: "草系伙伴 · 稳扎稳打，HP 均衡" },
-  { id: 4, desc: "火系伙伴 · 攻击手，答题越快越强" },
-  { id: 7, desc: "水系伙伴 · 坚韧可靠，适合新手" },
+  { id: 1, desc: "法律法规 · 制裁输出：打出法规牌时发动追加制裁伤害" },
+  { id: 5, desc: "交通信号 · 控制压制：打出信号牌时调度指令、压制敌方" },
+  { id: 9, desc: "安全驾驶 · 护盾恢复：打出安全牌时守护队伍、稳住血线" },
 ];
 
 /** 新开局牌组:构建列表过滤已拥有,不足 5 张用基础技补齐 */
@@ -127,7 +127,7 @@ type GameStore = {
   hydrated: boolean;
   activeEventId: string | null;
   gachaLastId: string | null;
-  /** 3D 投球捕获动画进行中(期间战斗舞台保持渲染,canvas 不卸载) */
+  /** 3D 投钥匙净化动画进行中(期间战斗舞台保持渲染,canvas 不卸载) */
   captureAnimating: boolean;
   /** 最近一次答题结果(ephemeral,UI 据此播放反馈/调度下一题,键盘鼠标统一) */
   lastAnswer: AnswerResult | null;
@@ -150,7 +150,7 @@ type GameStore = {
   toggleSound: () => void;
   tryUpgradeHp: () => void;
   tryUpgradeAtk: () => void;
-  /* 图鉴队伍编辑(meta.team,下次开局生效) */
+  /* 名册队伍编辑(meta.team,下次开局生效) */
   addToTeam: (id: number) => void;
   removeFromTeam: (id: number) => void;
   setActiveTeam: (id: number) => void;
@@ -319,13 +319,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
     get().showToast("攻击升级！+1 攻击", 1800);
   },
 
-  /* ---- 图鉴队伍编辑(meta.team,下次开局生效;照搬 standalone showPkmDetail) ---- */
+  /* ---- 名册队伍编辑(meta.team,下次开局生效;照搬 standalone showPkmDetail) ---- */
 
   addToTeam: (id) => {
     const meta = cloneMeta(get().meta);
     if (meta.team.includes(id)) return;
     if (meta.team.length >= MAX_TEAM_SIZE) {
-      get().showToast(`队伍已满(${MAX_TEAM_SIZE}只),请先移出其他宝可梦`, 1800);
+      get().showToast(`队伍已满(${MAX_TEAM_SIZE}名),请先移出其他学员`, 1800);
       return;
     }
     meta.team.push(id);
@@ -459,7 +459,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   /**
    * 新开一局。starterId 可选:
    * - 传入(首次初始选择):标记收集并置为队首;
-   * - 不传(非首次「新的冒险」):直接使用图鉴配置的队伍 meta.team。
+   * - 不传(非首次「新的冒险」):直接使用名册配置的队伍 meta.team。
    */
   newRun: (starterId?: number) => {
     const meta = cloneMeta(get().meta);
@@ -469,7 +469,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       meta.collected = { ...meta.collected, [String(starterId)]: true };
     }
 
-    // 开局队伍:所选御三家(如有)+ 图鉴配置的队伍(去重,上限 MAX_TEAM_SIZE)
+    // 开局队伍:所选初始学员(如有)+ 名册配置的队伍(去重,上限 MAX_TEAM_SIZE)
     const team = [
       ...(starterId != null ? [starterId] : []),
       ...(meta.team || []).filter((id) => id !== starterId),
@@ -734,7 +734,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
     const run = cloneRun(run0);
     const msg = choice.effect(run);
-    // 事件扣血打倒当前宝可梦:队伍有存活成员则自动换人继续
+    // 事件扣血打倒当前学员:队伍有存活成员则自动换人继续
     if (run.hp <= 0 && run.team.length > 1 && switchToNextAlive(run)) {
       set({ run, modal: null, activeEventId: null });
       persistRun(run);
@@ -788,14 +788,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
     persistRun(run);
   },
 
-  /** 战斗中手动切换出战宝可梦 */
+  /** 战斗中手动切换出战学员 */
   switchPoke: (idx) => {
     const run0 = get().run;
     if (!run0 || !run0.inBattle) return;
     const run = cloneRun(run0);
     if (!switchActiveTo(run, idx)) {
       if ((run.teamHp[idx] || 0) <= 0) {
-        get().showToast("该宝可梦已倒下,无法出战", 1500);
+        get().showToast("该学员已倒下,无法出战", 1500);
       }
       return;
     }
@@ -900,7 +900,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     if (won) {
       const run = cloneRun(run0);
-      saveActiveFromHp(run); // 出战宝可梦血量回写(跨战斗保留)
+      saveActiveFromHp(run); // 出战学员血量回写(跨战斗保留)
       const node = currentNode(run);
       if (node && node.rewards) {
         const g = node.rewards.gold || 20;
@@ -935,7 +935,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       set({ run });
       persistRun(run);
 
-      // 总是提供捕获(除非已阵亡)
+      // 总是提供净化(除非已阵亡)
       if (run.enemyPkm && run.enemyPkm.id) {
         set({ modal: { kind: "capture" } });
       } else {
@@ -951,7 +951,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   /**
-   * 掷球捕获:同步扣球并结算结果(数据立即落档)。
+   * 投钥匙净化:同步消耗并结算结果(数据立即落档)。
    * 返回 { success, pkmId };UI 表现(3D 投球动画/飘字)由调用方播放,
    * 结束后调用 finishCapture() 关闭弹窗并进入奖励/回地图。
    */
@@ -986,12 +986,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
     return { success, pkmId: pkm.id };
   },
 
-  /** 开始投球捕获动画:关弹窗 + 标记动画中(战斗舞台保持渲染,canvas 不卸载) */
+  /** 开始投钥匙净化动画:关弹窗 + 标记动画中(战斗舞台保持渲染,canvas 不卸载) */
   beginCaptureAnim: () => {
     set({ modal: null, captureAnimating: true });
   },
 
-  /** 捕获动画播完后的收尾:关弹窗 → 奖励选卡或回地图 */
+  /** 净化动画播完后的收尾:关弹窗 → 奖励选卡或回地图 */
   finishCapture: () => {
     const run = get().run;
     set({ modal: null, captureAnimating: false });

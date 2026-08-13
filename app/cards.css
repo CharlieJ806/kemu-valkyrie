@@ -15,10 +15,10 @@
 .title-inner{flex:1;min-height:0;overflow-y:auto;margin-left:auto;margin-right:auto}
 #scr-title .title-inner{justify-content:center}
 /* PC 端横屏满屏:各屏宽度上限放宽,充分利用宽屏 */
-#scr-dex .title-inner{width:min(96vw,900px)} /* 图鉴:移动端 96vw,桌面被下方 @media 覆盖 */
+#scr-dex .title-inner{width:min(96vw,900px)} /* 名册:移动端 96vw,桌面被下方 @media 覆盖 */
 @media (min-width:768px){
   .title-inner{width:min(94vw,1100px)}               /* 菜单屏(养成/抽卡/题库等) */
-  #scr-dex .title-inner{width:min(97vw,1800px)}      /* 图鉴:接近满宽网格 */
+  #scr-dex .title-inner{width:min(97vw,1800px)}      /* 名册:接近满宽网格 */
   .map-inner{max-width:none}                          /* 地图:全宽 */
   #scr-battle > *{max-width:min(96vw,1600px);width:100%;margin-left:auto;margin-right:auto}
   .shop-list,.rest-list{max-width:min(96vw,1200px)}  /* 商店/营地 */
@@ -27,7 +27,7 @@
    需要撑满的容器必须显式 width:100%(否则 grid 塌成一列) */
 .dex-grid,.dex-filter,.bank-list,.deck-pool,.deck-active,.exam-grid,.study-cards,.gacha-result,.title-menu,.title-menu-extra,.set-card,.rest-card,.over-btns,
 .set-row,.set-note,.bank-pagination,.dex-progress,.over-stats{width:100%}
-/* 图鉴稀有度标签 */
+/* 名册稀有度标签 */
 .dc-rarity{font-size:9px;color:var(--dim)}
 /* 战斗精灵与信息区 */
 /* 3D 战斗场景:固定高度、不透明实心舞台(上浅下深:天空→地面) */

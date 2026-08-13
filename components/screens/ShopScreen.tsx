@@ -20,12 +20,12 @@ export default function ShopScreen() {
   return (
     <section className="screen active" id="scr-shop">
       <div className="shop-list">
-        <div className="shop-title">🏪 道具商店</div>
+        <div className="shop-title">🏪 补给点</div>
         <div className="shop-gold">
           当前金币: <b style={{ color: "var(--gold)" }}>{run.gold}</b> 🪙
         </div>
 
-        <div className="shop-section">🔴 精灵球</div>
+        <div className="shop-section">🔑 火花钥匙</div>
         {(Object.keys(POKE_BALLS) as BallKey[]).map((key) => {
           const ball = POKE_BALLS[key]!;
           const affordable = run.gold >= ball.price;
@@ -52,7 +52,7 @@ export default function ShopScreen() {
           );
         })}
 
-        <div className="shop-section">🃏 技能卡片</div>
+        <div className="shop-section">🃏 驾驶技能卡</div>
         {stock.map(({ card, price }, i) => (
           <div
             key={i}
@@ -92,7 +92,7 @@ export default function ShopScreen() {
             leaveShop();
           }}
         >
-          离开商店
+          离开补给点
         </button>
       </div>
     </section>

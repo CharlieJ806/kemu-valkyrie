@@ -94,9 +94,9 @@ export function drawCardsInto(run: RunState, n: number): void {
   }
 }
 
-/* ============ 队伍出战(多宝可梦上阵) ============ */
+/* ============ 队伍出战(多学员上阵) ============ */
 
-/** 把当前出战宝可梦的 HP 读入 run.hp/maxHp(战斗开始时调用) */
+/** 把当前出战学员的 HP 读入 run.hp/maxHp(战斗开始时调用) */
 export function syncActiveToHp(run: RunState): void {
   const i = run.activeIdx ?? 0;
   if (run.teamHp && run.teamHp[i] != null) {
@@ -105,7 +105,7 @@ export function syncActiveToHp(run: RunState): void {
   }
 }
 
-/** 把 run.hp 回写到当前出战宝可梦(战斗结束/切换时调用) */
+/** 把 run.hp 回写到当前出战学员(战斗结束/切换时调用) */
 export function saveActiveFromHp(run: RunState): void {
   const i = run.activeIdx ?? 0;
   if (run.teamHp && run.teamHp[i] != null) {
@@ -113,7 +113,7 @@ export function saveActiveFromHp(run: RunState): void {
   }
 }
 
-/** 当前出战倒下后,自动切换到下一只存活宝可梦;返回是否切换成功 */
+/** 当前出战倒下后,自动切换到下一名存活学员;返回是否切换成功 */
 export function switchToNextAlive(run: RunState): boolean {
   if (!run.teamHp || run.team.length < 2) return false;
   saveActiveFromHp(run); // 先把当前(已倒下的)血量回写
@@ -159,7 +159,7 @@ export function dealEnemyDamage(
   return { dealt: actual, blocked };
 }
 
-/** 对玩家造成伤害(格挡结算);当前宝可梦倒下且队伍有存活成员时自动换人 */
+/** 对玩家造成伤害(格挡结算);当前学员倒下且队伍有存活成员时自动换人 */
 export function damagePlayer(run: RunState, amount: number): number {
   let actual = amount;
   if (run.block > 0) {
@@ -545,7 +545,7 @@ export function startBattleOn(
   allQuestions: Question[],
 ): void {
   run.inBattle = true;
-  syncActiveToHp(run); // 出战宝可梦的血量 → run.hp/maxHp(战斗内统一走 run.hp)
+  syncActiveToHp(run); // 出战学员的血量 → run.hp/maxHp(战斗内统一走 run.hp)
   run.combo = 0;
   run.block = 0;
   run.playerDmgMult = 1;

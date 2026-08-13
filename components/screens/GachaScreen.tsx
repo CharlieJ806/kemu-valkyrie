@@ -32,15 +32,15 @@ export default function GachaScreen() {
           >
             ← 返回
           </button>
-          <div style={{ fontWeight: 800 }}>🎴 技能抽取</div>
+          <div style={{ fontWeight: 800 }}>🎴 技能补给箱</div>
         </div>
 
         <div className="set-row">
-          <span>💰 养成金币</span>
+          <span>💰 金币</span>
           <b style={{ color: "var(--gold)" }}>{meta.metaGold}</b>
         </div>
         <div className="set-row">
-          <span>已收集</span>
+          <span>已解锁</span>
           <span>
             {owned}/{total}
           </span>

@@ -52,7 +52,7 @@ export type CardDef = {
 
 export type Card = CardDef & { _played?: boolean };
 
-/* ============ 精灵球 ============ */
+/* ============ 火花钥匙 ============ */
 
 export type BallKey = "normal" | "great" | "ultra" | "beast" | "master";
 
@@ -135,7 +135,7 @@ export type RunState = {
   inBattle: boolean;
   mapNodes: MapNode[][];
   currentNodeIdx: number;
-  team: number[]; // 上阵宝可梦 id(开局快照)
+  team: number[]; // 上阵学员 id(开局快照)
   teamHp: number[]; // 每只当前 HP(与 team 下标对应)
   teamMaxHp: number[]; // 每只最大 HP
   activeIdx: number; // 当前出战下标

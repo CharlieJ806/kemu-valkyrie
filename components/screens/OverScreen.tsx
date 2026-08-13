@@ -22,7 +22,7 @@ export default function OverScreen() {
         </div>
         <div className="over-stats">
           <div className="over-stat">
-            到达: <b>第 {gameOver.floor} 层</b>
+            到达: <b>第 {gameOver.floor} 街区</b>
           </div>
           <div className="over-stat">
             得分: <b>{gameOver.score}</b>
@@ -35,11 +35,11 @@ export default function OverScreen() {
             最大连击: <b>{gameOver.maxCombo}</b>
           </div>
           <div className="over-stat">
-            收集宝可梦: <b>{gameOver.caught}</b>
+            净化结识: <b>{gameOver.caught}</b>
           </div>
         </div>
         <div className="over-sub">
-          剩余金币已存入养成 💰 (设置→养成查看)
+          剩余金币已存入特训资金 💰 (训练营查看)
         </div>
         <div className="over-btns">
           <button

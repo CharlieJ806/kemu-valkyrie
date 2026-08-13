@@ -28,11 +28,11 @@ export default function DexScreen() {
     <section className="screen active" id="scr-dex">
       <div className="title-inner" style={{ justifyContent: "flex-start", paddingTop: 24 }}>
         <div className="dex-progress">
-          已收集: {collectedCount} / {POKEMON.length}
+          已结识: {collectedCount} / {POKEMON.length}
         </div>
-        {/* 上阵队伍:点击已上阵的宝可梦可调整 */}
+        {/* 出战队伍:点击已出战的学员可调整 */}
         <div className="dex-team-bar">
-          <span className="dex-team-label">上阵队伍</span>
+          <span className="dex-team-label">出战队伍</span>
           {Array.from({ length: MAX_TEAM_SIZE }).map((_, i) => {
             const id = meta.team[i];
             const active = i === 0 && meta.team.length > 0;
@@ -70,7 +70,7 @@ export default function DexScreen() {
               className={`chip ${filter === f ? "active" : ""}`}
               onClick={() => setFilter(f)}
             >
-              {f === "all" ? "全部" : f === "collected" ? "已收集" : f === "locked" ? "未解锁" : RARITY_NAMES[f]}
+              {f === "all" ? "全部" : f === "collected" ? "已结识" : f === "locked" ? "未结识" : RARITY_NAMES[f]}
             </button>
           ))}
         </div>

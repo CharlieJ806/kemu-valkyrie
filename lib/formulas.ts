@@ -50,7 +50,7 @@ export function shuffle<T>(arr: readonly T[]): T[] {
   return a;
 }
 
-/* ============ 宝可梦查询(迁移自 standalone game.js) ============ */
+/* ============ 学员查询(迁移自 standalone game.js) ============ */
 
 export function getPkmById(id: number): Pokemon | null {
   return PKMN_BY_ID[id] ?? null;

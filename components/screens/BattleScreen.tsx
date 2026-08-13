@@ -71,7 +71,7 @@ export default function BattleScreen() {
     if (res.correct) {
       AudioEngine.sfx("correct");
       const stage = document.getElementById("battle-stage");
-      // 玩家攻击动画:精灵前冲 + 光弹 + 命中粒子 + 受击抖动
+      // 玩家攻击动画:学员前冲 + 光弹 + 命中粒子 + 受击抖动
       const crit = res.combo > 0 && res.combo % 5 === 0;
       if (BattleFX.ok) {
         BattleFX.attack("player", { crit });
@@ -149,7 +149,7 @@ export default function BattleScreen() {
     };
   }, []);
 
-  // 3D 战斗场景初始化(精灵入场/攻击/受击/倒下/投球捕获动画)
+  // 3D 战斗场景初始化(学员入场/攻击/受击/倒下/投球捕获动画)
   // 生命周期 = 组件挂载/卸载(每场战斗重新挂载);捕获弹窗期间组件保持渲染,
   // 投球动画播完(screen 切回 map)组件卸载才 dispose。
   useEffect(() => {
@@ -183,7 +183,7 @@ export default function BattleScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 出战宝可梦变化 → 换人入场动画
+  // 出战学员变化 → 换人入场动画
   useEffect(() => {
     if (!fxOk || !run || !run.inBattle) return;
     BattleFX.setPlayer(run.team[run.activeIdx] ?? 25);
@@ -200,7 +200,7 @@ export default function BattleScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [run?.gameOver, fxOk]);
 
-  // 捕获弹窗/投球动画期间保持战斗场景存活(3D canvas 不卸载)
+  // 净化弹窗/投钥匙动画期间保持战斗场景存活(3D canvas 不卸载)
   const captureOpen = modal?.kind === "capture" || captureAnimating;
   if (!run || !run.enemyPkm) return null;
   if (!run.inBattle && !captureOpen) return null;
@@ -264,7 +264,7 @@ export default function BattleScreen() {
       </div>
 
       <div className={`battle-stage${fxOk ? " fx-3d" : ""}`} id="battle-stage">
-        {/* 3D 战斗场景(精灵入场/攻击/受击/倒下动画) */}
+        {/* 3D 战斗场景(学员入场/攻击/受击/倒下动画) */}
         <canvas ref={fxCanvasRef} id="battle-fx-canvas" />
 
         {/* 敌方 */}
@@ -372,7 +372,7 @@ export default function BattleScreen() {
         </div>
       </div>
 
-      {/* 答题区(捕获动画期间隐藏,露出 3D 舞台) */}
+      {/* 答题区(净化动画期间隐藏,露出 3D 舞台) */}
       <div
         className="battle-q-area"
         style={{
@@ -425,7 +425,7 @@ export default function BattleScreen() {
         )}
       </div>
 
-      {/* 手牌(捕获动画期间隐藏) */}
+      {/* 手牌(净化动画期间隐藏) */}
       <div
         className="hand-area"
         id="hand-area"
@@ -469,7 +469,7 @@ export default function BattleScreen() {
         )}
       </div>
 
-      {/* 底部控制(捕获动画期间隐藏) */}
+      {/* 底部控制(净化动画期间隐藏) */}
       <div
         className="battle-actions"
         style={{ display: captureOpen ? "none" : undefined }}

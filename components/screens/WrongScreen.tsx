@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { useGameStore } from "@/lib/store";
 import { AudioEngine } from "@/lib/audio";
 import type { Question } from "@/lib/types";
+import { getQuestionCat } from "@/data";
+import { ATTR_SHORT, attrBadgeStyle } from "@/lib/attr";
 
 export default function WrongScreen() {
   const questionPool = useGameStore((s) => s.questionPool);
@@ -104,7 +106,17 @@ export default function WrongScreen() {
                 <div className="bank-q-num">
                   #{q.id} ❌{fails}次
                 </div>
-                <div className="bank-q-text">{q.q}</div>
+                <div className="bank-q-text">
+                  {(() => {
+                    const cat = getQuestionCat(q.id);
+                    return cat ? (
+                      <span className="attr-badge" style={attrBadgeStyle(cat)}>
+                        {ATTR_SHORT[cat]}
+                      </span>
+                    ) : null;
+                  })()}{" "}
+                  {q.q}
+                </div>
                 <div className="bank-opts">
                   {q.opts.map((o, oi) => (
                     <div key={oi} className={`bank-opt ${oi === q.ans ? "is-ans" : ""}`}>

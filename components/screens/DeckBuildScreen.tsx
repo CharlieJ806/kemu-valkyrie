@@ -4,9 +4,21 @@ import { useState } from "react";
 import { useGameStore } from "@/lib/store";
 import { ALL_CARDS, CARD_CAT_NAMES } from "@/lib/cards";
 import { DECK_MAX, RARITY_NAMES } from "@/data/constants";
+import { ATTR_SHORT } from "@/lib/attr";
 import { AudioEngine } from "@/lib/audio";
+import type { AttrKey } from "@/lib/types";
 
-type DeckFilter = "all" | "collected" | "locked";
+type DeckFilter = "all" | "collected" | "locked" | AttrKey;
+
+const ATTR_FILTERS: (DeckFilter | AttrKey)[] = [
+  "all",
+  "collected",
+  "locked",
+  "law",
+  "signal",
+  "safety",
+  "civility",
+];
 
 export default function DeckBuildScreen() {
   const meta = useGameStore((s) => s.meta);
@@ -23,6 +35,8 @@ export default function DeckBuildScreen() {
   const pool = ALL_CARDS.filter((c) => {
     if (filter === "collected" && !owned.has(c.id)) return false;
     if (filter === "locked" && owned.has(c.id)) return false;
+    if (["law", "signal", "safety", "civility"].includes(filter) && c.attr !== filter)
+      return false;
     return true;
   });
 
@@ -78,13 +92,19 @@ export default function DeckBuildScreen() {
         </div>
 
         <div className="dex-filter">
-          {(["all", "collected", "locked"] as DeckFilter[]).map((f) => (
+          {ATTR_FILTERS.map((f) => (
             <button
               key={f}
               className={`chip ${filter === f ? "active" : ""}`}
               onClick={() => setFilter(f)}
             >
-              {f === "all" ? "全部" : f === "collected" ? "已收集" : "未解锁"}
+              {f === "all"
+                ? "全部"
+                : f === "collected"
+                  ? "已解锁"
+                  : f === "locked"
+                    ? "未解锁"
+                    : ATTR_SHORT[f]}
             </button>
           ))}
         </div>

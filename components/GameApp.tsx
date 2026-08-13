@@ -109,7 +109,7 @@ export default function GameApp() {
           <section className="screen active" id="scr-title">
             <div className="title-inner">
               <div className="title-logo">
-                <div className="logo-top">宝可驾</div>
+                <div className="logo-top">驾考女武神</div>
                 <div className="logo-sub">交 规 地 牢</div>
               </div>
             </div>

@@ -64,7 +64,7 @@ export default function SettingsScreen() {
         <div className="set-row">
           <span>📊 游戏统计</span>
           <span style={{ fontSize: 12, color: "var(--dim)" }}>
-            总游戏 {meta.totalRuns} | 最高分 {meta.bestScore} | 最高层 {meta.bestFloor}
+            总冒险 {meta.totalRuns} | 最高分 {meta.bestScore} | 最深街区 {meta.bestFloor}
           </span>
         </div>
 
@@ -118,8 +118,8 @@ export default function SettingsScreen() {
         </div>
 
         <div className="set-note">
-          宝可驾 Pokerogue 壳 · Next.js 移植版<br />
-          宝可梦数据 pokeapi · 题库 科目一 1034 题
+          驾考女武神 · 交规里世界净化战<br />
+          科目一题库 1034 题 · 四大板块卡牌 · 点火觉醒
         </div>
       </div>
     </section>

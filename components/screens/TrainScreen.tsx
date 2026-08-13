@@ -30,11 +30,11 @@ export default function TrainScreen() {
           >
             ← 返回
           </button>
-          <div style={{ fontWeight: 800 }}>🧬 全局养成</div>
+          <div style={{ fontWeight: 800 }}>🔧 训练营 · 全队特训</div>
         </div>
 
         <div className="set-row">
-          <span>💰 养成金币</span>
+          <span>💰 金币</span>
           <b style={{ color: "var(--gold)" }}>{meta.metaGold}</b>
         </div>
 
@@ -90,7 +90,7 @@ export default function TrainScreen() {
 
         <div className="set-note">
           首次升级 5 金，之后每次 +2 金，无上限。<br />
-          养成金币：冒险获得金币时同步存入。
+          特训对全队学员生效：冒险获得金币时同步存入。
         </div>
       </div>
     </section>
