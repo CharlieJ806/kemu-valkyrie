@@ -181,7 +181,17 @@ export function loadRun(): RunState | null {
       cardPlayedThisTurn: !!d.cardPlayedThisTurn,
       turnPhase: d.turnPhase === "card" ? "card" : "question",
       turnCorrect: d.turnCorrect || 0,
+
+      leaderId: typeof d.leaderId === "number" ? d.leaderId : null,
+      awakened: d.awakened && typeof d.awakened === "object" ? d.awakened : {},
+      ultGauge: d.ultGauge ?? 0,
+      ultMax: d.ultMax ?? 9,
     };
+
+    // 必杀卡不入任何牌堆(防旧档/异常状态污染)
+    for (const key of ["hand", "deck", "drawPile", "discardPile"] as const) {
+      run[key] = run[key].filter((id) => !id.startsWith("ult_"));
+    }
 
     // 老存档的 deck 是完整卡对象数组 → 只取 id
     recomputeReachability(run.mapNodes, run.currentNodeIdx);

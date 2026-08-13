@@ -3,26 +3,36 @@
 import { useEffect, useRef, useState } from "react";
 import { useGameStore } from "@/lib/store";
 import { getPkmName, getPlayerAtk } from "@/lib/formulas";
-import { hydrateCardList } from "@/lib/cards";
+import { hydrateCard, buildUltCard, ULT_PREFIX } from "@/lib/cards";
 import { ICON } from "@/lib/icon";
 import { AudioEngine } from "@/lib/audio";
 import { spawnDmg, spawnFxText, domBurst } from "@/lib/dom-fx";
 import { BattleFX } from "@/lib/fx3d";
-import { getQuestionCat } from "@/data";
+import { getQuestionCat, getValkById } from "@/data";
 import { ATTR_SHORT, attrBadgeStyle } from "@/lib/attr";
 import type { Card } from "@/lib/types";
 
 function enemyStatusText(status: { type: string; turns: number } | null): string {
   if (!status) return "";
   const names: Record<string, string> = {
-    burn: "灼烧",
-    para: "麻痹",
-    poison: "中毒",
-    sleep: "催眠",
-    freeze: "冰冻",
-    confuse: "混乱",
+    burn: "违章曝光",
+    para: "限速减速",
+    poison: "扣分侵蚀",
+    sleep: "禁行拘留",
+    freeze: "冻结车流",
+    confuse: "远光眩目",
   };
   return `${names[status.type] || status.type}(${status.turns})`;
+}
+
+/** 手牌 id → 卡对象(必杀卡按当前领队现场构建) */
+function cardOf(id: string, leaderId: number | null): Card | null {
+  if (id.startsWith(ULT_PREFIX)) {
+    if (leaderId == null) return null;
+    const v = getValkById(leaderId);
+    return v ? buildUltCard(v) : null;
+  }
+  return hydrateCard(id);
 }
 
 export default function BattleScreen() {
@@ -36,6 +46,7 @@ export default function BattleScreen() {
   const endTurnAction = useGameStore((s) => s.endTurnAction);
   const switchPoke = useGameStore((s) => s.switchPoke);
   const lastAnswer = useGameStore((s) => s.lastAnswer);
+  const lastPlay = useGameStore((s) => s.lastPlay);
 
   const [answerState, setAnswerState] = useState<{
     picked: number;
@@ -43,6 +54,7 @@ export default function BattleScreen() {
   } | null>(null);
   const qCat = run?.currentQ ? getQuestionCat(run.currentQ.id) : null;
   const lastProcessedRef = useRef(0);
+  const lastPlayRef = useRef(0);
   const nextTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fxCanvasRef = useRef<HTMLCanvasElement>(null);
   const [fxOk, setFxOk] = useState(false);
@@ -97,6 +109,38 @@ export default function BattleScreen() {
       setAnswerState(null);
     }
   }, [lastAnswer]);
+
+  // 出牌反馈:板块联动飘字/必杀技演出(id 去重防 StrictMode 双调用)
+  useEffect(() => {
+    if (!lastPlay || lastPlay.id <= lastPlayRef.current) return;
+    lastPlayRef.current = lastPlay.id;
+    const stage = document.getElementById("battle-stage");
+    const link = lastPlay.events.find((e) => e.type === "link");
+    if (link && link.type === "link") {
+      const bonusText =
+        link.bonus === "dmg"
+          ? `制裁 ${link.amount} 伤害`
+          : link.bonus === "energy"
+            ? "调度 +1 指令"
+            : link.bonus === "block"
+              ? "守护 +4 格挡"
+              : link.amount > 0
+                ? "远光眩目！敌方混乱"
+                : "眩目未中…";
+      spawnFxText(stage, 60, 28, `联动！${link.valkName} ${bonusText}`, "#ffd700");
+      if (link.bonus === "dmg") {
+        spawnDmg(stage, 66, 34, `-${link.amount}`, "#ffb300");
+        if (BattleFX.ok) BattleFX.attack("player", {});
+      }
+      AudioEngine.sfx("crit");
+    }
+    if (lastPlay.cardId.startsWith(ULT_PREFIX)) {
+      spawnFxText(stage, 50, 42, "🔥 必杀技发动！", "#ffe14d");
+      domBurst(stage, 16, 10, "#ffd700", 16);
+      if (BattleFX.ok) BattleFX.attack("player", { crit: true });
+      AudioEngine.sfx("crit");
+    }
+  }, [lastPlay]);
 
   // 卸载/切屏时清理计时器
   useEffect(() => {
@@ -163,7 +207,9 @@ export default function BattleScreen() {
 
   const enemy = run.enemyPkm;
   const enemySprite = ICON(enemy.id);
-  const handCards: Card[] = hydrateCardList(run.hand);
+  const handCards: Card[] = run.hand
+    .map((id) => cardOf(id, run.leaderId))
+    .filter(Boolean) as Card[];
   const atk = getPlayerAtk(meta.metaAtkLv);
 
   const handleAnswer = (idx: number) => {
@@ -175,7 +221,7 @@ export default function BattleScreen() {
     const st = useGameStore.getState();
     const r = st.run;
     if (!r || r.turnPhase !== "card") return;
-    const card = hydrateCardList([r.hand[idx]])[0];
+    const card = cardOf(r.hand[idx]!, r.leaderId);
     if (!card) return;
     if (r.energy < card.cost) {
       st.showToast("能量不足", 1200);
@@ -399,17 +445,20 @@ export default function BattleScreen() {
         ) : (
           handCards.map((card, i) => {
             const unaffordable = run.turnPhase === "card" && run.energy < card.cost;
+            const isUlt = card.id.startsWith(ULT_PREFIX);
             return (
               <div
                 key={`${card.id}-${i}`}
                 className={
                   "hand-card type-" +
                   card.type +
+                  (isUlt ? " ult-card" : "") +
                   (unaffordable ? " unaffordable" : "")
                 }
                 onClick={() => handlePlayCard(i)}
               >
                 <div className="card-cost">{card.cost}</div>
+                {isUlt && <div className="ult-tag">必杀</div>}
                 <div className="card-icon">{card.icon}</div>
                 <div className="card-name">{card.name}</div>
                 <div className="card-desc">{card.desc}</div>
@@ -432,6 +481,21 @@ export default function BattleScreen() {
             ))}
           </span>
         </div>
+        {run.leaderId != null && (
+          <div
+            className="ult-gauge"
+            title={`领队必杀槽 ${run.ultGauge}/${run.ultMax}(每出一张牌+1)`}
+          >
+            <span className="ult-gauge-label">🔥 领队必杀</span>
+            <div className="ult-gauge-bar">
+              <i
+                style={{
+                  width: `${Math.min(100, (run.ultGauge / Math.max(1, run.ultMax)) * 100)}%`,
+                }}
+              />
+            </div>
+          </div>
+        )}
         <button className="end-turn-btn" onClick={handleEndTurn}>
           {run.turnPhase === "question" ? "⏹ 停止答题" : "▶ 结束回合"}
         </button>

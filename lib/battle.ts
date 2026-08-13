@@ -1,6 +1,14 @@
 import type { MapNode, Question, RunState } from "./types";
-import { applyCardFx, hydrateCard, findCard, type BattleCtx } from "./cards";
-import { getQuestionCat, type AttrKey } from "@/data";
+import {
+  applyCardFx,
+  hydrateCard,
+  findCard,
+  buildUltCard,
+  ULT_PREFIX,
+  type BattleCtx,
+  type CardFxEvent,
+} from "./cards";
+import { getQuestionCat, getValkById, type AttrKey, type Valkyrie } from "@/data";
 import {
   getEnemyStats,
   getPlayerAtk,
@@ -13,6 +21,63 @@ import {
 export function shuffleDeck(run: RunState): void {
   run.drawPile = shuffle(run.deck);
   run.discardPile = [];
+}
+
+/** 清理必杀卡(不进入任何牌堆,防污染存档) */
+export function stripUltCards(run: RunState): void {
+  const isUlt = (id: string) => id.startsWith(ULT_PREFIX);
+  run.hand = run.hand.filter((h) => !isUlt(h));
+  run.deck = run.deck.filter((h) => !isUlt(h));
+  run.drawPile = run.drawPile.filter((h) => !isUlt(h));
+  run.discardPile = run.discardPile.filter((h) => !isUlt(h));
+}
+
+/* ============ 板块联动 ============ */
+
+/** 队伍中第一只存活且主板块/觉醒第二板块匹配的学员 */
+export function getLinkValk(run: RunState, attr: AttrKey): Valkyrie | null {
+  for (let i = 0; i < run.team.length; i++) {
+    if ((run.teamHp[i] || 0) <= 0) continue;
+    const v = getValkById(run.team[i]!);
+    if (!v) continue;
+    if (v.attr === attr || run.awakened?.[v.id] === attr) return v;
+  }
+  return null;
+}
+
+/** 领队存活检查(大招槽只在领队存活时累积) */
+export function leaderAlive(run: RunState): boolean {
+  if (run.leaderId == null) return false;
+  const i = run.team.indexOf(run.leaderId);
+  return i >= 0 && (run.teamHp[i] || 0) > 0;
+}
+
+/** 板块联动效果(law 制裁/signal 调度/safety 守护/civility 眩目),返回事件 */
+export function applyLinkEffect(
+  run: RunState,
+  valk: Valkyrie,
+  attr: AttrKey,
+  metaAtkLv: number,
+): CardFxEvent | null {
+  if (attr === "law") {
+    const amount = Math.floor(valk.atk * 1.25) + (metaAtkLv || 0);
+    const dealt = dealEnemyDamage(run, amount);
+    return { type: "link", valkId: valk.id, valkName: valk.c, amount: dealt.dealt, bonus: "dmg" };
+  }
+  if (attr === "signal") {
+    run.energy += 1;
+    return { type: "link", valkId: valk.id, valkName: valk.c, amount: 1, bonus: "energy" };
+  }
+  if (attr === "safety") {
+    run.block += 4;
+    return { type: "link", valkId: valk.id, valkName: valk.c, amount: 4, bonus: "block" };
+  }
+  // civility:50% 概率眩目 1 回合
+  if (Math.random() < 0.5) {
+    run.enemyStatus = { type: "confuse", turns: 1 };
+    return { type: "link", valkId: valk.id, valkName: valk.c, amount: 1, bonus: "confuse" };
+  }
+  return { type: "link", valkId: valk.id, valkName: valk.c, amount: 0, bonus: "confuse" };
 }
 
 export function drawCardsInto(run: RunState, n: number): void {
@@ -168,7 +233,8 @@ export function startTurn(run: RunState, allQuestions: Question[]): void {
   run.enemyBlock = 0;
   run.captureBonus = 0;
 
-  // 手牌清空入弃牌堆
+  // 手牌清空入弃牌堆(必杀卡不入堆)
+  stripUltCards(run);
   if (run.hand.length > 0) {
     run.discardPile = [...run.discardPile, ...run.hand];
     run.hand = [];
@@ -226,6 +292,7 @@ export function endTurn(
     }
     run.energy = 0;
     if (run.enemyHp <= 0) {
+      stripUltCards(run);
       run.discardPile = [...run.discardPile, ...run.hand];
       run.hand = [];
       res.enemyDead = true;
@@ -233,7 +300,8 @@ export function endTurn(
     }
   }
 
-  // 清手牌
+  // 清手牌(必杀卡不入堆)
+  stripUltCards(run);
   run.discardPile = [...run.discardPile, ...run.hand];
   run.hand = [];
 
@@ -324,7 +392,14 @@ export function playCardOn(
   if (run.turnPhase !== "card") return null;
   if (idx < 0 || idx >= run.hand.length) return null;
 
-  const card = hydrateCard(run.hand[idx]!);
+  const rawId = run.hand[idx]!;
+  const isUlt = rawId.startsWith(ULT_PREFIX);
+  // 必杀卡按当前领队现场构建(不查 ALL_CARDS)
+  const card = isUlt
+    ? run.leaderId != null
+      ? buildUltCard(getValkById(run.leaderId)!)
+      : null
+    : hydrateCard(rawId);
   if (!card) return null;
   if (typeof card.cost !== "number") card.cost = 0;
   if (run.energy < card.cost) return null;
@@ -362,8 +437,30 @@ export function playCardOn(
   run.enemyAtkMult = ctx.enemyAtkMult;
   run.enemyStatus = ctx.enemyStatus;
 
-  // 移入弃牌堆
-  run.discardPile.push(card.id);
+  // 板块联动:队伍有该板块存活学员 → 追加联动效果
+  if (run.enemyHp > 0) {
+    const linkValk = getLinkValk(run, card.attr);
+    if (linkValk) {
+      const evt = applyLinkEffect(run, linkValk, card.attr, metaAtkLv);
+      if (evt) events.push(evt);
+    }
+  }
+
+  // 领队大招槽:每出一张牌+1,攒满自动将必杀卡加入手牌;必杀卡打出后清零
+  if (isUlt) {
+    run.ultGauge = 0;
+  } else if (run.leaderId != null && leaderAlive(run) && run.enemyHp > 0) {
+    run.ultGauge = Math.min(run.ultMax, run.ultGauge + 1);
+    if (
+      run.ultGauge >= run.ultMax &&
+      !run.hand.some((h) => h.startsWith(ULT_PREFIX))
+    ) {
+      run.hand.push(ULT_PREFIX + run.leaderId);
+    }
+  }
+
+  // 移入弃牌堆(必杀卡不入堆)
+  if (!isUlt) run.discardPile.push(card.id);
   run.hand.splice(idx, 1);
 
   return {
@@ -463,6 +560,7 @@ export function startBattleOn(
   run.currentQ = null;
   run.questionAnswered = false;
   run.cardPlayedThisTurn = false;
+  run.ultGauge = 0; // 每场战斗大招槽从 0 开始(领队/觉醒跨战斗保留)
 
   const pkm = node.enemyPkm!;
   const stats = getEnemyStats(pkm, run.floor);

@@ -4,7 +4,9 @@ import type {
   CardFx,
   EnemyStatus,
   StatusType,
+  AttrKey,
 } from "./types";
+import type { Valkyrie } from "@/data";
 
 /* ============ 战斗上下文(applyCardFx 操作的可变对象) ============ */
 
@@ -33,133 +35,100 @@ export type CardFxEvent =
   | { type: "status"; status: StatusType }
   | { type: "mult"; mult: number }
   | { type: "weak"; amount: number }
-  | { type: "draw"; n: number };
+  | { type: "draw"; n: number }
+  | { type: "link"; valkId: number; valkName: string; amount: number; bonus: "dmg" | "energy" | "block" | "confuse" };
 
 const STATUS_NAMES: Record<StatusType, string> = {
-  burn: "灼烧",
-  para: "麻痹",
-  poison: "中毒",
-  sleep: "催眠",
-  freeze: "冰冻",
-  confuse: "混乱",
+  burn: "违章曝光",
+  para: "限速减速",
+  poison: "扣分侵蚀",
+  sleep: "禁行拘留",
+  freeze: "冻结车流",
+  confuse: "远光眩目",
 };
 
-/* ============ 卡牌定义(迁移自 standalone battle.js §3) ============ */
+/* ============ 卡牌定义(科目一四大板块 × 驾驶主题) ============ */
 
 export const ALL_CARDS: CardDef[] = [
-  // ═══ 攻击系 atk ═══
-  { id: "tackle", name: "撞击", type: "atk", cost: 1, icon: "👊", desc: "造成6点伤害", rarity: "c", cat: "atk", power: 1, fx: { dmg: 6 } },
-  { id: "ember", name: "火花", type: "atk", cost: 1, icon: "🔥", desc: "造成5点伤害，30%灼烧2回合", rarity: "c", cat: "atk", power: 1, fx: { dmg: 5, status: "burn", statusChance: 0.3, statusTurns: 2 } },
-  { id: "quick_attack", name: "电光一闪", type: "atk", cost: 0, icon: "💨", desc: "造成4点伤害（0费）", rarity: "c", cat: "atk", power: 1, fx: { dmg: 4 } },
-  { id: "aqua_jet", name: "水流喷射", type: "atk", cost: 1, icon: "💧", desc: "造成7点伤害", rarity: "c", cat: "atk", power: 1, fx: { dmg: 7 } },
-  { id: "bullet_punch", name: "子弹拳", type: "atk", cost: 1, icon: "🔩", desc: "造成6点伤害", rarity: "c", cat: "atk", power: 1, fx: { dmg: 6 } },
-  { id: "thunder_shock", name: "电击", type: "atk", cost: 1, icon: "⚡", desc: "造成5点伤害，20%麻痹1回合", rarity: "c", cat: "atk", power: 1, fx: { dmg: 5, status: "para", statusChance: 0.2, statusTurns: 1 } },
-  { id: "water_gun", name: "水枪", type: "atk", cost: 1, icon: "💧", desc: "造成6点伤害", rarity: "c", cat: "atk", power: 1, fx: { dmg: 6 } },
-  { id: "razor_leaf", name: "飞叶快刀", type: "atk", cost: 1, icon: "🍃", desc: "造成7点伤害", rarity: "c", cat: "atk", power: 1, fx: { dmg: 7 } },
-  { id: "double_kick", name: "二连踢", type: "atk", cost: 1, icon: "👟", desc: "造成4点伤害×2", rarity: "u", cat: "atk", power: 2, fx: { dmg: 4, hits: 2 } },
-  { id: "flame_thrower", name: "喷射火焰", type: "atk", cost: 2, icon: "🔥", desc: "造成14点伤害，40%灼烧2回合", rarity: "u", cat: "atk", power: 2, fx: { dmg: 14, status: "burn", statusChance: 0.4, statusTurns: 2 } },
-  { id: "thunderbolt", name: "十万伏特", type: "atk", cost: 2, icon: "⚡", desc: "造成14点伤害，无视部分格挡", rarity: "u", cat: "atk", power: 2, fx: { dmg: 14, pierce: 0.5 } },
-  { id: "ice_beam", name: "冰冻光束", type: "atk", cost: 2, icon: "❄️", desc: "造成13点伤害，35%冰冻1回合", rarity: "u", cat: "atk", power: 2, fx: { dmg: 13, status: "freeze", statusChance: 0.35, statusTurns: 1 } },
-  { id: "psychic", name: "精神强念", type: "atk", cost: 2, icon: "🔮", desc: "造成12点伤害，敌方下回合伤害-15%", rarity: "u", cat: "atk", power: 2, fx: { dmg: 12, enemyWeak: 0.15 } },
-  { id: "scald", name: "热水", type: "atk", cost: 2, icon: "♨️", desc: "造成12点伤害，35%灼烧2回合", rarity: "u", cat: "atk", power: 2, fx: { dmg: 12, status: "burn", statusChance: 0.35, statusTurns: 2 } },
-  { id: "dragon_pulse", name: "龙之波动", type: "atk", cost: 2, icon: "🐉", desc: "造成16点伤害", rarity: "u", cat: "atk", power: 2, fx: { dmg: 16 } },
-  { id: "aura_sphere", name: "波导弹", type: "atk", cost: 2, icon: "🌀", desc: "造成14点伤害，无视格挡", rarity: "u", cat: "atk", power: 2, fx: { dmg: 14, ignoreBlock: true } },
-  { id: "dark_pulse", name: "恶之波动", type: "atk", cost: 2, icon: "🌑", desc: "造成13点伤害，25%混乱2回合", rarity: "u", cat: "atk", power: 2, fx: { dmg: 13, status: "confuse", statusChance: 0.25, statusTurns: 2 } },
-  { id: "surf", name: "冲浪", type: "atk", cost: 2, icon: "🌊", desc: "造成15点伤害", rarity: "u", cat: "atk", power: 2, fx: { dmg: 15 } },
-  { id: "earthquake", name: "地震", type: "atk", cost: 2, icon: "🌍", desc: "造成16点伤害", rarity: "r", cat: "atk", power: 3, fx: { dmg: 16 } },
-  { id: "close_combat", name: "近身战", type: "atk", cost: 2, icon: "🥊", desc: "造成20点伤害，自身-4格挡", rarity: "r", cat: "atk", power: 3, fx: { dmg: 20, selfBlock: -4 } },
-  { id: "shadow_ball", name: "暗影球", type: "atk", cost: 2, icon: "👻", desc: "造成15点伤害，获得3格挡", rarity: "r", cat: "atk", power: 3, fx: { dmg: 15, block: 3 } },
-  { id: "fire_blast", name: "大字爆炎", type: "atk", cost: 3, icon: "🔥", desc: "造成22点伤害，30%灼烧2回合", rarity: "r", cat: "atk", power: 3, fx: { dmg: 22, status: "burn", statusChance: 0.3, statusTurns: 2 } },
-  { id: "hydro_pump", name: "水炮", type: "atk", cost: 3, icon: "💧", desc: "造成22点伤害", rarity: "r", cat: "atk", power: 3, fx: { dmg: 22 } },
-  { id: "thunder", name: "打雷", type: "atk", cost: 3, icon: "🌩️", desc: "造成21点伤害，30%麻痹2回合", rarity: "r", cat: "atk", power: 3, fx: { dmg: 21, status: "para", statusChance: 0.3, statusTurns: 2 } },
-  { id: "blizzard", name: "暴风雪", type: "atk", cost: 3, icon: "❄️", desc: "造成20点伤害，30%冰冻1回合", rarity: "r", cat: "atk", power: 3, fx: { dmg: 20, status: "freeze", statusChance: 0.3, statusTurns: 1 } },
-  { id: "solar_beam", name: "日光束", type: "atk", cost: 3, icon: "☀️", desc: "造成25点伤害", rarity: "r", cat: "atk", power: 3, fx: { dmg: 25 } },
-  { id: "flare_blitz", name: "闪焰冲锋", type: "atk", cost: 2, icon: "🔥", desc: "造成18点伤害，自身-3格挡，20%灼烧", rarity: "r", cat: "atk", power: 3, fx: { dmg: 18, selfBlock: -3, status: "burn", statusChance: 0.2, statusTurns: 2 } },
-  { id: "stone_edge", name: "尖石攻击", type: "atk", cost: 2, icon: "🪨", desc: "造成19点伤害", rarity: "r", cat: "atk", power: 3, fx: { dmg: 19 } },
-  { id: "draco_meteor", name: "流星群", type: "atk", cost: 3, icon: "☄️", desc: "造成26点伤害，自身-5格挡", rarity: "r", cat: "atk", power: 3, fx: { dmg: 26, selfBlock: -5 } },
-  { id: "focus_blast", name: "真气弹", type: "atk", cost: 3, icon: "💥", desc: "造成23点伤害，敌方下回合伤害-10%", rarity: "r", cat: "atk", power: 3, fx: { dmg: 23, enemyWeak: 0.1 } },
-  { id: "hyper_beam", name: "破坏光线", type: "atk", cost: 3, icon: "💥", desc: "造成28点伤害", rarity: "l", cat: "atk", power: 4, fx: { dmg: 28 } },
-  { id: "giga_impact", name: "终极冲击", type: "atk", cost: 3, icon: "☄️", desc: "造成30点伤害", rarity: "l", cat: "atk", power: 4, fx: { dmg: 30 } },
-  { id: "sacred_fire", name: "神圣之火", type: "atk", cost: 3, icon: "🔥", desc: "造成26点伤害，50%灼烧3回合", rarity: "l", cat: "atk", power: 4, fx: { dmg: 26, status: "burn", statusChance: 0.5, statusTurns: 3 } },
-  { id: "volt_tackle", name: "伏特攻击", type: "atk", cost: 3, icon: "⚡", desc: "造成30点伤害，自身-6格挡，30%麻痹", rarity: "l", cat: "atk", power: 4, fx: { dmg: 30, selfBlock: -6, status: "para", statusChance: 0.3, statusTurns: 2 } },
-  { id: "eruption", name: "喷火", type: "atk", cost: 3, icon: "🌋", desc: "造成24-32点伤害（HP越低伤害越低）", rarity: "l", cat: "atk", power: 4, fx: { dmg: 28 } },
+  // ═══ law 法律法规(制裁输出) ═══
+  { id: "jf_cf", name: "记分处罚", type: "atk", cost: 1, icon: "⚖️", desc: "造成7点伤害", rarity: "c", cat: "atk", attr: "law", power: 1, fx: { dmg: 7 } },
+  { id: "fk_ts", name: "罚款通知", type: "atk", cost: 1, icon: "📜", desc: "造成5点伤害，敌方伤害-15%", rarity: "c", cat: "atk", attr: "law", power: 1, fx: { dmg: 5, enemyWeak: 0.15 } },
+  { id: "fz_sb", name: "法规护盾", type: "def", cost: 1, icon: "🛡️", desc: "获得8点格挡，敌方伤害-10%", rarity: "c", cat: "def", attr: "law", power: 1, fx: { block: 8, enemyWeak: 0.1 } },
+  { id: "kf_jb", name: "扣分加倍", type: "control", cost: 1, icon: "✖️", desc: "本回合伤害×1.4", rarity: "c", cat: "control", attr: "law", power: 1, fx: { mult: 1.4 } },
+  { id: "dz_zy", name: "电子眼抓拍", type: "atk", cost: 2, icon: "📸", desc: "造成12点伤害，一半无视格挡", rarity: "u", cat: "atk", attr: "law", power: 2, fx: { dmg: 12, pierce: 0.5 } },
+  { id: "xm_jy", name: "满分教育", type: "atk", cost: 2, icon: "🎓", desc: "造成13点伤害，敌方伤害-10%", rarity: "u", cat: "atk", attr: "law", power: 2, fx: { dmg: 13, enemyWeak: 0.1 } },
+  { id: "xf_jf", name: "学法减分", type: "control", cost: 1, icon: "➖", desc: "获得2点指令", rarity: "u", cat: "control", attr: "law", power: 2, fx: { energy: 2 } },
+  { id: "hh_zx", name: "扣留审验", type: "status", cost: 1, icon: "🔒", desc: "暂扣证件：限速减速2回合", rarity: "u", cat: "status", attr: "law", power: 2, fx: { status: "para", statusTurns: 2 } },
+  { id: "dx_jz", name: "吊销驾照", type: "atk", cost: 3, icon: "🚫", desc: "造成22点伤害", rarity: "r", cat: "atk", attr: "law", power: 3, fx: { dmg: 22 } },
+  { id: "cf_tl", name: "重罚条例", type: "atk", cost: 2, icon: "🔨", desc: "造成8点伤害×2", rarity: "r", cat: "atk", attr: "law", power: 3, fx: { dmg: 8, hits: 2 } },
+  { id: "sf_fk", name: "双倍罚款", type: "control", cost: 2, icon: "💰", desc: "本回合伤害×2.2", rarity: "r", cat: "control", attr: "law", power: 3, fx: { mult: 2.2 } },
+  { id: "xs_qz", name: "刑事追责", type: "status", cost: 2, icon: "⚖️", desc: "造成6点伤害，扣分侵蚀3回合", rarity: "r", cat: "status", attr: "law", power: 3, fx: { dmg: 6, status: "poison", statusTurns: 3 } },
+  { id: "jl_15", name: "拘留十五日", type: "atk", cost: 2, icon: "⛓️", desc: "造成10点伤害，禁行拘留1回合", rarity: "r", cat: "atk", attr: "law", power: 3, fx: { dmg: 10, status: "sleep", statusTurns: 1 } },
+  { id: "zs_jj", name: "终身禁驾", type: "atk", cost: 3, icon: "⛔", desc: "造成28点伤害，无视格挡", rarity: "l", cat: "atk", attr: "law", power: 4, fx: { dmg: 28, ignoreBlock: true } },
+  { id: "fz_wq", name: "法制权威", type: "control", cost: 2, icon: "🏛️", desc: "本回合伤害×2.5", rarity: "l", cat: "control", attr: "law", power: 4, fx: { mult: 2.5 } },
+  { id: "zf_xs", name: "追罚销号", type: "status", cost: 2, icon: "📛", desc: "造成8点伤害，禁行拘留2回合", rarity: "l", cat: "status", attr: "law", power: 4, fx: { dmg: 8, status: "sleep", statusTurns: 2 } },
 
-  // ═══ 防御系 def ═══
-  { id: "harden", name: "变硬", type: "def", cost: 1, icon: "🪨", desc: "获得8点格挡", rarity: "c", cat: "def", power: 1, fx: { block: 8 } },
-  { id: "defense_curl", name: "变圆", type: "def", cost: 1, icon: "🛡️", desc: "获得10点格挡", rarity: "c", cat: "def", power: 1, fx: { block: 10 } },
-  { id: "endure", name: "挺住", type: "def", cost: 0, icon: "💪", desc: "获得5点格挡", rarity: "c", cat: "def", power: 1, fx: { block: 5 } },
-  { id: "withdraw", name: "缩入壳中", type: "def", cost: 1, icon: "🐚", desc: "获得9点格挡", rarity: "c", cat: "def", power: 1, fx: { block: 9 } },
-  { id: "protect", name: "守住", type: "def", cost: 2, icon: "🔰", desc: "获得18点格挡", rarity: "u", cat: "def", power: 2, fx: { block: 18 } },
-  { id: "reflect", name: "反射壁", type: "def", cost: 2, icon: "🪞", desc: "获得12点格挡，本回合受伤-25%", rarity: "u", cat: "def", power: 2, fx: { block: 12, defMult: 0.75 } },
-  { id: "light_screen", name: "光墙", type: "def", cost: 2, icon: "✨", desc: "获得10点格挡，本回合受伤-30%", rarity: "u", cat: "def", power: 2, fx: { block: 10, defMult: 0.7 } },
-  { id: "amnesia", name: "瞬间失忆", type: "def", cost: 1, icon: "😶", desc: "获得6点格挡，本回合受伤-20%", rarity: "u", cat: "def", power: 2, fx: { block: 6, defMult: 0.8 } },
-  { id: "iron_defense", name: "铁壁", type: "def", cost: 2, icon: "⛓️", desc: "获得22点格挡", rarity: "r", cat: "def", power: 3, fx: { block: 22 } },
-  { id: "barrier", name: "屏障", type: "def", cost: 3, icon: "🧱", desc: "获得30点格挡", rarity: "r", cat: "def", power: 3, fx: { block: 30 } },
-  { id: "cosmic_power", name: "宇宙力量", type: "def", cost: 2, icon: "🌌", desc: "获得14点格挡，抽1张牌", rarity: "r", cat: "def", power: 3, fx: { block: 14, draw: 1 } },
-  { id: "spiky_shield", name: "尖刺防守", type: "def", cost: 2, icon: "🌵", desc: "获得16点格挡，反弹4点伤害", rarity: "r", cat: "def", power: 3, fx: { block: 16, dmg: 4 } },
-  { id: "baneful_bunker", name: "碉堡", type: "def", cost: 2, icon: "🏰", desc: "获得15点格挡，25%中毒2回合", rarity: "r", cat: "def", power: 3, fx: { block: 15, status: "poison", statusChance: 0.25, statusTurns: 2 } },
-  { id: "king_shield", name: "王者盾牌", type: "def", cost: 3, icon: "👑", desc: "获得35点格挡，下回合受伤减半", rarity: "l", cat: "def", power: 4, fx: { block: 35, defMult: 0.5 } },
-  { id: "crafty_shield", name: "诡异之盾", type: "def", cost: 2, icon: "🪬", desc: "获得20点格挡，抽1张牌", rarity: "l", cat: "def", power: 4, fx: { block: 20, draw: 1 } },
+  // ═══ signal 交通信号(控制压制) ═══
+  { id: "ldx", name: "绿灯行", type: "control", cost: 1, icon: "🟢", desc: "获得2点指令", rarity: "c", cat: "control", attr: "signal", power: 1, fx: { energy: 2 } },
+  { id: "hdt", name: "红灯停", type: "status", cost: 1, icon: "🔴", desc: "红灯禁行：敌方跳过1次攻击", rarity: "c", cat: "status", attr: "signal", power: 1, fx: { status: "sleep", statusTurns: 1 } },
+  { id: "xsbz", name: "限速标志", type: "status", cost: 1, icon: "🐌", desc: "限速减速2回合", rarity: "c", cat: "status", attr: "signal", power: 1, fx: { status: "para", statusTurns: 2 } },
+  { id: "ljbz", name: "禁令标志", type: "def", cost: 1, icon: "🚫", desc: "获得8点格挡，敌方伤害-15%", rarity: "c", cat: "def", attr: "signal", power: 1, fx: { block: 8, enemyWeak: 0.15 } },
+  { id: "lbts", name: "绿波提速", type: "atk", cost: 1, icon: "💨", desc: "造成6点伤害，获得1点指令", rarity: "c", cat: "atk", attr: "signal", power: 1, fx: { dmg: 6, energy: 1 } },
+  { id: "aqbz", name: "警告标志", type: "def", cost: 1, icon: "⚠️", desc: "获得6点格挡，本回合受伤-15%", rarity: "c", cat: "def", attr: "signal", power: 1, fx: { block: 6, defMult: 0.85 } },
+  { id: "hdjs", name: "黄灯警示", type: "control", cost: 0, icon: "🟡", desc: "本回合伤害×1.3（0费）", rarity: "u", cat: "control", attr: "signal", power: 2, fx: { mult: 1.3 } },
+  { id: "dxcd", name: "导向车道", type: "atk", cost: 2, icon: "🛣️", desc: "造成13点伤害，三成无视格挡", rarity: "u", cat: "atk", attr: "signal", power: 2, fx: { dmg: 13, pierce: 0.3 } },
+  { id: "fdjs", name: "分道行驶", type: "atk", cost: 1, icon: "↔️", desc: "造成4点伤害×2", rarity: "u", cat: "atk", attr: "signal", power: 2, fx: { dmg: 4, hits: 2 } },
+  { id: "zsbz", name: "指示标志", type: "def", cost: 2, icon: "📌", desc: "获得14点格挡，抽1张牌", rarity: "u", cat: "def", attr: "signal", power: 2, fx: { block: 14, draw: 1 } },
+  { id: "jxqy", name: "禁行区域", type: "status", cost: 2, icon: "⛔", desc: "冻结车流1回合", rarity: "u", cat: "status", attr: "signal", power: 2, fx: { status: "freeze", statusTurns: 1 } },
+  { id: "jjss", name: "交警手势", type: "control", cost: 2, icon: "✋", desc: "本回合伤害×2.2", rarity: "r", cat: "control", attr: "signal", power: 3, fx: { mult: 2.2 } },
+  { id: "cqzf", name: "闯灯执法", type: "atk", cost: 2, icon: "🚦", desc: "造成14点伤害，敌方伤害-15%", rarity: "r", cat: "atk", attr: "signal", power: 3, fx: { dmg: 14, enemyWeak: 0.15 } },
+  { id: "xhyx", name: "信号优先", type: "control", cost: 1, icon: "🔁", desc: "获得1点指令并抽1张牌", rarity: "r", cat: "control", attr: "signal", power: 3, fx: { energy: 1, draw: 1 } },
+  { id: "lcxx", name: "绿波信号", type: "control", cost: 2, icon: "🌊", desc: "伤害×1.8，获得1点指令，抽1张牌", rarity: "l", cat: "control", attr: "signal", power: 4, fx: { mult: 1.8, energy: 1, draw: 1 } },
+  { id: "qnxl", name: "全路限行", type: "status", cost: 2, icon: "🚧", desc: "造成8点伤害，冻结车流1回合", rarity: "l", cat: "status", attr: "signal", power: 4, fx: { dmg: 8, status: "freeze", statusTurns: 1 } },
 
-  // ═══ 恢复系 heal ═══
-  { id: "recover", name: "自我再生", type: "heal", cost: 1, icon: "💚", desc: "回复12点HP", rarity: "c", cat: "heal", power: 1, fx: { healFlat: 12 } },
-  { id: "roost", name: "羽栖", type: "heal", cost: 1, icon: "🪶", desc: "回复 maxHP 的 20%", rarity: "c", cat: "heal", power: 1, fx: { healPct: 0.2 } },
-  { id: "life_dew", name: "生命水滴", type: "heal", cost: 1, icon: "💧", desc: "回复10HP并获得3格挡", rarity: "c", cat: "heal", power: 1, fx: { healFlat: 10, block: 3 } },
-  { id: "synthesis", name: "光合作用", type: "heal", cost: 1, icon: "🌿", desc: "回复 maxHP 的 25%", rarity: "u", cat: "heal", power: 2, fx: { healPct: 0.25 } },
-  { id: "softboiled", name: "生蛋", type: "heal", cost: 2, icon: "🥚", desc: "回复 maxHP 的 35%", rarity: "u", cat: "heal", power: 2, fx: { healPct: 0.35 } },
-  { id: "giga_drain", name: "终极吸取", type: "heal", cost: 2, icon: "🧛", desc: "造成8点伤害并回复等量HP", rarity: "u", cat: "heal", power: 2, fx: { dmg: 8, lifesteal: 1 } },
-  { id: "draining_kiss", name: "吸取之吻", type: "heal", cost: 1, icon: "💋", desc: "造成5点伤害，回复伤害值75%的HP", rarity: "u", cat: "heal", power: 2, fx: { dmg: 5, lifesteal: 0.75 } },
-  { id: "aqua_ring", name: "水流环", type: "heal", cost: 1, icon: "💍", desc: "回复8HP，敌方-5%伤害", rarity: "u", cat: "heal", power: 2, fx: { healFlat: 8, enemyWeak: 0.05 } },
-  { id: "wish", name: "祈愿", type: "heal", cost: 1, icon: "🌟", desc: "回复15HP并获得4格挡", rarity: "r", cat: "heal", power: 3, fx: { healFlat: 15, block: 4 } },
-  { id: "moonlight", name: "月光", type: "heal", cost: 2, icon: "🌙", desc: "回复 maxHP 的 40%", rarity: "r", cat: "heal", power: 3, fx: { healPct: 0.4 } },
-  { id: "pain_split", name: "分担痛楚", type: "heal", cost: 2, icon: "🔄", desc: "回复18HP，敌方受到6点伤害", rarity: "r", cat: "heal", power: 3, fx: { healFlat: 18, dmg: 6 } },
-  { id: "milk_drink", name: "喝牛奶", type: "heal", cost: 2, icon: "🥛", desc: "回复 maxHP 的 35%，获得5格挡", rarity: "r", cat: "heal", power: 3, fx: { healPct: 0.35, block: 5 } },
-  { id: "healing_wish", name: "治愈之愿", type: "heal", cost: 3, icon: "💖", desc: "回复 maxHP 的 55%", rarity: "l", cat: "heal", power: 4, fx: { healPct: 0.55 } },
-  { id: "lunar_blessing", name: "月之祝福", type: "heal", cost: 3, icon: "🌝", desc: "回复 maxHP 的 45%，获得10格挡", rarity: "l", cat: "heal", power: 4, fx: { healPct: 0.45, block: 10 } },
+  // ═══ safety 安全驾驶(护盾恢复) ═══
+  { id: "aqd", name: "安全带", type: "def", cost: 1, icon: "🪢", desc: "获得8点格挡", rarity: "c", cat: "def", attr: "safety", power: 1, fx: { block: 8 } },
+  { id: "bcjj", name: "保持车距", type: "def", cost: 1, icon: "📏", desc: "获得10点格挡", rarity: "c", cat: "def", attr: "safety", power: 1, fx: { block: 10 } },
+  { id: "fyjs", name: "防御性驾驶", type: "heal", cost: 1, icon: "🧭", desc: "回复12点生命", rarity: "c", cat: "heal", attr: "safety", power: 1, fx: { healFlat: 12 } },
+  { id: "wdjh", name: "稳当驾驶", type: "control", cost: 1, icon: "🚙", desc: "伤害×1.25，获得4点格挡", rarity: "c", cat: "control", attr: "safety", power: 1, fx: { mult: 1.25, block: 4 } },
+  { id: "jjzd", name: "紧急制动", type: "def", cost: 2, icon: "🛑", desc: "获得18点格挡", rarity: "u", cat: "def", attr: "safety", power: 2, fx: { block: 18 } },
+  { id: "abs", name: "防抱死系统", type: "def", cost: 2, icon: "⚙️", desc: "获得12点格挡，本回合受伤-25%", rarity: "u", cat: "def", attr: "safety", power: 2, fx: { block: 12, defMult: 0.75 } },
+  { id: "fwqxx", name: "服务区休息", type: "heal", cost: 2, icon: "☕", desc: "回复 maxHP 的 35%", rarity: "u", cat: "heal", attr: "safety", power: 2, fx: { healPct: 0.35 } },
+  { id: "jclt", name: "检查轮胎", type: "heal", cost: 1, icon: "🛞", desc: "回复10点生命，获得3点格挡", rarity: "u", cat: "heal", attr: "safety", power: 2, fx: { healFlat: 10, block: 3 } },
+  { id: "aqcs", name: "安全超车", type: "atk", cost: 2, icon: "🚗", desc: "造成12点伤害，获得6点格挡", rarity: "u", cat: "atk", attr: "safety", power: 2, fx: { dmg: 12, block: 6 } },
+  { id: "aqqn", name: "安全气囊", type: "def", cost: 3, icon: "🎈", desc: "获得30点格挡", rarity: "r", cat: "def", attr: "safety", power: 3, fx: { block: 30 } },
+  { id: "etzy", name: "儿童座椅", type: "def", cost: 2, icon: "🧒", desc: "获得14点格挡，抽1张牌", rarity: "r", cat: "def", attr: "safety", power: 3, fx: { block: 14, draw: 1 } },
+  { id: "wdkq", name: "雾灯开启", type: "def", cost: 1, icon: "💡", desc: "获得6点格挡，伤害×1.3", rarity: "r", cat: "def", attr: "safety", power: 3, fx: { block: 6, mult: 1.3 } },
+  { id: "cfsm", name: "充分睡眠", type: "heal", cost: 2, icon: "😴", desc: "回复 maxHP 的 40%，获得4点格挡", rarity: "r", cat: "heal", attr: "safety", power: 3, fx: { healPct: 0.4, block: 4 } },
+  { id: "fsfz", name: "防身反击", type: "atk", cost: 3, icon: "🛡️", desc: "造成16点伤害，获得12点格挡", rarity: "r", cat: "atk", attr: "safety", power: 3, fx: { dmg: 16, block: 12 } },
+  { id: "aqmh", name: "安全磨合", type: "heal", cost: 3, icon: "🌟", desc: "回复 maxHP 的 50%，获得10点格挡", rarity: "l", cat: "heal", attr: "safety", power: 4, fx: { healPct: 0.5, block: 10 } },
+  { id: "rchy", name: "人车合一", type: "control", cost: 2, icon: "🔧", desc: "伤害×2，获得8点格挡", rarity: "l", cat: "control", attr: "safety", power: 4, fx: { mult: 2, block: 8 } },
 
-  // ═══ 控制系 control ═══
-  { id: "agility", name: "高速移动", type: "control", cost: 1, icon: "🏃", desc: "获得2点能量", rarity: "c", cat: "control", power: 1, fx: { energy: 2 } },
-  { id: "focus_energy", name: "聚气", type: "control", cost: 1, icon: "🎯", desc: "本回合伤害×1.4", rarity: "c", cat: "control", power: 1, fx: { mult: 1.4 } },
-  { id: "work_up", name: "自我激励", type: "control", cost: 1, icon: "📈", desc: "伤害×1.25，获得1能量", rarity: "c", cat: "control", power: 1, fx: { mult: 1.25, energy: 1 } },
-  { id: "swords_dance", name: "剑舞", type: "control", cost: 1, icon: "🗡️", desc: "本回合伤害×1.8", rarity: "u", cat: "control", power: 2, fx: { mult: 1.8 } },
-  { id: "nasty_plot", name: "诡计", type: "control", cost: 2, icon: "😈", desc: "本回合伤害×2.2", rarity: "u", cat: "control", power: 2, fx: { mult: 2.2 } },
-  { id: "calm_mind", name: "冥想", type: "control", cost: 1, icon: "🧘", desc: "获得8格挡，伤害×1.3", rarity: "u", cat: "control", power: 2, fx: { block: 8, mult: 1.3 } },
-  { id: "bulk_up", name: "健美", type: "control", cost: 1, icon: "💪", desc: "获得10格挡，伤害×1.25", rarity: "u", cat: "control", power: 2, fx: { block: 10, mult: 1.25 } },
-  { id: "growth", name: "生长", type: "control", cost: 0, icon: "🌱", desc: "本回合伤害×1.3（0费）", rarity: "u", cat: "control", power: 2, fx: { mult: 1.3 } },
-  { id: "dragon_dance", name: "龙之舞", type: "control", cost: 2, icon: "🐉", desc: "伤害×1.6，获得1能量", rarity: "r", cat: "control", power: 3, fx: { mult: 1.6, energy: 1 } },
-  { id: "tailwind", name: "顺风", type: "control", cost: 0, icon: "🌪️", desc: "获得1能量并抽1张", rarity: "r", cat: "control", power: 3, fx: { energy: 1, draw: 1 } },
-  { id: "coil", name: "盘蜷", type: "control", cost: 1, icon: "🐍", desc: "获得10格挡，伤害×1.35", rarity: "r", cat: "control", power: 3, fx: { block: 10, mult: 1.35 } },
-  { id: "shell_smash", name: "破壳", type: "control", cost: 2, icon: "🥚", desc: "伤害×2.2，但自身-8格挡", rarity: "r", cat: "control", power: 3, fx: { mult: 2.2, selfBlock: -8 } },
-  { id: "quiver_dance", name: "蝶舞", type: "control", cost: 2, icon: "🦋", desc: "伤害×2，获得6格挡", rarity: "l", cat: "control", power: 4, fx: { mult: 2, block: 6 } },
-  { id: "geomancy", name: "大地掌控", type: "control", cost: 3, icon: "✨", desc: "伤害×2.5，获得8格挡，获得1能量", rarity: "l", cat: "control", power: 4, fx: { mult: 2.5, block: 8, energy: 1 } },
-  { id: "baton_pass", name: "接棒", type: "control", cost: 1, icon: "🏏", desc: "获得2能量并抽2张牌", rarity: "l", cat: "control", power: 4, fx: { energy: 2, draw: 2 } },
-
-  // ═══ 异常系 status ═══
-  { id: "thunder_wave", name: "电磁波", type: "status", cost: 1, icon: "⚡", desc: "麻痹：敌下2回合伤害-40%", rarity: "c", cat: "status", power: 1, fx: { status: "para", statusTurns: 2 } },
-  { id: "will_o_wisp", name: "鬼火", type: "status", cost: 1, icon: "👻", desc: "灼烧：敌每回合结束受4伤，2回合", rarity: "c", cat: "status", power: 1, fx: { status: "burn", statusTurns: 2 } },
-  { id: "stun_spore", name: "麻痹粉", type: "status", cost: 1, icon: "🌼", desc: "麻痹2回合并造成3点伤害", rarity: "c", cat: "status", power: 1, fx: { dmg: 3, status: "para", statusTurns: 2 } },
-  { id: "poison_powder", name: "毒粉", type: "status", cost: 1, icon: "☠️", desc: "中毒：敌每回合结束受4伤，3回合", rarity: "c", cat: "status", power: 1, fx: { status: "poison", statusTurns: 3 } },
-  { id: "toxic", name: "剧毒", type: "status", cost: 1, icon: "☠️", desc: "中毒：敌每回合结束受6伤，3回合", rarity: "u", cat: "status", power: 2, fx: { status: "poison", statusTurns: 3 } },
-  { id: "sleep_powder", name: "催眠粉", type: "status", cost: 2, icon: "💤", desc: "催眠：敌跳过下1次攻击", rarity: "u", cat: "status", power: 2, fx: { status: "sleep", statusTurns: 1 } },
-  { id: "confuse_ray", name: "奇异之光", type: "status", cost: 1, icon: "💫", desc: "混乱：敌下回合50%自伤", rarity: "u", cat: "status", power: 2, fx: { status: "confuse", statusTurns: 2 } },
-  { id: "yawn", name: "哈欠", type: "status", cost: 1, icon: "🥱", desc: "催眠：敌方下回合结束后入睡1回合", rarity: "u", cat: "status", power: 2, fx: { status: "sleep", statusTurns: 1 } },
-  { id: "charm", name: "撒娇", type: "status", cost: 1, icon: "😘", desc: "敌方下回合伤害-30%并造成4点伤害", rarity: "u", cat: "status", power: 2, fx: { dmg: 4, enemyWeak: 0.3 } },
-  { id: "spore", name: "蘑菇孢子", type: "status", cost: 2, icon: "🍄", desc: "强力催眠：敌跳过下2次攻击", rarity: "r", cat: "status", power: 3, fx: { status: "sleep", statusTurns: 2 } },
-  { id: "glare", name: "大蛇瞪眼", type: "status", cost: 1, icon: "👀", desc: "麻痹3回合", rarity: "r", cat: "status", power: 3, fx: { status: "para", statusTurns: 3 } },
-  { id: "leech_seed", name: "寄生种子", type: "status", cost: 2, icon: "🌱", desc: "寄生：造成5伤，中毒3回合（每回合6伤）", rarity: "r", cat: "status", power: 3, fx: { dmg: 5, status: "poison", statusTurns: 3 } },
-  { id: "destiny_bond", name: "同命", type: "status", cost: 2, icon: "🔗", desc: "敌方受到10点伤害，自身-5HP", rarity: "r", cat: "status", power: 3, fx: { dmg: 10, selfDmg: 5 } },
-  { id: "scary_face", name: "鬼面", type: "status", cost: 1, icon: "👹", desc: "敌方下回合伤害-35%，获得4格挡", rarity: "r", cat: "status", power: 3, fx: { enemyWeak: 0.35, block: 4 } },
-  { id: "dark_void", name: "暗黑洞", type: "status", cost: 3, icon: "🕳️", desc: "睡眠2回合+造成8伤害", rarity: "l", cat: "status", power: 4, fx: { dmg: 8, status: "sleep", statusTurns: 2 } },
-  { id: "hypnosis", name: "催眠术", type: "status", cost: 1, icon: "🌀", desc: "催眠2回合", rarity: "l", cat: "status", power: 4, fx: { status: "sleep", statusTurns: 2 } },
-  { id: "sheer_cold", name: "绝对零度", type: "status", cost: 3, icon: "❄️", desc: "造成20点伤害，100%冰冻2回合", rarity: "l", cat: "status", power: 4, fx: { dmg: 20, status: "freeze", statusTurns: 2 } },
+  // ═══ civility 文明驾驶(异常减益) ═══
+  { id: "lrxr", name: "礼让行人", type: "status", cost: 1, icon: "🚸", desc: "造成4点伤害，敌方伤害-30%", rarity: "c", cat: "status", attr: "civility", power: 1, fx: { dmg: 4, enemyWeak: 0.3 } },
+  { id: "bml", name: "不鸣笛", type: "status", cost: 1, icon: "🔕", desc: "静音警告：限速减速2回合", rarity: "c", cat: "status", attr: "civility", power: 1, fx: { status: "para", statusTurns: 2 } },
+  { id: "pddh", name: "排队等候", type: "def", cost: 1, icon: "🚶", desc: "获得6点格挡，本回合受伤-20%", rarity: "c", cat: "def", attr: "civility", power: 1, fx: { block: 6, defMult: 0.8 } },
+  { id: "qrxz", name: "谦让先行", type: "control", cost: 1, icon: "🙏", desc: "获得2点指令", rarity: "c", cat: "control", attr: "civility", power: 1, fx: { energy: 2 } },
+  { id: "mdtx", name: "鸣笛提醒", type: "atk", cost: 1, icon: "📣", desc: "造成5点伤害，20%远光眩目1回合", rarity: "c", cat: "atk", attr: "civility", power: 1, fx: { dmg: 5, status: "confuse", statusChance: 0.2, statusTurns: 1 } },
+  { id: "gbyg", name: "关闭远光", type: "status", cost: 1, icon: "🌙", desc: "远光眩目2回合", rarity: "u", cat: "status", attr: "civility", power: 2, fx: { status: "confuse", statusTurns: 2 } },
+  { id: "jtdx", name: "交替通行", type: "control", cost: 1, icon: "🔀", desc: "获得1点指令并抽1张牌", rarity: "u", cat: "control", attr: "civility", power: 2, fx: { energy: 1, draw: 1 } },
+  { id: "jjln", name: "拒绝路怒", type: "heal", cost: 1, icon: "🧘", desc: "回复8点生命，敌方伤害-5%", rarity: "u", cat: "heal", attr: "civility", power: 2, fx: { healFlat: 8, enemyWeak: 0.05 } },
+  { id: "jdcc", name: "借道超车", type: "atk", cost: 2, icon: "🚘", desc: "造成14点伤害，自身-2格挡", rarity: "u", cat: "atk", attr: "civility", power: 2, fx: { dmg: 14, selfBlock: -2 } },
+  { id: "tklr", name: "停靠礼让", type: "status", cost: 1, icon: "🅿️", desc: "造成3点伤害，限速减速2回合", rarity: "u", cat: "status", attr: "civility", power: 2, fx: { dmg: 3, status: "para", statusTurns: 2 } },
+  { id: "jsrx", name: "减速让行", type: "status", cost: 2, icon: "🐢", desc: "禁行拘留1回合", rarity: "r", cat: "status", attr: "civility", power: 3, fx: { status: "sleep", statusTurns: 1 } },
+  { id: "hgyg", name: "回敬远光", type: "atk", cost: 2, icon: "🔆", desc: "造成12点伤害，50%远光眩目1回合", rarity: "r", cat: "atk", attr: "civility", power: 3, fx: { dmg: 12, status: "confuse", statusChance: 0.5, statusTurns: 1 } },
+  { id: "aysx", name: "安心随行", type: "heal", cost: 2, icon: "💗", desc: "回复14点生命，获得6点格挡", rarity: "r", cat: "heal", attr: "civility", power: 3, fx: { healFlat: 14, block: 6 } },
+  { id: "wmcs", name: "文明超车", type: "atk", cost: 2, icon: "✨", desc: "造成16点伤害，远光眩目1回合", rarity: "l", cat: "atk", attr: "civility", power: 4, fx: { dmg: 16, status: "confuse", statusTurns: 1 } },
+  { id: "wmxy", name: "文明协奏", type: "control", cost: 2, icon: "🎵", desc: "伤害×1.8，抽1张牌", rarity: "l", cat: "control", attr: "civility", power: 4, fx: { mult: 1.8, draw: 1 } },
+  { id: "wmzg", name: "文明之光", type: "status", cost: 3, icon: "🌟", desc: "造成16点伤害，冻结车流2回合", rarity: "l", cat: "status", attr: "civility", power: 4, fx: { dmg: 16, status: "freeze", statusTurns: 2 } },
 ];
 
 export const STARTER_CARD_IDS = [
-  "tackle",
-  "harden",
-  "recover",
-  "agility",
-  "thunder_wave",
+  "jf_cf",
+  "hdt",
+  "aqd",
+  "lrxr",
+  "xf_jf",
 ];
 
 export const CARD_CAT_NAMES: Record<string, string> = {
@@ -171,6 +140,7 @@ export const CARD_CAT_NAMES: Record<string, string> = {
 };
 
 export function findCard(id: string): CardDef | undefined {
+  if (id.startsWith(ULT_PREFIX)) return undefined;
   return ALL_CARDS.find((c) => c.id === id);
 }
 
@@ -193,6 +163,30 @@ export function hydrateCardList(list: unknown[]): Card[] {
 
 export function cardFromIdList(ids: string[]): Card[] {
   return ids.map((id) => hydrateCard(id)).filter(Boolean) as Card[];
+}
+
+/* ============ 领队必杀卡 ============ */
+
+export const ULT_PREFIX = "ult_";
+
+/** 领队大招槽上限(每出一张牌+1) */
+export const ULT_GAUGE_MAX = 9;
+
+/** 由领队(点火觉醒学员)的必杀技生成 0 费卡;不进 ALL_CARDS 与抽卡池 */
+export function buildUltCard(valk: Valkyrie): Card {
+  return {
+    id: ULT_PREFIX + valk.id,
+    name: valk.ult.name || "点火必杀",
+    type: "atk",
+    cost: 0,
+    icon: "✨",
+    desc: valk.ult.desc || "",
+    rarity: "l",
+    cat: "ult",
+    attr: valk.attr,
+    power: 5,
+    fx: valk.ult.fx as CardFx,
+  };
 }
 
 /** 对敌方造成伤害(含格挡结算),返回事件 */

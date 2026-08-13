@@ -22,7 +22,12 @@ import {
   switchToNextAlive,
 } from "./battle";
 import { applyNodeSelection, generateMapNodes } from "./map";
-import { ALL_CARDS, STARTER_CARD_IDS } from "./cards";
+import {
+  ALL_CARDS,
+  STARTER_CARD_IDS,
+  ULT_GAUGE_MAX,
+  type CardFxEvent,
+} from "./cards";
 import {
   getMaxHpFromMeta,
   getPkmMaxHp,
@@ -33,6 +38,7 @@ import {
 import {
   defaultMeta,
   hasRun,
+  loadImportedQuestions,
   loadMeta,
   loadRun,
   saveImportedQuestions,
@@ -102,6 +108,13 @@ export type AnswerResult = {
   playerDead: boolean;
 };
 
+/** 最近一次出牌结果(ephemeral,UI 据此播放联动/必杀反馈) */
+export type PlayEvent = {
+  id: number; // 单调递增,UI 去重
+  cardId: string;
+  events: CardFxEvent[];
+};
+
 type GameStore = {
   meta: MetaState;
   run: RunState | null;
@@ -118,6 +131,8 @@ type GameStore = {
   captureAnimating: boolean;
   /** 最近一次答题结果(ephemeral,UI 据此播放反馈/调度下一题,键盘鼠标统一) */
   lastAnswer: AnswerResult | null;
+  /** 最近一次出牌事件(ephemeral,UI 据此播放板块联动/必杀反馈) */
+  lastPlay: PlayEvent | null;
 
   /* ---- 持久化 ---- */
   hydrate: () => void;
@@ -211,6 +226,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   gachaLastId: null,
   captureAnimating: false,
   lastAnswer: null,
+  lastPlay: null,
 
   /* ---- 持久化 ---- */
 
@@ -511,6 +527,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
       cardPlayedThisTurn: false,
       turnPhase: "question",
       turnCorrect: 0,
+      leaderId: null,
+      awakened: {},
+      ultGauge: 0,
+      ultMax: ULT_GAUGE_MAX,
     };
 
     set({
@@ -848,7 +868,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const run = cloneRun(run0);
     const res = playCardOn(run, idx, meta0.metaAtkLv);
     if (!res) return;
-    set({ run });
+    set({ run, lastPlay: { id: ++playEventSeq, cardId: res.cardId, events: res.events } });
     persistRun(run);
 
     if (res.enemyDead) {
@@ -1076,19 +1096,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
 /* ============ 内部辅助 ============ */
 
-/** 单调递增 id,供 UI 在 React StrictMode 下对 lastAnswer 做去重(参考工程同款) */
+/** 单调递增 id,供 UI 在 React StrictMode 下对 lastAnswer/lastPlay 做去重(参考工程同款) */
 let answerEventSeq = 0;
+let playEventSeq = 0;
 
 function getImportedQuestions(): Question[] | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const saved = localStorage.getItem("dungeonDrive_importedQuestions");
-    if (!saved) return null;
-    const data = JSON.parse(saved);
-    return Array.isArray(data) && data.length > 0 ? data : null;
-  } catch {
-    return null;
-  }
+  return loadImportedQuestions<Question>();
 }
 
 function currentNode(run: RunState): MapNode | null {

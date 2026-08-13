@@ -1,6 +1,6 @@
-import type { Rarity, Pokemon, Question } from "@/data";
+import type { Rarity, Pokemon, Question, AttrKey } from "@/data";
 
-export type { Rarity, Pokemon, Question };
+export type { Rarity, Pokemon, Question, AttrKey };
 
 /* ============ 卡牌系统 ============ */
 
@@ -44,6 +44,8 @@ export type CardDef = {
   desc: string;
   rarity: Rarity;
   cat: string;
+  /** 科目一四大板块:打该板块牌 → 队伍中该板块学员联动行动 */
+  attr: AttrKey;
   power: number;
   fx: CardFx;
 };
@@ -143,6 +145,12 @@ export type RunState = {
   visitedNodes: string[];
   questionHistory: string[];
   captureBonus: number;
+
+  // ── 点火觉醒/领队(单局字段,不跨局) ──
+  leaderId: number | null; // 领队(点火觉醒学员,每局最多 1 名)
+  awakened: Record<number, AttrKey>; // 本局觉醒名单 valkId → 第二板块
+  ultGauge: number; // 领队大招槽 0..ultMax(每出一张牌+1)
+  ultMax: number; // 大招槽上限(=9)
 
   // ── 战斗现场(仅在 inBattle 时有意义) ──
   enemyPkm: Pokemon | null;

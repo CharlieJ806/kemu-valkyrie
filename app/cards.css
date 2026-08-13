@@ -260,3 +260,54 @@
 .dc-img{width:44px;height:36px;object-fit:contain;image-rendering:pixelated}
 .dex-cell.collected{cursor:pointer}
 .dex-cell.locked{opacity:.5}
+
+/* ═══ 女武神版:领队必杀 ═══ */
+
+.hand-card.ult-card {
+  border: 2px solid #ffd700;
+  box-shadow: 0 0 14px rgba(255, 215, 0, 0.55), inset 0 0 10px rgba(255, 215, 0, 0.25);
+  background: linear-gradient(160deg, #fff8e0, #ffe9b0);
+  animation: ultPulse 1.6s ease-in-out infinite;
+}
+.ult-tag {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  background: linear-gradient(135deg, #ffb300, #ff6f00);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 999px;
+  letter-spacing: 1px;
+}
+@keyframes ultPulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.45); }
+  50% { box-shadow: 0 0 22px rgba(255, 190, 0, 0.85); }
+}
+.ult-gauge {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: center;
+  min-width: 110px;
+}
+.ult-gauge-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #d99200;
+}
+.ult-gauge-bar {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+.ult-gauge-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ffd700, #ff8c00);
+  transition: width 0.25s ease;
+}
