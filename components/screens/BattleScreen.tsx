@@ -314,12 +314,13 @@ export default function BattleScreen() {
           {run.team.map((id, i) => (
             <div
               key={id}
-              title={getPkmName(id)}
+              title={getPkmName(id) + (run.leaderId === id ? "（领队）" : "")}
               className={`team-slot ${
                 i === run.activeIdx ? "active" : ""
               } ${(run.teamHp[i] || 0) <= 0 ? "fainted" : ""}`}
               onClick={() => switchPoke(i)}
             >
+              {run.leaderId === id && <span className="leader-star">👑</span>}
               {ICON(id) ? (
                 <img src={ICON(id)} alt="" />
               ) : (

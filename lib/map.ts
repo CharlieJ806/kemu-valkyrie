@@ -202,7 +202,7 @@ export function renderMap(
   ctx.fillStyle = "#6b87a8";
   ctx.font = `${11 * dpr}px "Noto Sans SC","Microsoft YaHei",sans-serif`;
   ctx.fillText(
-    `第 ${floor} 层 - 选择路径前进`,
+    `第 ${floor} 街区 - 选择路径前进`,
     canvas.width / 2,
     Math.max(14 * dpr, topPad * 0.35),
   );

@@ -5,9 +5,6 @@ import {
   getPkmName,
   getPkmById,
   getBST,
-  isTier1Legend,
-  isTier2Legend,
-  isMythical,
 } from "@/lib/formulas";
 import {
   MAX_TEAM_SIZE,
@@ -20,7 +17,8 @@ import { ICON } from "@/lib/icon";
 import { AudioEngine } from "@/lib/audio";
 import { spawnFxText, domBurst } from "@/lib/dom-fx";
 import { BattleFX } from "@/lib/fx3d";
-import { GAME_EVENTS } from "@/lib/events";
+import { GAME_EVENTS, resolveChoiceText } from "@/lib/events";
+import { ATTR_NAMES, ATTR_SHORT, attrBadgeStyle } from "@/lib/attr";
 import type { BallKey } from "@/lib/types";
 
 /** 捕获动画进行中标志(防止连点/StrictMode 双触发) */
@@ -52,7 +50,7 @@ export default function Modal() {
     return (
       <div className="modal-wrap" onClick={closeModal}>
         <div className="modal" onClick={(e) => e.stopPropagation()}>
-          <div className="capture-title">🎯 捕获机会！</div>
+          <div className="capture-title">✨ 净化机会！</div>
           <div className="capture-pkmn">
             {ICON(pkm.id) ? (
               <img src={ICON(pkm.id)} alt="" />
@@ -98,13 +96,13 @@ export default function Modal() {
                         AudioEngine.sfx("caught");
                         if (BattleFX.ok) setTimeout(() => BattleFX.endCapture(), 400);
                         if (layer) {
-                          spawnFxText(layer, 50, 38, `成功捕获 ${getPkmName(res.pkmId)}！`, "#ffd700");
+                          spawnFxText(layer, 50, 38, `成功净化 ${getPkmName(res.pkmId)}！`, "#ffd700");
                           domBurst(layer, 50, 40, "#ffd700", 26);
                         }
                       } else {
                         AudioEngine.sfx("escape");
                         if (layer) {
-                          spawnFxText(layer, 50, 38, `${getPkmName(res.pkmId)} 挣脱了精灵球，逃走了…`, "#ff8800");
+                          spawnFxText(layer, 50, 38, `${getPkmName(res.pkmId)} 挣脱了火花钥匙，逃走了…`, "#ff8800");
                         }
                       }
                       setTimeout(() => {
@@ -135,7 +133,7 @@ export default function Modal() {
             })}
           </div>
           <button className="btn btn-ghost" onClick={skipCapture}>
-            跳过捕获
+            跳过净化
           </button>
         </div>
       </div>
@@ -232,7 +230,7 @@ export default function Modal() {
                   AudioEngine.sfx("click");
                 }}
               >
-                {c.text}
+                {run ? resolveChoiceText(c, run) : null}
               </button>
             ))}
           </div>
@@ -241,7 +239,7 @@ export default function Modal() {
     );
   }
 
-  /* ── 图鉴详情 ── */
+  /* ── 学员详情 ── */
   if (modal.kind === "pkmDetail") {
     const pkm = getPkmById(modal.id);
     if (!pkm) return null;
@@ -265,20 +263,32 @@ export default function Modal() {
             >
               #{pkm.id} {pkm.c}
             </div>
+            <div
+              style={{ display: "flex", gap: 6, justifyContent: "center", marginTop: 6 }}
+            >
+              <span className="attr-badge" style={attrBadgeStyle(pkm.attr)}>
+                {ATTR_NAMES[pkm.attr]}
+              </span>
+              <span
+                className="attr-badge"
+                style={{
+                  ...attrBadgeStyle(pkm.attr2),
+                  opacity: 0.75,
+                  textDecoration: "none",
+                }}
+                title="点火觉醒后获得"
+              >
+                🔑 {ATTR_SHORT[pkm.attr2]}
+              </span>
+            </div>
           <div
             style={{ fontSize: 12, color: "var(--dim)", marginTop: 8, lineHeight: 1.7 }}
           >
             稀有度: {RARITY_NAMES[pkm.r]}<br />
-            种族值(BST): {bst}<br />
-            英文名: {pkm.n}
-            {isTier1Legend(pkm.id)
-              ? "<br/>👑 一级传说"
-              : isTier2Legend(pkm.id)
-                ? "<br/>👑 二级传说"
-                : isMythical(pkm.id)
-                  ? "<br/>✨ 幻之宝可梦"
-                  : ""}
-            {inTeam ? (isActive ? "<br/>📍 出战宝可梦" : "<br/>📍 已在队伍中") : ""}
+            综合面板: {bst}<br />
+            必杀: {pkm.ult.name || "—"}
+            {pkm.flavor ? <><br />{pkm.flavor}</> : null}
+            {inTeam ? (isActive ? "<br/>📍 出战学员" : "<br/>📍 已在队伍中") : ""}
           </div>
           <div className="m-actions">
             {inTeam ? (
@@ -302,7 +312,7 @@ export default function Modal() {
                   padding: "6px 0",
                 }}
               >
-                队伍已满({MAX_TEAM_SIZE}只) — 先在图鉴中移出其他宝可梦
+                队伍已满({MAX_TEAM_SIZE}名) — 先在名册中移出其他学员
               </div>
             ) : (
               <button

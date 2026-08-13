@@ -188,12 +188,12 @@ export const NODE_ICONS: Record<NodeType, string> = {
 
 export const NODE_NAMES: Record<NodeType, string> = {
   battle: "战斗",
-  elite: "精英战",
-  shop: "商店",
-  rest: "营地",
-  event: "事件",
-  treasure: "宝箱",
-  boss: "BOSS",
+  elite: "强敌",
+  shop: "补给点",
+  rest: "咖啡厅",
+  event: "异变",
+  treasure: "置物柜",
+  boss: "违章魔王",
 };
 
 export function enemyPoolForNode(type: NodeType): Partial<Record<Rarity, number>> {

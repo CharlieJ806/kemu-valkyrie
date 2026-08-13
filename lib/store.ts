@@ -925,7 +925,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
           run.mapNodes[0].forEach((n) => (n.reachable = true));
         }
         get().showToast(
-          `🎉 击败第 ${clearedFloor} 层BOSS！进入第 ${run.floor} 层！`,
+          `🎉 击败第 ${clearedFloor} 街区违章魔王！进入第 ${run.floor} 街区！`,
           2500,
         );
       }
@@ -977,7 +977,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         run.teamMaxHp.push(getPkmMaxHp(pkm.id, meta.metaHpLv));
         run.teamHp.push(run.teamMaxHp[run.teamMaxHp.length - 1]!);
       } else if (!meta.team.includes(pkm.id)) {
-        get().showToast("队伍已满,新伙伴将在图鉴中待命", 1800);
+        get().showToast("队伍已满,新伙伴将在名册中待命", 1800);
       }
     }
     set({ run, meta });
@@ -1026,7 +1026,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     } else {
       set({ screen: "map", prevScreen: get().screen });
     }
-    get().showToast("放弃了捕获...", 1500);
+    get().showToast("放弃了净化...", 1500);
   },
 
   chooseRewardCard: (cardId) => {
