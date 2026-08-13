@@ -22,7 +22,7 @@ export default function OverScreen() {
         </div>
         <div className="over-stats">
           <div className="over-stat">
-            到达: <b>第 {gameOver.floor} 街区</b>
+            进度: <b>第 {gameOver.chapter} 章 · 周目 {gameOver.loop}</b>
           </div>
           <div className="over-stat">
             得分: <b>{gameOver.score}</b>
@@ -35,7 +35,7 @@ export default function OverScreen() {
             最大连击: <b>{gameOver.maxCombo}</b>
           </div>
           <div className="over-stat">
-            净化结识: <b>{gameOver.caught}</b>
+            结识学员: <b>{gameOver.caught} / 4</b>
           </div>
         </div>
         <div className="over-sub">
@@ -46,7 +46,7 @@ export default function OverScreen() {
             className="btn btn-primary"
             onClick={() => {
               AudioEngine.sfx("click");
-              setScreen("starter");
+              setScreen("title");
             }}
           >
             🎮 再来一局

@@ -77,10 +77,8 @@ export {
 
 export {
   useGameStore,
-  STARTERS,
 } from "./store";
 
-export type { StarterDef } from "./store";
 export type { AnswerResult } from "./store";
 
 export { ICON } from "./icon";

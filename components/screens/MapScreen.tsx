@@ -91,26 +91,10 @@ export default function MapScreen() {
     <section className="screen active" id="scr-map">
       <div className="map-inner">
         <div className="map-topbar">
-          <div className="map-floor">第 {run.floor} 街区</div>
+          <div className="map-floor">
+            第 {run.chapter} 章 · 周目 {run.loop}
+          </div>
           <div className="map-hud">
-            <span className="ball-hud-item" title="火花钥匙">
-              🔑{run.pokeBalls.normal || 0}
-            </span>
-            {(run.pokeBalls.great || 0) > 0 && (
-              <span className="ball-hud-item" title="高级火花钥匙">
-                🗝️{run.pokeBalls.great}
-              </span>
-            )}
-            {(run.pokeBalls.ultra || 0) > 0 && (
-              <span className="ball-hud-item" title="白金火花钥匙">
-                ⚡{run.pokeBalls.ultra}
-              </span>
-            )}
-            {(run.pokeBalls.master || 0) > 0 && (
-              <span className="ball-hud-item" title="大师钥匙">
-                👑{run.pokeBalls.master}
-              </span>
-            )}
             <span>❤️{Math.ceil(run.hp)}</span>
             <span>🪙{run.gold}</span>
             <span>🏆{run.score}</span>

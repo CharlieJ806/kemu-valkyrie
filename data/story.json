@@ -1,0 +1,76 @@
+{
+  "prologue": [
+    { "speaker": "narrator", "text": "驾考之城，一座依靠科目一秩序运转的城市。" },
+    { "speaker": "narrator", "text": "某个深夜，「违章之暗」突然侵蚀全城——信号错乱、车流瘫痪、魔物四处游荡。" },
+    { "speaker": 1, "text": "你就是驾校新来的学员吧？我是交通骑警·赤红！" },
+    { "speaker": 1, "text": "别怕。拔出你的车钥匙，我们一起净化这座城市！" },
+    { "speaker": "narrator", "text": "（提示：答对科目一题目积攒「指令」，打出驾驶技能卡让学员出击！）" },
+    { "speaker": "narrator", "text": "（提示：击败每章尽头的魔王即可通关，通关章节会解锁新的学员！）" }
+  ],
+  "chapters": [
+    {
+      "id": 1,
+      "name": "违停之街",
+      "bossId": 117,
+      "unlockId": 2,
+      "intro": [
+        { "speaker": "narrator", "text": "第 1 章 · 违停之街——违停的魔物把街道堵得水泄不通。" },
+        { "speaker": 1, "text": "违章停车？扣分！罚款！跟紧我！" }
+      ],
+      "outro": [
+        { "speaker": "narrator", "text": "违停障碍怪被净化了！街道终于恢复了畅通。" },
+        { "speaker": 2, "text": "等等我！我是信号调度员·蔚蓝，请让我加入你们吧！" },
+        { "speaker": "narrator", "text": "蔚蓝加入队伍！她擅长用交通信号压制敌人。" }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "超速狂飙",
+      "bossId": 118,
+      "unlockId": 3,
+      "intro": [
+        { "speaker": "narrator", "text": "第 2 章 · 超速狂飙——幽灵车影呼啸而过，限速形同虚设。" },
+        { "speaker": 2, "text": "我来指挥调度！限速减速，把它们压下去！" }
+      ],
+      "outro": [
+        { "speaker": "narrator", "text": "超速混乱怪伏法，街道重归宁静。" },
+        { "speaker": 3, "text": "我是安全教练·白银。安全驾驶，从我做起——请让我同行。" },
+        { "speaker": "narrator", "text": "白银加入队伍！她是队伍最可靠的护盾。" }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "迷雾之夜",
+      "bossId": 119,
+      "unlockId": 4,
+      "intro": [
+        { "speaker": "narrator", "text": "第 3 章 · 迷雾之夜——浓雾中远光灯乱闪，冲突一触即发。" },
+        { "speaker": 3, "text": "雾天行车：减速慢行、开启雾灯！小心那些灯光！" }
+      ],
+      "outro": [
+        { "speaker": "narrator", "text": "迷雾散去，冲突消弭。" },
+        { "speaker": 4, "text": "……我是深夜。文明驾驶的守护者。愿意的话，算我一个。" },
+        { "speaker": "narrator", "text": "深夜加入队伍！她能让敌人眩目混乱。" }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "信号崩坏",
+      "bossId": 120,
+      "unlockId": null,
+      "intro": [
+        { "speaker": "narrator", "text": "最终章 · 信号崩坏——全城信号错乱，违章之暗的化身盘踞信号塔顶。" },
+        { "speaker": 4, "text": "灯光是夜路的语言。别让它们熄灭。" },
+        { "speaker": 1, "text": "全员出动！这是最后一战！" }
+      ],
+      "outro": [
+        { "speaker": "narrator", "text": "信号错误怪被击败！驾考之城的秩序暂时恢复了。" },
+        { "speaker": 1, "text": "只要有我们在，这座城市就不会输给违章！" }
+      ]
+    }
+  ],
+  "loopOutro": [
+    { "speaker": "narrator", "text": "第 {loop} 周目完成！但违章之暗重新集结，更强大的乱象正在酝酿……" },
+    { "speaker": 1, "text": "继续前进！驾考之城还需要我们！" }
+  ]
+}

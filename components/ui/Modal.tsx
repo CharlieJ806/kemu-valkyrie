@@ -10,28 +10,18 @@ import {
   MAX_TEAM_SIZE,
   RARITY_COLORS,
   RARITY_NAMES,
-  POKE_BALLS,
 } from "@/data/constants";
 import { ALL_CARDS, findCard } from "@/lib/cards";
 import { ICON } from "@/lib/icon";
 import { AudioEngine } from "@/lib/audio";
-import { spawnFxText, domBurst } from "@/lib/dom-fx";
-import { BattleFX } from "@/lib/fx3d";
 import { GAME_EVENTS, resolveChoiceText } from "@/lib/events";
 import { ATTR_NAMES, ATTR_SHORT, attrBadgeStyle } from "@/lib/attr";
-import type { BallKey } from "@/lib/types";
-
-/** 净化动画进行中标志(防止连点/StrictMode 双触发) */
-let captureInFlight = false;
 
 export default function Modal() {
   const modal = useGameStore((s) => s.modal);
   const run = useGameStore((s) => s.run);
   const meta = useGameStore((s) => s.meta);
   const closeModal = useGameStore((s) => s.closeModal);
-  const attemptCapture = useGameStore((s) => s.attemptCapture);
-  const finishCapture = useGameStore((s) => s.finishCapture);
-  const skipCapture = useGameStore((s) => s.skipCapture);
   const chooseRewardCard = useGameStore((s) => s.chooseRewardCard);
   const skipReward = useGameStore((s) => s.skipReward);
   const doEventChoice = useGameStore((s) => s.doEventChoice);
@@ -41,104 +31,6 @@ export default function Modal() {
   const setActiveTeam = useGameStore((s) => s.setActiveTeam);
 
   if (!modal) return null;
-
-  /* ── 净化 ── */
-  if (modal.kind === "capture") {
-    if (!run) return null;
-    const pkm = run.enemyPkm;
-    if (!pkm) return null;
-    return (
-      <div className="modal-wrap" onClick={closeModal}>
-        <div className="modal" onClick={(e) => e.stopPropagation()}>
-          <div className="capture-title">✨ 净化机会！</div>
-          <div className="capture-pkmn">
-            {ICON(pkm.id) ? (
-              <img src={ICON(pkm.id)} alt="" />
-            ) : (
-              <div className="pkm-img-fallback">👾</div>
-            )}
-          </div>
-          <div
-            className="capture-info"
-            style={{ color: RARITY_COLORS[pkm.r] }}
-          >
-            {getValkName(pkm.id)} ({RARITY_NAMES[pkm.r] || "?"})
-          </div>
-          <div className="ball-row-wrap">
-            {(Object.keys(POKE_BALLS) as BallKey[]).map((key) => {
-              const ball = POKE_BALLS[key]!;
-              const count = run.pokeBalls[key] || 0;
-              const rate = Math.floor((ball.rates[pkm.r] || ball.rates.c) * 100);
-              return (
-                <button
-                  key={key}
-                  className={`ball-row ${key === "master" ? "ball-master" : ""} ${
-                    key === "great" ? "ball-great" : ""
-                  } ${key === "ultra" ? "ball-ultra" : ""} ${
-                    count <= 0 ? "empty" : ""
-                  }`}
-                  onClick={() => {
-                    if (count <= 0 || captureInFlight) return;
-                    captureInFlight = true;
-                    // 同步结算结果(数据落档)
-                    const res = attemptCapture(key);
-                    if (!res) {
-                      captureInFlight = false;
-                      return;
-                    }
-                    // 关闭弹窗露出 3D 舞台 → 播放投球动画
-                    // (captureAnimating 让 BattleScreen 保持渲染,canvas 不卸载)
-                    useGameStore.getState().beginCaptureAnim();
-                    AudioEngine.sfx("throwBall");
-                    const layer = document.getElementById("battle-stage");
-                    const finish = () => {
-                      if (res.success) {
-                        AudioEngine.sfx("caught");
-                        if (BattleFX.ok) setTimeout(() => BattleFX.endCapture(), 400);
-                        if (layer) {
-                          spawnFxText(layer, 50, 38, `成功净化 ${getValkName(res.pkmId)}！`, "#ffd700");
-                          domBurst(layer, 50, 40, "#ffd700", 26);
-                        }
-                      } else {
-                        AudioEngine.sfx("escape");
-                        if (layer) {
-                          spawnFxText(layer, 50, 38, `${getValkName(res.pkmId)} 挣脱了火花钥匙，逃走了…`, "#ff8800");
-                        }
-                      }
-                      setTimeout(() => {
-                        captureInFlight = false;
-                        finishCapture();
-                      }, res.success ? 900 : 1200);
-                    };
-                    if (BattleFX.ok) {
-                      BattleFX.capture({
-                        result: res.success,
-                        onShake: () => AudioEngine.sfx("ballShake"),
-                        onAbsorbed: () => AudioEngine.sfx("ballHit"),
-                        onResult: finish,
-                      });
-                    } else {
-                      setTimeout(finish, 1200);
-                    }
-                  }}
-                >
-                  <span className="b-icon">{ball.icon}</span>
-                  <span className="b-name">
-                    {ball.name}
-                    <span className="b-cnt">×{count}</span>
-                  </span>
-                  <span className="b-rate">{rate}%</span>
-                </button>
-              );
-            })}
-          </div>
-          <button className="btn btn-ghost" onClick={skipCapture}>
-            跳过净化
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   /* ── 奖励选卡 ── */
   if (modal.kind === "reward") {

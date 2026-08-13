@@ -29,6 +29,9 @@ export default function DexScreen() {
       <div className="title-inner" style={{ justifyContent: "flex-start", paddingTop: 24 }}>
         <div className="dex-progress">
           已结识: {collectedCount} / {VALKYRIES.length}
+          <span style={{ fontSize: 11, display: "block", marginTop: 2 }}>
+            通关章节解锁新学员 · 出战队伍最多 {MAX_TEAM_SIZE} 名
+          </span>
         </div>
         {/* 出战队伍:点击已出战的学员可调整 */}
         <div className="dex-team-bar">

@@ -52,19 +52,6 @@ export type CardDef = {
 
 export type Card = CardDef & { _played?: boolean };
 
-/* ============ 火花钥匙 ============ */
-
-export type BallKey = "normal" | "great" | "ultra" | "beast" | "master";
-
-export type BallDef = {
-  id: BallKey;
-  name: string;
-  icon: string;
-  price: number;
-  rates: Record<Rarity, number>;
-  desc: string;
-};
-
 /* ============ 地图 ============ */
 
 export type NodeType =
@@ -100,7 +87,6 @@ export type MetaState = {
   totalRuns: number;
   collected: Record<string, boolean>;
   team: number[];
-  pokeBalls: Record<BallKey, number>;
   soundEnabled: boolean;
   metaGold: number;
   metaHpLv: number;
@@ -112,6 +98,8 @@ export type MetaState = {
   totalCorrect: number;
   totalAnswered: number;
   maxComboEver: number;
+  /** 剧情进度:已通关章节数(0-4)。已解锁学员 id ≤ storyCleared+1 */
+  storyCleared: number;
 };
 
 /* ============ Run(单局,持久化到 dungeonDrive_save) ============ */
@@ -121,7 +109,12 @@ export type RunState = {
   maxHp: number;
   gold: number;
   score: number;
+  /** 有效深度 = (loop-1)*4+chapter,驱动敌方数值公式 */
   floor: number;
+  /** 当前章节 1-4 */
+  chapter: number;
+  /** 周目数(从 1 开始) */
+  loop: number;
   deck: string[]; // 卡 id
   hand: string[];
   drawPile: string[];
@@ -139,12 +132,10 @@ export type RunState = {
   teamHp: number[]; // 每只当前 HP(与 team 下标对应)
   teamMaxHp: number[]; // 每只最大 HP
   activeIdx: number; // 当前出战下标
-  pokeBalls: Record<BallKey, number>;
   gameOver: boolean;
   runWon: boolean;
   visitedNodes: string[];
   questionHistory: string[];
-  captureBonus: number;
 
   // ── 点火觉醒/领队(单局字段,不跨局) ──
   leaderId: number | null; // 领队(点火觉醒学员,每局最多 1 名)
@@ -175,7 +166,7 @@ export type RunState = {
 
 export type ScreenId =
   | "title"
-  | "starter"
+  | "story"
   | "map"
   | "battle"
   | "shop"
@@ -196,7 +187,6 @@ export type ScreenId =
 export type ToastState = { message: string; ms: number; id: number } | null;
 
 export type ModalState =
-  | { kind: "capture" }
   | { kind: "reward"; nodeType: NodeType }
   | { kind: "event"; eventId: string }
   | { kind: "confirm"; title: string; message: string; okText: string; cancelText: string }
@@ -217,6 +207,8 @@ export type ExamSession = {
 export type GameOverInfo = {
   win: boolean;
   floor: number;
+  chapter: number;
+  loop: number;
   score: number;
   isRecord: boolean;
   correct: number;
@@ -224,3 +216,6 @@ export type GameOverInfo = {
   maxCombo: number;
   caught: number;
 };
+
+/** 剧情对白条目(StoryScreen 队列) */
+export type StoryLine = { speaker: "narrator" | number; text: string };

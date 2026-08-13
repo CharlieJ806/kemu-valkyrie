@@ -43,14 +43,7 @@ export default function TitleScreen() {
 
   const startNew = () => {
     AudioEngine.sfx("click");
-    // 首次游玩:进初始选择;之后直接使用名册配置的队伍开局
-    const firstTime =
-      Object.keys(meta.collected).length === 0 && meta.team.length === 0;
-    if (firstTime) {
-      setScreen("starter");
-    } else {
-      useGameStore.getState().newRun();
-    }
+    useGameStore.getState().newRun();
   };
 
   return (
@@ -72,8 +65,9 @@ export default function TitleScreen() {
         </div>
 
         <div className="title-stats">
-          <div>🏆 最佳记录: {meta.bestScore > 0 ? `${meta.bestScore} 分 (第${meta.bestFloor}街区)` : "暂无"}</div>
+          <div>🏆 最佳记录: {meta.bestScore > 0 ? `${meta.bestScore} 分` : "暂无"}</div>
           <div>📖 名册: {Object.keys(meta.collected).length} / {VALKYRIES.length}</div>
+          <div>🚗 剧情: {meta.storyCleared >= 4 ? "已全通关" : `第 ${meta.storyCleared + 1} 章`}</div>
           <div>💰 金币: {meta.metaGold}</div>
         </div>
 

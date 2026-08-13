@@ -4,13 +4,15 @@ import {
   generateRewardsFor,
   getRandomEnemy,
 } from "./formulas";
+import { getValkById } from "@/data";
 import type { MapNode, NodeType } from "./types";
 
-/** 生成一层的列节点地图(迁移自 standalone game.js generateMapNodes) */
-export function generateMapNodes(floor: number): MapNode[][] {
+/** 生成一章的列节点地图;末列为章节 Boss(bossId 固定) */
+export function generateMapNodes(floor: number, bossId?: number): MapNode[][] {
   const nodes: MapNode[][] = [];
   const cols = Math.min(4 + floor, 7);
   const rows = 3;
+  const boss = bossId != null ? getValkById(bossId) : null;
 
   for (let col = 0; col < cols; col++) {
     const colNodes: MapNode[] = [];
@@ -34,7 +36,7 @@ export function generateMapNodes(floor: number): MapNode[][] {
         type,
         col,
         row,
-        enemyPkm: getRandomEnemy(enemyPoolForNode(type)),
+        enemyPkm: type === "boss" ? boss : getRandomEnemy(enemyPoolForNode(type)),
         visited: false,
         reachable: col === 0,
         rewards: generateRewardsFor(type),

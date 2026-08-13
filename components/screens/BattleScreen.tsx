@@ -38,8 +38,6 @@ function cardOf(id: string, leaderId: number | null): Card | null {
 export default function BattleScreen() {
   const run = useGameStore((s) => s.run);
   const meta = useGameStore((s) => s.meta);
-  const modal = useGameStore((s) => s.modal);
-  const captureAnimating = useGameStore((s) => s.captureAnimating);
   const answer = useGameStore((s) => s.answer);
   const enterCardPhase = useGameStore((s) => s.enterCardPhase);
   const playCard = useGameStore((s) => s.playCard);
@@ -200,10 +198,8 @@ export default function BattleScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [run?.gameOver, fxOk]);
 
-  // 净化弹窗/投钥匙动画期间保持战斗场景存活(3D canvas 不卸载)
-  const captureOpen = modal?.kind === "capture" || captureAnimating;
   if (!run || !run.enemyPkm) return null;
-  if (!run.inBattle && !captureOpen) return null;
+  if (!run.inBattle) return null;
 
   const enemy = run.enemyPkm;
   const enemySprite = ICON(enemy.id);
@@ -372,12 +368,12 @@ export default function BattleScreen() {
         </div>
       </div>
 
-      {/* 答题区(净化动画期间隐藏,露出 3D 舞台) */}
+      {/* 答题区(战斗结算期间隐藏,露出 3D 舞台) */}
       <div
         className="battle-q-area"
         style={{
           opacity: run.turnPhase === "card" ? 0.4 : 1,
-          display: captureOpen ? "none" : undefined,
+          
         }}
       >
         {run.turnPhase === "question" ? (
@@ -425,11 +421,11 @@ export default function BattleScreen() {
         )}
       </div>
 
-      {/* 手牌(净化动画期间隐藏) */}
+      {/* 手牌(战斗结算期间隐藏) */}
       <div
         className="hand-area"
         id="hand-area"
-        style={{ display: captureOpen ? "none" : undefined }}
+        
       >
         {handCards.length === 0 && run.turnPhase === "card" ? (
           <div
@@ -469,10 +465,10 @@ export default function BattleScreen() {
         )}
       </div>
 
-      {/* 底部控制(净化动画期间隐藏) */}
+      {/* 底部控制(战斗结算期间隐藏) */}
       <div
         className="battle-actions"
-        style={{ display: captureOpen ? "none" : undefined }}
+        
       >
         <div className="energy-display">
           ⚡ {run.energy}

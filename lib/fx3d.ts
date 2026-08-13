@@ -2,7 +2,7 @@
 
 import * as THREE from "three";
 import type { Rarity } from "@/data";
-import { portraitUrl } from "./portrait";
+import { portraitUrl, poseUrl } from "./portrait";
 
 export type BattleSide = "player" | "enemy";
 
@@ -80,6 +80,8 @@ type SceneState = {
   ball: THREE.Mesh | null;
   playerAura: THREE.Sprite | null;
   enemyAura: THREE.Sprite | null;
+  playerId: number;
+  enemyId: number;
   playerRing: THREE.Mesh | null;
   enemyRing: THREE.Mesh | null;
   rimLight: THREE.PointLight | null;
@@ -109,6 +111,8 @@ const S: SceneState = {
   ball: null,
   playerAura: null,
   enemyAura: null,
+  playerId: 0,
+  enemyId: 0,
   playerRing: null,
   enemyRing: null,
   rimLight: null,
@@ -527,9 +531,57 @@ function init(canvas: HTMLCanvasElement): boolean {
   }
 }
 
+/* ============ 动作 pose 纹理(去背景立绘:攻击/受击时切换) ============ */
+
+const poseTexCache = new Map<string, THREE.Texture>();
+
+/** 动作纹理(异步加载;未就绪时返回 null 不切换) */
+function poseTexture(id: number, pose: string): THREE.Texture | null {
+  const url = poseUrl(id, pose);
+  if (!url.includes(`${id}_${pose}`)) return null; // 无该动作素材
+  const key = `${id}:${pose}`;
+  let tex = poseTexCache.get(key);
+  if (!tex) {
+    tex = new THREE.TextureLoader().load(url);
+    poseTexCache.set(key, tex);
+  }
+  return tex;
+}
+
+function texReady(tex: THREE.Texture | null): tex is THREE.Texture {
+  if (!tex) return false;
+  const img = tex.image as HTMLImageElement | undefined;
+  return !!img && img.complete && img.naturalWidth > 0;
+}
+
+function preloadPoses(id: number): void {
+  for (const pose of ["attack", "hurt", "skill", "ult"]) {
+    poseTexture(id, pose);
+  }
+}
+
+/** 给立绘平面换纹理,返回原纹理供恢复 */
+function swapPlaneTex(plane: THREE.Mesh, tex: THREE.Texture | null): THREE.Texture | null {
+  if (!tex || !texReady(tex)) return null;
+  const mat = plane.material as THREE.MeshBasicMaterial;
+  const prev = mat.map;
+  mat.map = tex;
+  mat.needsUpdate = true;
+  return prev;
+}
+
+function restorePlaneTex(plane: THREE.Mesh, prev: THREE.Texture | null): void {
+  if (!prev) return;
+  const mat = plane.material as THREE.MeshBasicMaterial;
+  mat.map = prev;
+  mat.needsUpdate = true;
+}
+
 function setPlayer(id: number | string): void {
   if (!S.ok || !S.scene) return;
   clearSide("player");
+  S.playerId = Number(id);
+  preloadPoses(S.playerId);
   const g = makePokeMesh(id, true);
   g.position.set(-0.95, 0, 1.0);
   S.scene.add(g);
@@ -543,6 +595,8 @@ function setPlayer(id: number | string): void {
 function setEnemy(id: number | string, rarity?: Rarity | string, isBoss?: boolean): void {
   if (!S.ok || !S.scene || !S.enemyRing || !S.rimLight) return;
   clearSide("enemy");
+  S.enemyId = Number(id);
+  preloadPoses(S.enemyId);
   const g = makePokeMesh(id, false);
   const scale = isBoss ? 1.55 : 1;
   g.scale.setScalar(scale);
@@ -578,6 +632,12 @@ function attack(side: BattleSide, opts?: AttackOpts, onImpact?: () => void): voi
   const tp = to.position;
   const ox = fp.x;
   const oz = fp.z;
+  // 动作立绘:前冲时切换 attack pose,回位后恢复(无素材则保持主立绘)
+  const fromPlane = from.userData.plane;
+  const posePrev = swapPlaneTex(
+    fromPlane,
+    poseTexture(side === "player" ? S.playerId : S.enemyId, "attack"),
+  );
   tween({
     dur: 0.16,
     update(k) {
@@ -586,11 +646,15 @@ function attack(side: BattleSide, opts?: AttackOpts, onImpact?: () => void): voi
       fp.z = oz + (tp.z - oz) * 0.35 * e;
     },
     done() {
+      hit(side === "player" ? "enemy" : "player"); // 命中瞬间:目标切换 hurt pose
       tween({
         dur: 0.22,
         update(k) {
           fp.x = ox + (tp.x - ox) * 0.35 * (1 - easeOut(k));
           fp.z = oz + (tp.z - oz) * 0.35 * (1 - easeOut(k));
+        },
+        done() {
+          restorePlaneTex(fromPlane, posePrev);
         },
       });
     },
@@ -634,6 +698,22 @@ function attack(side: BattleSide, opts?: AttackOpts, onImpact?: () => void): voi
 function hit(side: BattleSide): void {
   const g = side === "player" ? S.player : S.enemy;
   if (g) hitReact(g);
+  // 受击 pose 短暂展示后恢复
+  if (g) {
+    const plane = g.userData.plane;
+    const prev = swapPlaneTex(
+      plane,
+      poseTexture(side === "player" ? S.playerId : S.enemyId, "hurt"),
+    );
+    if (prev) {
+      tween({
+        dur: 0.45,
+        done() {
+          restorePlaneTex(plane, prev);
+        },
+      });
+    }
+  }
 }
 
 function heal(side: BattleSide): void {

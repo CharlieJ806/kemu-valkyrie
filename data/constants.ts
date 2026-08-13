@@ -1,7 +1,6 @@
 /** Game constants derived from assets/constants.ts + ref/pokedriver GAME_CONST */
 
 type Rarity = "c" | "u" | "r" | "l";
-type BallKey = "normal" | "great" | "ultra" | "beast" | "master";
 
 export const TIER1_LEGEND = new Set([
   150, 249, 250, 382, 383, 384, 483, 484, 487, 493, 643, 644, 646, 716, 717, 718,
@@ -72,22 +71,6 @@ export const RARITY_DMG_MULT: Record<Rarity, number> = {
   u: 1.0,
   r: 1.4,
   l: 2.2,
-};
-
-/** 火花钥匙(净化魔物用) with exact capture rates per rarity [c, u, r, l] */
-export const POKE_BALLS: Record<BallKey, {
-  id: BallKey;
-  name: string;
-  icon: string;
-  price: number;
-  rates: Record<Rarity, number>;
-  desc: string;
-}> = {
-  normal: { id: "normal", name: "火花钥匙", icon: "🔑", price: 30, rates: { c: 0.3, u: 0.2, r: 0.1, l: 0.01 }, desc: "基础净化" },
-  great: { id: "great", name: "高级火花钥匙", icon: "🗝️", price: 75, rates: { c: 0.5, u: 0.3, r: 0.2, l: 0.05 }, desc: "较好净化" },
-  ultra: { id: "ultra", name: "白金火花钥匙", icon: "⚡", price: 150, rates: { c: 0.6, u: 0.4, r: 0.3, l: 0.08 }, desc: "强力净化" },
-  beast: { id: "beast", name: "烈焰火花钥匙", icon: "🌟", price: 300, rates: { c: 0.7, u: 0.5, r: 0.4, l: 0.1 }, desc: "究极净化" },
-  master: { id: "master", name: "大师钥匙", icon: "👑", price: 1000, rates: { c: 1.0, u: 1.0, r: 1.0, l: 1.0 }, desc: "100%必定净化！" },
 };
 
 /* ============ 考试常量(线上版 scr-exam) ============ */

@@ -3,13 +3,15 @@ import portraits from "@/data/portraits.json";
 import { ATTR_COLORS } from "./attr";
 
 /* ============ 立绘来源 ============
- * 1. data/portraits.json 记录了已有正式立绘的角色 id(由 scripts/process-portraits.mjs 处理 resource/ 时生成)
+ * 1. data/portraits.json 记录了已有正式立绘的角色 id(由 scripts/process-portraits.mjs 处理 resource_nobg/ 时生成)
+ *    格式: { "<id>": true } 或 { "<id>": { "poses": ["attack","hurt","skill","ult"] } }
  *    → 优先使用 /art/valkyrie/{id}.webp
  * 2. 未收录/文件缺失 → 程序化占位立绘(内联 SVG,日漫画风)
  * 用户可随时将自制立绘放到 public/art/valkyrie/{id}.webp 并更新 portraits.json 即可生效。
  */
 
-const HAS_PORTRAIT: Record<string, boolean> = portraits as Record<string, boolean>;
+const HAS_PORTRAIT: Record<string, boolean | { poses?: string[] }> =
+  portraits as Record<string, boolean | { poses?: string[] }>;
 
 const svgCache = new Map<number, string>();
 
@@ -22,6 +24,15 @@ export function portraitUrl(id: number): string {
     svgCache.set(id, url);
   }
   return url;
+}
+
+/** 动作立绘 URL(attack/hurt/skill/ult);无该动作时回退主立绘 */
+export function poseUrl(id: number, pose: string): string {
+  const entry = HAS_PORTRAIT[String(id)];
+  if (entry && typeof entry === "object" && entry.poses?.includes(pose)) {
+    return `/art/valkyrie/${id}_${pose}.webp`;
+  }
+  return portraitUrl(id);
 }
 
 /** 占位立绘(SVG 生成,320×400 竖版日漫风) */

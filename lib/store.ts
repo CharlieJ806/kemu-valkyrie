@@ -1,13 +1,19 @@
 "use client";
 
 import { create } from "zustand";
-import { QUESTIONS, type Question } from "@/data";
+import {
+  QUESTIONS,
+  STORY,
+  VALKYRIES,
+  getChapterById,
+  type Question,
+  type StoryLine,
+} from "@/data";
 import {
   DECK_MAX,
   DEFAULT_VALKYRIES_ID,
   GACHA_COST,
   MAX_TEAM_SIZE,
-  POKE_BALLS,
   STARTING_GOLD,
 } from "@/data/constants";
 import {
@@ -47,7 +53,6 @@ import {
   wipeAll as wipeStorage,
 } from "./save";
 import type {
-  BallKey,
   GameOverInfo,
   MapNode,
   MetaState,
@@ -58,16 +63,14 @@ import type {
 } from "./types";
 import { GAME_EVENTS } from "./events";
 
-export type StarterDef = {
-  id: number;
-  desc: string;
-};
+/** 剧情对白队列(screen=story 时播放) */
+export type StoryQueue = StoryLine[];
 
-export const STARTERS: StarterDef[] = [
-  { id: 1, desc: "法律法规 · 制裁输出：打出法规牌时发动追加制裁伤害" },
-  { id: 5, desc: "交通信号 · 控制压制：打出信号牌时调度指令、压制敌方" },
-  { id: 9, desc: "安全驾驶 · 护盾恢复：打出安全牌时守护队伍、稳住血线" },
-];
+/** 已解锁学员 id 集(剧情解锁:通关章节数 + 初始赤红) */
+export function unlockedIds(storyCleared: number): number[] {
+  const n = Math.min(4, Math.max(1, storyCleared + 1));
+  return VALKYRIES.slice(0, n).map((v) => v.id);
+}
 
 /** 新开局牌组:构建列表过滤已拥有,不足 5 张用基础技补齐 */
 function deckFromBuilt(meta: MetaState): string[] {
@@ -127,8 +130,8 @@ type GameStore = {
   hydrated: boolean;
   activeEventId: string | null;
   gachaLastId: string | null;
-  /** 3D 投钥匙净化动画进行中(期间战斗舞台保持渲染,canvas 不卸载) */
-  captureAnimating: boolean;
+  /** 剧情对白队列(非空时屏幕应为 story) */
+  storyQueue: StoryQueue | null;
   /** 最近一次答题结果(ephemeral,UI 据此播放反馈/调度下一题,键盘鼠标统一) */
   lastAnswer: AnswerResult | null;
   /** 最近一次出牌事件(ephemeral,UI 据此播放板块联动/必杀反馈) */
@@ -145,6 +148,10 @@ type GameStore = {
   clearToast: () => void;
   openModal: (modal: ModalState) => void;
   closeModal: () => void;
+
+  /* ---- 剧情 ---- */
+  storyAdvance: () => void;
+  storySkip: () => void;
 
   /* ---- meta 类 ---- */
   toggleSound: () => void;
@@ -172,10 +179,9 @@ type GameStore = {
   /* ---- 地图 ---- */
   selectNode: (col: number, node: MapNode) => void;
 
-  /* ---- 商店 / 营地 / 事件 / 宝箱 ---- */
+  /* ---- 商店 / 咖啡厅 / 事件 / 置物柜 ---- */
   openShop: () => void;
   leaveShop: () => void;
-  buyBall: (key: BallKey) => void;
   buyShopCard: (cardId: string, price: number) => void;
   removeDeckCard: () => void;
   openRest: () => void;
@@ -195,10 +201,7 @@ type GameStore = {
   playCard: (idx: number) => void;
   endTurnAction: () => void;
   endBattle: (won: boolean) => void;
-  attemptCapture: (ball: BallKey) => { success: boolean; pkmId: number } | undefined;
-  beginCaptureAnim: () => void;
-  finishCapture: () => void;
-  skipCapture: () => void;
+  clearChapter: () => void;
   chooseRewardCard: (cardId: string) => void;
   skipReward: () => void;
   gameOverDefeat: () => void;
@@ -224,7 +227,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   hydrated: false,
   activeEventId: null,
   gachaLastId: null,
-  captureAnimating: false,
+  storyQueue: null,
   lastAnswer: null,
   lastPlay: null,
 
@@ -266,6 +269,23 @@ export const useGameStore = create<GameStore>((set, get) => ({
   openModal: (modal) => set({ modal }),
 
   closeModal: () => set({ modal: null }),
+
+  /* ---- 剧情对白 ---- */
+
+  storyAdvance: () => {
+    const queue = get().storyQueue;
+    if (!queue || queue.length === 0) return;
+    const next = queue.slice(1);
+    set({ storyQueue: next.length > 0 ? next : null });
+    if (next.length === 0) {
+      // 对白播完 → 回地图
+      set({ screen: "map", prevScreen: get().screen });
+    }
+  },
+
+  storySkip: () => {
+    set({ storyQueue: null, screen: "map", prevScreen: get().screen });
+  },
 
   /* ---- meta 类 ---- */
 
@@ -465,21 +485,27 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const meta = cloneMeta(get().meta);
     ensureMetaDefaults(meta);
     meta.totalRuns++;
-    if (starterId != null) {
-      meta.collected = { ...meta.collected, [String(starterId)]: true };
+    // 剧情解锁:已解锁学员 = 赤红 + 已通关章节解锁的角色
+    const unlocked = unlockedIds(meta.storyCleared);
+    for (const id of unlocked) {
+      meta.collected = { ...meta.collected, [String(id)]: true };
     }
 
-    // 开局队伍:所选初始学员(如有)+ 名册配置的队伍(去重,上限 MAX_TEAM_SIZE)
+    // 开局队伍:名册队伍 ∩ 已解锁(不足补其余已解锁者,上限 MAX_TEAM_SIZE)
     const team = [
-      ...(starterId != null ? [starterId] : []),
-      ...(meta.team || []).filter((id) => id !== starterId),
+      ...(meta.team || []).filter((id) => unlocked.includes(id)),
+      ...unlocked.filter((id) => !(meta.team || []).includes(id)),
     ].slice(0, MAX_TEAM_SIZE);
-    if (team.length === 0) team.push(DEFAULT_VALKYRIES_ID); // 兜底(理论上不会发生)
+    if (team.length === 0) team.push(DEFAULT_VALKYRIES_ID); // 兜底
     meta.team = [...team];
 
     const teamMaxHp = team.map((id) => getValkMaxHp(id, meta.metaHpLv));
     const teamHp = [...teamMaxHp];
-    const mapNodes = generateMapNodes(1);
+    const chapter = 1;
+    const loop = 1;
+    const floor = (loop - 1) * 4 + chapter;
+    const ch = getChapterById(chapter)!;
+    const mapNodes = generateMapNodes(floor, ch.bossId);
     if (mapNodes[0].length > 0) mapNodes[0][0]!.reachable = true;
 
     const run: RunState = {
@@ -487,7 +513,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       maxHp: teamMaxHp[0] ?? getMaxHpFromMeta(meta.metaHpLv),
       gold: STARTING_GOLD,
       score: 0,
-      floor: 1,
+      floor,
+      chapter,
+      loop,
       deck: deckFromBuilt(meta),
       hand: [],
       drawPile: [],
@@ -505,12 +533,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
       teamHp,
       teamMaxHp,
       activeIdx: 0,
-      pokeBalls: { normal: 3, great: 0, ultra: 0, beast: 0, master: 0 },
       gameOver: false,
       runWon: false,
       visitedNodes: [],
       questionHistory: [],
-      captureBonus: 0,
       enemyPkm: null,
       enemyHp: 0,
       enemyMaxHp: 0,
@@ -533,19 +559,25 @@ export const useGameStore = create<GameStore>((set, get) => ({
       ultMax: ULT_GAUGE_MAX,
     };
 
+    const queue = storyQueueWith(
+      meta.storyCleared === 0 ? STORY.prologue : [],
+      run,
+    );
+
     set({
       meta,
       run,
       gameOver: null,
       modal: null,
-      screen: "map",
+      storyQueue: queue,
+      screen: queue ? "story" : "map",
       prevScreen: get().screen,
     });
     persistMeta(meta);
     persistRun(run);
     get().showToast(
-      `上阵队伍: ${team.map((id) => getValkName(id)).join(" / ")}`,
-      2200,
+      `第 ${run.chapter} 章 · 第 ${run.loop} 周目 — 队伍: ${team.map((id) => getValkName(id)).join(" / ")}`,
+      2400,
     );
   },
 
@@ -622,22 +654,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
   leaveShop: () => {
     set({ screen: "map", prevScreen: get().screen });
     persistRun(get().run);
-  },
-
-  buyBall: (key) => {
-    const run0 = get().run;
-    if (!run0) return;
-    const ball = POKE_BALLS[key];
-    if (run0.gold < ball.price) {
-      get().showToast("金币不足！", 1500);
-      return;
-    }
-    const run = cloneRun(run0);
-    run.gold -= ball.price;
-    run.pokeBalls[key] = (run.pokeBalls[key] || 0) + 1;
-    set({ run });
-    persistRun(run);
-    get().showToast(`购买: ${ball.name}`, 1500);
   },
 
   buyShopCard: (cardId, price) => {
@@ -913,34 +929,21 @@ export const useGameStore = create<GameStore>((set, get) => ({
         persistMeta(meta);
       }
 
-      // 击败 BOSS:进入下一层(无限闯关)
+      // 击败 Boss:章节通关 → 解锁角色 → 下一章/下一周目
       if (node && node.type === "boss") {
-        const clearedFloor = run.floor;
-        run.floor++;
-        run.score += 50 + clearedFloor * 10;
-        run.mapNodes = generateMapNodes(run.floor);
-        run.currentNodeIdx = -1;
-        run.visitedNodes = [];
-        if (run.mapNodes[0].length > 0) {
-          run.mapNodes[0].forEach((n) => (n.reachable = true));
+        get().clearChapter();
+        const st = get();
+        if (st.run && st.run.score > st.meta.bestScore) {
+          st.showToast("🏆 新最高分！", 2000);
         }
-        get().showToast(
-          `🎉 击败第 ${clearedFloor} 街区违章魔王！进入第 ${run.floor} 街区！`,
-          2500,
-        );
+        return;
       }
 
       run.inBattle = false;
       run.combo = 0;
       set({ run });
       persistRun(run);
-
-      // 总是提供净化(除非已阵亡)
-      if (run.enemyPkm && run.enemyPkm.id) {
-        set({ modal: { kind: "capture" } });
-      } else {
-        set({ screen: "map", prevScreen: get().screen });
-      }
+      afterBattleRewards(get, set);
       const st = get();
       if (st.run && st.run.score > st.meta.bestScore) {
         st.showToast("🏆 新最高分！", 2000);
@@ -950,83 +953,77 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
   },
 
-  /**
-   * 投钥匙净化:同步消耗并结算结果(数据立即落档)。
-   * 返回 { success, pkmId };UI 表现(3D 投球动画/飘字)由调用方播放,
-   * 结束后调用 finishCapture() 关闭弹窗并进入奖励/回地图。
-   */
-  attemptCapture: (ball): { success: boolean; pkmId: number } | undefined => {
+  /** 章节通关:结算 → 解锁角色 → 全员回满血 → 下一章/下一周目 → 剧情对白 */
+  clearChapter: () => {
     const run0 = get().run;
+    const meta0 = get().meta;
     if (!run0) return;
     const run = cloneRun(run0);
-    const meta = cloneMeta(get().meta);
-    const pkm = run.enemyPkm;
-    if (!pkm) return;
+    const meta = cloneMeta(meta0);
+    const ch = getChapterById(run.chapter);
 
-    run.pokeBalls[ball] = Math.max(0, (run.pokeBalls[ball] || 0) - 1);
-    const ballDef = POKE_BALLS[ball];
-    const finalRate = ballDef.rates[pkm.r] || ballDef.rates.c || 0.5;
+    run.inBattle = false;
+    run.combo = 0;
+    run.score += 50 + run.floor * 10;
 
-    const success = Math.random() < finalRate;
-    if (success) {
-      meta.collected = { ...meta.collected, [String(pkm.id)]: true };
-      // 队伍有空位时自动上阵(meta 跨局保留,run 本局立即生效)
-      if (meta.team.length < MAX_TEAM_SIZE && !meta.team.includes(pkm.id)) {
-        meta.team.push(pkm.id);
-        run.team.push(pkm.id);
-        run.teamMaxHp.push(getValkMaxHp(pkm.id, meta.metaHpLv));
-        run.teamHp.push(run.teamMaxHp[run.teamMaxHp.length - 1]!);
-      } else if (!meta.team.includes(pkm.id)) {
-        get().showToast("队伍已满,新伙伴将在名册中待命", 1800);
+    let queue: StoryQueue | null = null;
+    if (ch) {
+      // 剧情进度与角色解锁
+      meta.storyCleared = Math.max(meta.storyCleared, ch.id);
+      if (ch.unlockId != null) {
+        meta.collected = { ...meta.collected, [String(ch.unlockId)]: true };
+        const newbie = VALKYRIES.find((v) => v.id === ch.unlockId);
+        if (newbie) {
+          get().showToast(`🎉 ${newbie.c} 加入队伍！`, 2600);
+          // 自动编入队伍(有空位时)
+          if (!run.team.includes(newbie.id) && run.team.length < MAX_TEAM_SIZE) {
+            run.team.push(newbie.id);
+            const mhp = getValkMaxHp(newbie.id, meta.metaHpLv);
+            run.teamMaxHp.push(mhp);
+            run.teamHp.push(mhp);
+          }
+          if (!meta.team.includes(newbie.id)) meta.team.push(newbie.id);
+        }
+      }
+      queue = storyQueueWith(ch.outro, run);
+    }
+
+    // 下一章 / 下一周目
+    if (run.chapter < 4) {
+      run.chapter++;
+    } else {
+      run.loop++;
+      run.chapter = 1;
+      if (run.loop > 1) {
+        // 周目总结对白(拼接在下一章 intro 前)
+        queue = storyQueueWith(
+          [...STORY.loopOutro, ...(getChapterById(1)?.intro ?? [])],
+          run,
+        );
       }
     }
-    set({ run, meta });
+    run.floor = (run.loop - 1) * 4 + run.chapter;
+    const nextCh = getChapterById(run.chapter);
+    run.mapNodes = generateMapNodes(run.floor, nextCh?.bossId);
+    run.currentNodeIdx = -1;
+    run.visitedNodes = [];
+    if (run.mapNodes[0].length > 0) {
+      run.mapNodes[0].forEach((n) => (n.reachable = true));
+    }
+
+    // 章节通关:全员回满血
+    run.teamHp = [...run.teamMaxHp];
+    saveActiveFromHp(run); // run.hp 同步为出战学员满血
+    run.hp = run.teamMaxHp[run.activeIdx] ?? run.hp;
+    run.maxHp = run.teamMaxHp[run.activeIdx] ?? run.maxHp;
+
+    set({ run, meta, storyQueue: queue, screen: queue ? "story" : "map", modal: null });
     persistRun(run);
     persistMeta(meta);
-    return { success, pkmId: pkm.id };
-  },
-
-  /** 开始投钥匙净化动画:关弹窗 + 标记动画中(战斗舞台保持渲染,canvas 不卸载) */
-  beginCaptureAnim: () => {
-    set({ modal: null, captureAnimating: true });
-  },
-
-  /** 净化动画播完后的收尾:关弹窗 → 奖励选卡或回地图 */
-  finishCapture: () => {
-    const run = get().run;
-    set({ modal: null, captureAnimating: false });
-    if (!run) return;
-    const node = currentNode(run);
-    if (
-      node &&
-      node.rewards &&
-      node.rewards.cardChoices > 0 &&
-      node.type !== "shop" &&
-      node.type !== "rest"
-    ) {
-      set({ modal: { kind: "reward", nodeType: node.type } });
-    } else {
-      set({ screen: "map", prevScreen: get().screen });
-    }
-  },
-
-  skipCapture: () => {
-    const run = get().run;
-    set({ modal: null });
-    if (!run) return;
-    const node = currentNode(run);
-    if (
-      node &&
-      node.rewards &&
-      node.rewards.cardChoices > 0 &&
-      node.type !== "shop" &&
-      node.type !== "rest"
-    ) {
-      set({ modal: { kind: "reward", nodeType: node.type } });
-    } else {
-      set({ screen: "map", prevScreen: get().screen });
-    }
-    get().showToast("放弃了净化...", 1500);
+    get().showToast(
+      `🎉 第 ${ch?.name ?? run.chapter} 章通关！进入第 ${run.chapter} 章 · 第 ${run.loop} 周目`,
+      2600,
+    );
   },
 
   chooseRewardCard: (cardId) => {
@@ -1065,7 +1062,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       get().showToast(`剩余 ${run.gold} 金已存入养成`, 2000);
     }
 
-    // 最高分/最高层
+    // 最高分/最深进度
     const isRecord = run.score > meta.bestScore;
     if (isRecord) meta.bestScore = run.score;
     if (run.floor > meta.bestFloor) meta.bestFloor = run.floor;
@@ -1073,6 +1070,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const info: GameOverInfo = {
       win: false,
       floor: run.floor,
+      chapter: run.chapter,
+      loop: run.loop,
       score: run.score,
       isRecord,
       correct: run.totalCorrect,
@@ -1109,4 +1108,33 @@ function currentNode(run: RunState): MapNode | null {
   const col = run.mapNodes[run.currentNodeIdx];
   if (!col) return null;
   return col.find((n) => n.visited) ?? null;
+}
+
+/** 对白队列:替换 {loop} 占位符;空数组返回 null */
+function storyQueueWith(lines: StoryLine[], run: RunState): StoryQueue | null {
+  if (!lines || lines.length === 0) return null;
+  return lines.map((l) => ({
+    speaker: l.speaker,
+    text: l.text.replaceAll("{loop}", String(run.loop)),
+  }));
+}
+
+/** 战斗胜利后的收尾:奖励选卡弹窗或回地图(替代原净化流程) */
+function afterBattleRewards(
+  get: () => ReturnType<typeof useGameStore.getState>,
+  set: (partial: Partial<ReturnType<typeof useGameStore.getState>>) => void,
+): void {
+  const run = get().run;
+  const node = run ? currentNode(run) : null;
+  if (
+    node &&
+    node.rewards &&
+    node.rewards.cardChoices > 0 &&
+    node.type !== "shop" &&
+    node.type !== "rest"
+  ) {
+    set({ modal: { kind: "reward", nodeType: node.type } });
+  } else {
+    set({ screen: "map", prevScreen: get().screen });
+  }
 }

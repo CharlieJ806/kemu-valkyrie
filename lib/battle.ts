@@ -231,7 +231,6 @@ export function startTurn(run: RunState, allQuestions: Question[]): void {
   run.playerDmgMult = 1;
   run.playerDefMult = 1;
   run.enemyBlock = 0;
-  run.captureBonus = 0;
 
   // 手牌清空入弃牌堆(必杀卡不入堆)
   stripUltCards(run);
@@ -550,7 +549,6 @@ export function startBattleOn(
   run.block = 0;
   run.playerDmgMult = 1;
   run.playerDefMult = 1;
-  run.captureBonus = 0;
   run.turnPhase = "question";
   run.turnCorrect = 0;
   run.energy = 0;

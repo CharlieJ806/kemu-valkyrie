@@ -1,4 +1,5 @@
 import valkyriesData from "./valkyries.json";
+import storyData from "./story.json";
 import questionsData from "./questions.json";
 import questionCatsData from "./question_cats.json";
 import { GAME_CONST } from "./constants";
@@ -54,6 +55,8 @@ export type Valkyrie = {
   look: ValkyrieLook;
   ult: { name: string; desc: string; fx: CardFxLike };
   flavor: string;
+  /** 章节 Boss(固定出现在章节末节点,不进入普通魔物池) */
+  boss?: boolean;
 };
 
 
@@ -97,6 +100,40 @@ export function getValkById(id: number): Valkyrie | null {
 /** 是否玩家学员(而非魔物) */
 export function isValkyrie(id: number): boolean {
   return id >= 1 && id < 100;
+}
+
+/* ============ 剧情/关卡 ============ */
+
+export type StoryLine = { speaker: "narrator" | number; text: string };
+
+export type ChapterDef = {
+  id: number;
+  name: string;
+  bossId: number;
+  unlockId: number | null;
+  intro: StoryLine[];
+  outro: StoryLine[];
+};
+
+export type StoryData = {
+  prologue: StoryLine[];
+  chapters: ChapterDef[];
+  loopOutro: StoryLine[];
+};
+
+export const STORY = storyData as StoryData;
+
+/** 常规魔物池(不含章节 Boss) */
+export const REGULAR_MONSTERS = VD.monsters.filter((m) => !m.boss);
+/** Boss 池(117-120) */
+export const BOSSES = VD.monsters.filter((m) => !!m.boss);
+
+export function getChapterById(id: number): ChapterDef | null {
+  return STORY.chapters.find((c) => c.id === id) ?? null;
+}
+
+export function getBossById(id: number): Valkyrie | null {
+  return BOSSES.find((b) => b.id === id) ?? null;
 }
 
 export {

@@ -5,7 +5,7 @@ import { useGameStore } from "@/lib/store";
 import { AudioEngine } from "@/lib/audio";
 import { domBurst } from "@/lib/dom-fx";
 import TitleScreen from "./screens/TitleScreen";
-import StarterScreen from "./screens/StarterScreen";
+import StoryScreen from "./screens/StoryScreen";
 import MapScreen from "./screens/MapScreen";
 import BattleScreen from "./screens/BattleScreen";
 import ShopScreen from "./screens/ShopScreen";
@@ -55,13 +55,17 @@ export default function GameApp() {
     };
   }, []);
 
-  // 全局键盘:1-4 答题 / E 结束回合(迁移自 standalone main.js)
+  // 全局键盘:剧情对白(空格/回车推进) / 1-4 答题 / E 结束回合
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const st = useGameStore.getState();
       if (e.key === "Enter" || e.key === " ") {
-        const st = useGameStore.getState();
         if (st.screen === "over") {
           st.setScreen("title");
+          return;
+        }
+        if (st.screen === "story") {
+          st.storyAdvance();
           return;
         }
       }
@@ -73,7 +77,6 @@ export default function GameApp() {
         return;
       }
       if (e.key === "e" || e.key === "E") {
-        const st = useGameStore.getState();
         const run = st.run;
         if (!run) return;
         if (run.turnPhase === "question" && run.turnCorrect > 0) {
@@ -110,7 +113,7 @@ export default function GameApp() {
             <div className="title-inner">
               <div className="title-logo">
                 <div className="logo-top">驾考女武神</div>
-                <div className="logo-sub">交 规 地 牢</div>
+                <div className="logo-sub">交规里世界净化战</div>
               </div>
             </div>
           </section>
@@ -123,7 +126,7 @@ export default function GameApp() {
     <div id="app">
       <div id="shake-wrap">
         {screen === "title" && <TitleScreen />}
-        {screen === "starter" && <StarterScreen />}
+        {screen === "story" && <StoryScreen />}
         {screen === "map" && <MapScreen />}
         {screen === "battle" && <BattleScreen />}
         {screen === "shop" && <ShopScreen />}

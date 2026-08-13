@@ -6,10 +6,6 @@ export const META_KEY = "kemuValkyrie_meta";
 export const RUN_KEY = "kemuValkyrie_save";
 export const IMPORTED_KEY = "kemuValkyrie_importedQuestions";
 
-export function defaultPokeBalls() {
-  return { normal: 3, great: 0, ultra: 0, beast: 0, master: 0 };
-}
-
 export function defaultMeta(): MetaState {
   return {
     bestScore: 0,
@@ -17,7 +13,6 @@ export function defaultMeta(): MetaState {
     totalRuns: 0,
     collected: {},
     team: [],
-    pokeBalls: defaultPokeBalls(),
     soundEnabled: true,
     metaGold: 0,
     metaHpLv: 0,
@@ -28,6 +23,7 @@ export function defaultMeta(): MetaState {
     totalCorrect: 0,
     totalAnswered: 0,
     maxComboEver: 0,
+    storyCleared: 0,
   };
 }
 
@@ -47,7 +43,6 @@ export function loadMeta(): MetaState {
       totalRuns: d.totalRuns || 0,
       collected: d.collected || {},
       team: Array.isArray(d.team) ? d.team : [],
-      pokeBalls: { ...defaultPokeBalls(), ...(d.pokeBalls || {}) },
       soundEnabled: d.soundEnabled !== false,
       metaGold: d.metaGold || 0,
       metaHpLv: d.metaHpLv || 0,
@@ -58,6 +53,7 @@ export function loadMeta(): MetaState {
       totalCorrect: d.totalCorrect || 0,
       totalAnswered: d.totalAnswered || 0,
       maxComboEver: d.maxComboEver || 0,
+      storyCleared: typeof d.storyCleared === "number" ? d.storyCleared : 0,
     };
     // 迁移后立即写回,补全缺省字段
     saveMeta(meta);
@@ -132,6 +128,8 @@ export function loadRun(): RunState | null {
       gold: d.gold ?? 0,
       score: d.score ?? 0,
       floor: d.floor ?? 1,
+      chapter: typeof d.chapter === "number" ? d.chapter : 1,
+      loop: typeof d.loop === "number" ? d.loop : 1,
       deck: cardIds(d.deck),
       hand: cardIds(d.hand),
       drawPile: cardIds(d.drawPile),
@@ -158,12 +156,10 @@ export function loadRun(): RunState | null {
           ? d.team.map(() => d.maxHp ?? 80)
           : [],
       activeIdx: typeof d.activeIdx === "number" ? d.activeIdx : 0,
-      pokeBalls: { ...defaultPokeBalls(), ...(d.pokeBalls || {}) },
       gameOver: !!d.gameOver,
       runWon: !!d.runWon,
       visitedNodes: d.visitedNodes || [],
       questionHistory: d.questionHistory || [],
-      captureBonus: d.captureBonus || 0,
 
       enemyPkm: d.enemyPkm || null,
       enemyHp: d.enemyHp ?? 0,
