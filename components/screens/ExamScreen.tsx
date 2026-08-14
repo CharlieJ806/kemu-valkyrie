@@ -26,13 +26,17 @@ export default function ExamScreen() {
     pass: boolean;
     failed: boolean;
     answered: number;
+    unanswered: number;
   } | null>(null);
   const recordedRef = useRef(false);
 
-  const submit = (sess: ExamSession) => {
+  const submit = (sess: ExamSession, countUnanswered = false) => {
     if (recordedRef.current) return;
     recordedRef.current = true;
-    const { score, wrongIds, correctIds } = gradeExam(sess);
+    const { score, wrongIds, correctIds, unanswered } = gradeExam(
+      sess,
+      countUnanswered,
+    );
     recordExamResult(score, wrongIds, correctIds);
     setResult({
       score,
@@ -40,11 +44,12 @@ export default function ExamScreen() {
       pass: isExamPass(score),
       failed: sess.failed,
       answered: sess.picked.filter((p) => p != null).length,
+      unanswered,
     });
     AudioEngine.sfx(isExamPass(score) ? "fanfare" : "defeat");
   };
 
-  // 倒计时(250ms 间隔,线上版行为)
+  // 倒计时(250ms 间隔,线上版行为);到时自动交卷,未答题按错误处理
   useEffect(() => {
     if (!session || session.done) return;
     const timer = setInterval(() => {
@@ -52,8 +57,8 @@ export default function ExamScreen() {
         if (!s || s.done) return s;
         const t = s.timeLeft - 250;
         if (t <= 0) {
-          // 自动交卷
-          submit(s);
+          // 到时自动交卷:未答题按错误计入总成绩
+          submit(s, true);
           return { ...s, timeLeft: 0, done: true };
         }
         return { ...s, timeLeft: t };
@@ -105,7 +110,9 @@ export default function ExamScreen() {
           <div className="over-sub">
             {result.failed
               ? "错题扣分至 89 分,本次模拟提前终止"
-              : "错题计入错题本 · 本次答对的题自动移出错题本"}
+              : result.unanswered > 0
+                ? `提前交卷:未作答 ${result.unanswered} 题按错误计入总成绩`
+                : "错题计入错题本 · 本次答对的题自动移出错题本"}
           </div>
           <div className="over-btns">
             <button className="btn btn-primary" onClick={() => setScreen("study")}>
@@ -153,7 +160,8 @@ export default function ExamScreen() {
 
     const submitNow = () => {
       setSession((s) => (s ? { ...s, done: true } : s));
-      submit(session);
+      // 手动提前交卷:未答题按错误计入总成绩
+      submit(session, true);
     };
 
     return (
@@ -281,7 +289,7 @@ export default function ExamScreen() {
         </div>
         <div className="over-sub">
           每题选择后不可修改 · 100 分起答错一题扣 1 分<br />
-          扣至 89 分直接不合格并终止 · 错题计入错题本
+          扣至 89 分直接不合格并终止 · 可提前交卷(未答题按错误计分)
         </div>
         <div className="over-btns">
           <button

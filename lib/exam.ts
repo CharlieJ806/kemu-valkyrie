@@ -24,16 +24,22 @@ export function buildExamSession(pool: Question[]): ExamSession | null {
   };
 }
 
-/** 判卷:100 分起,每答错一题 -1;未作答(提前终止)不计。返回得分/错题/答对列表 */
+/** 判卷:100 分起,每答错一题 -1。countUnanswered 时未答题也按错误扣分(计入总成绩,不入错题本) */
 export function gradeExam(
   session: ExamSession,
-): { score: number; wrongIds: string[]; correctIds: string[] } {
+  countUnanswered = false,
+): { score: number; wrongIds: string[]; correctIds: string[]; unanswered: number } {
   const wrongIds: string[] = [];
   const correctIds: string[] = [];
+  let unanswered = 0;
   let score = 100;
   session.qs.forEach((q, i) => {
     const picked = session.picked[i];
-    if (picked == null) return; // 未作答(不合格提前终止)不计分也不入错题本
+    if (picked == null) {
+      unanswered += 1;
+      if (countUnanswered) score -= 1; // 提前交卷:未答题按错误处理
+      return;
+    }
     if (picked === q.ans) {
       correctIds.push(q.id);
     } else {
@@ -41,7 +47,7 @@ export function gradeExam(
       score -= 1;
     }
   });
-  return { score: Math.max(0, score), wrongIds, correctIds };
+  return { score: Math.max(0, score), wrongIds, correctIds, unanswered };
 }
 
 export function isExamPass(score: number): boolean {
