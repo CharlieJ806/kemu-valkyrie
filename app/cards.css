@@ -108,7 +108,7 @@
 .battle-player-info{font-size:12px;color:var(--dim);margin-top:3px}
 
 /* ---------- 答题区 ---------- */
-.battle-q-area{background:linear-gradient(180deg,var(--bg2),var(--bg));border-top:1px solid var(--line);padding:10px 12px;display:flex;flex-direction:column;gap:8px;transition:opacity .3s}
+.battle-q-area{background:linear-gradient(180deg,var(--bg2),var(--bg));border-top:1px solid var(--line);padding:16px 12px 10px;display:flex;flex-direction:column;gap:8px;transition:opacity .3s}
 .battle-q-text{font-size:15px;line-height:1.55;min-height:44px}
 .battle-options{display:flex;flex-direction:column;gap:8px}
 .battle-opt-btn{display:block;width:100%;text-align:left;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font-size:14px;line-height:1.4;cursor:pointer;transition:.12s;font-family:inherit}
@@ -478,9 +478,47 @@
 /* 短屏/横屏:压缩答题与手牌区,保证控制条始终可见 */
 @media (max-height:640px){
   .hand-area{min-height:84px;padding:8px 10px}
-  .battle-q-area{padding:8px 10px;gap:6px}
+  .battle-q-area{padding:14px 10px 8px;gap:6px}
   .battle-q-text{min-height:28px;font-size:14px}
   .battle-options{gap:6px}
   .battle-opt-btn{padding:9px 12px;font-size:13px}
   .battle-actions{padding:4px 10px calc(6px + var(--safe-b))}
+}
+
+/* 答题倒计时条(限时答题):悬浮于答题区顶部,不占布局高度 */
+.battle-q-area{position:relative}
+.battle-timer{
+  position:absolute;top:0;left:0;right:0;height:14px;z-index:2;
+  background:rgba(16,32,56,.15);border-radius:0 0 6px 6px;overflow:hidden;
+}
+.battle-timer-fill{
+  position:absolute;inset:0;border-radius:0 0 6px 6px;
+  background:linear-gradient(90deg,#57c7a7,#2f9d80);
+  transition:width .25s linear;
+}
+.battle-timer.low .battle-timer-fill{
+  background:linear-gradient(90deg,#ff8f6b,#ff4455);
+  animation:timerPulse .6s infinite;
+}
+@keyframes timerPulse{50%{filter:brightness(1.35)}}
+.battle-timer-text{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35);
+  letter-spacing:1px;
+}
+
+/* 敌方格:词缀徽章 + Boss 机制标签 */
+.enemy-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.affix-badge,.boss-mech-tag{
+  font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;
+  letter-spacing:1px;
+}
+.affix-badge{background:rgba(255,140,0,.15);color:#b35c00;border:1px solid rgba(255,140,0,.4)}
+.boss-mech-tag{background:rgba(255,0,68,.12);color:#c2184a;border:1px solid rgba(255,0,68,.35)}
+
+/* 图鉴:已收服徽章 */
+.dc-caught{
+  position:absolute;bottom:4px;left:50%;transform:translateX(-50%);
+  font-size:8px;font-weight:800;color:#8a6d00;background:rgba(255,210,63,.85);
+  border-radius:6px;padding:0 5px;letter-spacing:1px;
 }

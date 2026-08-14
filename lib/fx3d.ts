@@ -750,9 +750,17 @@ function attack(side: BattleSide, opts?: AttackOpts, onImpact?: () => void): voi
 function hit(side: BattleSide): void {
   const g = side === "player" ? S.player : S.enemy;
   if (g) hitReact(g);
-  // 受击 pose 短暂展示后恢复
+  // 受击 pose 短暂展示后恢复 + 立绘闪红
   if (g) {
     const plane = g.userData.plane;
+    const mat = plane.material as THREE.MeshBasicMaterial;
+    mat.color.setHex(0xff5566);
+    tween({
+      dur: 0.22,
+      done() {
+        mat.color.setHex(0xffffff);
+      },
+    });
     const prev = swapPlaneTex(
       plane,
       poseTexture(side === "player" ? S.playerId : S.enemyId, "hurt"),

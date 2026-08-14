@@ -47,6 +47,10 @@ export function defaultMeta(): MetaState {
     maxComboEver: 0,
     storyCleared: 0,
     seenMonsters: {},
+    caughtMonsters: {},
+    achievements: {},
+    bgmVol: 0.6,
+    sfxVol: 0.8,
   };
 }
 
@@ -84,6 +88,15 @@ export function loadMeta(): MetaState {
           MONSTERS.some((m) => m.id === Number(k)),
         ),
       ) as Record<string, boolean>,
+      caughtMonsters: Object.fromEntries(
+        Object.entries(d.caughtMonsters || {}).filter(([k]) =>
+          MONSTERS.some((m) => m.id === Number(k)),
+        ),
+      ) as Record<string, boolean>,
+      achievements:
+        d.achievements && typeof d.achievements === "object" ? d.achievements : {},
+      bgmVol: typeof d.bgmVol === "number" ? d.bgmVol : 0.6,
+      sfxVol: typeof d.sfxVol === "number" ? d.sfxVol : 0.8,
     };
     // 迁移后立即写回,补全缺省字段
     saveMeta(meta);
@@ -204,6 +217,14 @@ export function loadRun(): RunState | null {
       enemyAtkMult: d.enemyAtkMult ?? 1,
       playerDmgMult: d.playerDmgMult ?? 1,
       playerDefMult: d.playerDefMult ?? 1,
+      enemyWeakTurns: typeof d.enemyWeakTurns === "number" ? d.enemyWeakTurns : 0,
+      enemyChargeMul: typeof d.enemyChargeMul === "number" ? d.enemyChargeMul : 1,
+      enemyAffix: Array.isArray(d.enemyAffix) ? d.enemyAffix : [],
+      affixSwiftDone: !!d.affixSwiftDone,
+      affixRevived: !!d.affixRevived,
+      bossVars: d.bossVars && typeof d.bossVars === "object" ? d.bossVars : {},
+      qTimeLimit: typeof d.qTimeLimit === "number" ? d.qTimeLimit : 60000,
+      chapterDamaged: !!d.chapterDamaged,
       currentQ: d.currentQ || null,
       questionAnswered: !!d.questionAnswered,
       cardPlayedThisTurn: !!d.cardPlayedThisTurn,
@@ -317,5 +338,64 @@ export function wipeAll(): void {
     localStorage.removeItem(IMPORTED_KEY);
   } catch {
     /* ignore */
+  }
+}
+
+/* ============ 存档导出 / 导入 ============ */
+
+const SAVE_VERSION = 2;
+
+export type SaveBundle = {
+  v: number;
+  meta: MetaState;
+  run: RunState | null;
+  imported: unknown[] | null;
+  exportedAt: string;
+};
+
+/** 导出存档:base64 文本码(含 meta + run + 导入题库) */
+export function exportSave(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const bundle: SaveBundle = {
+      v: SAVE_VERSION,
+      meta: loadMeta(),
+      run: loadRun(),
+      imported: loadImportedQuestions<unknown>(),
+      exportedAt: new Date().toISOString(),
+    };
+    const json = JSON.stringify(bundle);
+    // 压缩体积:纯 ASCII base64(兼容 btoa)
+    return btoa(unescape(encodeURIComponent(json)));
+  } catch {
+    return null;
+  }
+}
+
+/** 导入存档码:校验并写入 localStorage;返回错误信息或 null(成功) */
+export function importSave(code: string): string | null {
+  if (typeof window === "undefined") return "当前环境不可用";
+  try {
+    const json = decodeURIComponent(escape(atob(code.trim())));
+    const d = JSON.parse(json) as Partial<SaveBundle>;
+    if (!d || typeof d !== "object") return "存档码格式错误";
+    if (typeof d.v !== "number" || d.v < 1 || d.v > SAVE_VERSION) {
+      return `不支持的存档版本(v${String(d.v)})`;
+    }
+    if (!d.meta || typeof d.meta !== "object") return "存档缺少 meta 数据";
+    localStorage.setItem(META_KEY, JSON.stringify(d.meta));
+    if (d.run && typeof d.run === "object") {
+      localStorage.setItem(RUN_KEY, JSON.stringify(d.run));
+    } else {
+      localStorage.removeItem(RUN_KEY);
+    }
+    if (Array.isArray(d.imported) && d.imported.length > 0) {
+      localStorage.setItem(IMPORTED_KEY, JSON.stringify(d.imported));
+    } else {
+      localStorage.removeItem(IMPORTED_KEY);
+    }
+    return null;
+  } catch {
+    return "存档码解析失败(可能已损坏)";
   }
 }

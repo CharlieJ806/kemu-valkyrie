@@ -4,9 +4,9 @@ import type {
   CardFx,
   EnemyStatus,
   StatusType,
-  AttrKey,
 } from "./types";
 import type { Valkyrie } from "@/data";
+import { ENEMY_WEAK_FLOOR, ENEMY_WEAK_TURNS } from "@/data/constants";
 
 /* ============ 战斗上下文(applyCardFx 操作的可变对象) ============ */
 
@@ -21,13 +21,24 @@ export type BattleCtx = {
   playerDmgMult: number;
   playerDefMult: number;
   enemyAtkMult: number;
+  enemyWeakTurns: number;
   enemyStatus: EnemyStatus | null;
   atk: number;
   draw: (n: number) => void;
+  /** Boss 雾隐:闪避玩家攻击 */
+  dodge?: boolean;
+  /** Boss 机制额外伤害倍率(路障减伤等) */
+  dmgMult?: number;
+  /** 词缀·荆棘:反伤回调(实际造成伤害后触发) */
+  reflect?: (amount: number) => void;
+  /** 词缀·复苏:本次攻击致死后复活 50% */
+  revive?: boolean;
 };
 
 export type CardFxEvent =
   | { type: "dmg"; amount: number; blocked: number }
+  | { type: "dodge"; amount: 0 }
+  | { type: "revive" }
   | { type: "block"; amount: number }
   | { type: "heal"; amount: number }
   | { type: "selfDmg"; amount: number }
@@ -36,6 +47,7 @@ export type CardFxEvent =
   | { type: "mult"; mult: number }
   | { type: "weak"; amount: number }
   | { type: "draw"; n: number }
+  | { type: "tax"; message: string }
   | { type: "link"; valkId: number; valkName: string; amount: number; bonus: "dmg" | "energy" | "block" | "confuse" };
 
 const STATUS_NAMES: Record<StatusType, string> = {
@@ -196,7 +208,12 @@ function dealEnemyDamage(
   ignoreBlock: boolean,
   events: CardFxEvent[],
 ) {
-  let actual = Math.floor(rawAmount * ctx.playerDmgMult);
+  // Boss 雾隐:闪避本次攻击
+  if (ctx.dodge) {
+    events.push({ type: "dodge", amount: 0 });
+    return;
+  }
+  let actual = Math.floor(rawAmount * ctx.playerDmgMult * (ctx.dmgMult ?? 1));
   let blocked = 0;
   if (!ignoreBlock && ctx.enemyBlock > 0) {
     blocked = Math.min(ctx.enemyBlock, actual);
@@ -205,6 +222,13 @@ function dealEnemyDamage(
   }
   ctx.enemyHp = Math.max(0, ctx.enemyHp - actual);
   events.push({ type: "dmg", amount: actual, blocked });
+  // 词缀·复苏:致死时复活 50%
+  if (ctx.enemyHp <= 0 && ctx.revive) {
+    ctx.enemyHp = Math.max(1, Math.floor(ctx.enemyMaxHp * 0.5));
+    events.push({ type: "revive" });
+  }
+  // 词缀·荆棘:反伤(实际造成伤害后)
+  if (actual > 0) ctx.reflect?.(actual);
 }
 
 /**
@@ -274,7 +298,12 @@ export function applyCardFx(card: CardDef, ctx: BattleCtx): CardFxEvent[] {
   }
   if (fx.defMult) ctx.playerDefMult *= fx.defMult;
   if (fx.enemyWeak) {
-    ctx.enemyAtkMult *= 1 - fx.enemyWeak;
+    // 减益:乘算叠加但总削减不低于 40%,持续 2 回合(重复施加刷新)
+    ctx.enemyAtkMult = Math.max(
+      ENEMY_WEAK_FLOOR,
+      ctx.enemyAtkMult * (1 - fx.enemyWeak),
+    );
+    ctx.enemyWeakTurns = ENEMY_WEAK_TURNS;
     events.push({ type: "weak", amount: fx.enemyWeak });
   }
 

@@ -17,25 +17,28 @@ export default function StoryScreen() {
 
   const line = storyQueue?.[0] ?? null;
 
-  // 每条对白重新打字
+  // 每条对白重新打字(重置动作放在异步回调内,规避 effect 内同步 setState)
   useEffect(() => {
-    setTyping(true);
-    setShown(0);
     if (timerRef.current) clearInterval(timerRef.current);
     if (!line) return;
     const full = line.text;
-    // 逐字显示(每 45ms 一字,短句快一点)
-    timerRef.current = setInterval(() => {
-      setShown((n) => {
-        if (n >= full.length) {
-          if (timerRef.current) clearInterval(timerRef.current);
-          setTyping(false);
-          return n;
-        }
-        return n + 1;
-      });
-    }, 42);
+    const kick = setTimeout(() => {
+      setTyping(true);
+      setShown(0);
+      // 逐字显示(每 42ms 一字,短句快一点)
+      timerRef.current = setInterval(() => {
+        setShown((n) => {
+          if (n >= full.length) {
+            if (timerRef.current) clearInterval(timerRef.current);
+            setTyping(false);
+            return n;
+          }
+          return n + 1;
+        });
+      }, 42);
+    }, 0);
     return () => {
+      clearTimeout(kick);
       if (timerRef.current) clearInterval(timerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useGameStore } from "@/lib/store";
 import { parseImportedQuestions } from "@/lib/questions";
 import { AudioEngine } from "@/lib/audio";
@@ -9,10 +9,15 @@ export default function SettingsScreen() {
   const meta = useGameStore((s) => s.meta);
   const setScreen = useGameStore((s) => s.setScreen);
   const toggleSound = useGameStore((s) => s.toggleSound);
+  const setBgmVol = useGameStore((s) => s.setBgmVol);
+  const setSfxVol = useGameStore((s) => s.setSfxVol);
   const wipeAll = useGameStore((s) => s.wipeAll);
   const importQuestions = useGameStore((s) => s.importQuestions);
+  const exportSaveCode = useGameStore((s) => s.exportSaveCode);
+  const importSaveCode = useGameStore((s) => s.importSaveCode);
   const showToast = useGameStore((s) => s.showToast);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [importCode, setImportCode] = useState("");
 
   const handleImport = (file: File | undefined) => {
     if (!file) return;
@@ -30,6 +35,33 @@ export default function SettingsScreen() {
       }
     };
     reader.readAsText(file);
+  };
+
+  const handleExportSave = () => {
+    const code = exportSaveCode();
+    if (!code) {
+      showToast("导出失败", 1500);
+      return;
+    }
+    navigator.clipboard
+      ?.writeText(code)
+      .then(() => showToast("存档码已复制到剪贴板", 2200))
+      .catch(() => {
+        window.prompt("复制下方存档码(手动全选复制):", code);
+        showToast("已生成存档码", 2200);
+      });
+    AudioEngine.sfx("click");
+  };
+
+  const handleImportSave = () => {
+    if (!importCode.trim()) {
+      showToast("请先粘贴存档码", 1500);
+      return;
+    }
+    if (!window.confirm("导入将覆盖当前存档,确定继续吗?")) return;
+    importSaveCode(importCode);
+    setImportCode("");
+    AudioEngine.sfx("click");
   };
 
   return (
@@ -59,6 +91,34 @@ export default function SettingsScreen() {
           >
             {meta.soundEnabled ? "开启" : "关闭"}
           </button>
+        </div>
+
+        <div className="set-row">
+          <span>🎵 音乐音量</span>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={Math.round((meta.bgmVol ?? 0.6) * 100)}
+            onChange={(e) => {
+              setBgmVol(Number(e.target.value) / 100);
+              AudioEngine.sfx("click");
+            }}
+          />
+        </div>
+
+        <div className="set-row">
+          <span>🔔 音效音量</span>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={Math.round((meta.sfxVol ?? 0.8) * 100)}
+            onChange={(e) => {
+              setSfxVol(Number(e.target.value) / 100);
+              AudioEngine.sfx("click");
+            }}
+          />
         </div>
 
         <div className="set-row">
@@ -100,6 +160,27 @@ export default function SettingsScreen() {
               e.target.value = "";
             }}
           />
+        </div>
+
+        <div className="set-row">
+          <span>💾 导出存档</span>
+          <button className="btn-mini" onClick={handleExportSave}>
+            复制存档码
+          </button>
+        </div>
+
+        <div className="set-row" style={{ flexDirection: "column", alignItems: "stretch", gap: 6 }}>
+          <span>📥 导入存档</span>
+          <textarea
+            className="save-code-input"
+            placeholder="粘贴存档码..."
+            value={importCode}
+            onChange={(e) => setImportCode(e.target.value)}
+            rows={2}
+          />
+          <button className="btn-mini" onClick={handleImportSave}>
+            导入并覆盖
+          </button>
         </div>
 
         <div className="set-row">

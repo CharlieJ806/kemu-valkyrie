@@ -2,7 +2,6 @@
 
 import { useGameStore } from "@/lib/store";
 import {
-  getValkName,
   getValkById,
   getBST,
 } from "@/lib/formulas";
@@ -11,7 +10,7 @@ import {
   RARITY_COLORS,
   RARITY_NAMES,
 } from "@/data/constants";
-import { ALL_CARDS, findCard } from "@/lib/cards";
+import { ALL_CARDS, findCard, hydrateCard } from "@/lib/cards";
 import { ICON } from "@/lib/icon";
 import { AudioEngine } from "@/lib/audio";
 import { GAME_EVENTS, resolveChoiceText } from "@/lib/events";
@@ -29,8 +28,56 @@ export default function Modal() {
   const addToTeam = useGameStore((s) => s.addToTeam);
   const removeFromTeam = useGameStore((s) => s.removeFromTeam);
   const setActiveTeam = useGameStore((s) => s.setActiveTeam);
+  const confirmRemoveCard = useGameStore((s) => s.confirmRemoveCard);
 
   if (!modal) return null;
+
+  /* ── 商店移除卡牌(自选) ── */
+  if (modal.kind === "removeCard") {
+    if (!run) return null;
+    const counts = new Map<string, number>();
+    for (const id of run.deck) counts.set(id, (counts.get(id) || 0) + 1);
+    const unique = [...counts.entries()].map(([id, n]) => ({
+      card: hydrateCard(id),
+      n,
+    }));
+    return (
+      <div className="modal-wrap">
+        <div className="modal">
+          <div className="capture-title">🗑️ 移除一张牌 (75🪙)</div>
+          <div style={{ fontSize: 13, color: "var(--dim)", marginBottom: 10 }}>
+            选择要移除的卡牌(至少保留 5 张):
+          </div>
+          <div className="remove-card-list">
+            {unique.map(({ card, n }) =>
+              card ? (
+                <div
+                  key={card.id}
+                  className={`reward-card type-${card.type}`}
+                  onClick={() => {
+                    confirmRemoveCard(card.id);
+                    AudioEngine.sfx("click");
+                  }}
+                >
+                  <div style={{ fontSize: 22 }}>{card.icon}</div>
+                  <div style={{ fontWeight: 700, fontSize: 10 }}>
+                    {card.name}
+                    {n > 1 ? ` ×${n}` : ""}
+                  </div>
+                  <div style={{ fontSize: 7, color: "var(--dim)" }}>
+                    {card.cost}⚡ {card.desc}
+                  </div>
+                </div>
+              ) : null,
+            )}
+          </div>
+          <button className="btn btn-ghost" onClick={closeModal}>
+            取消
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   /* ── 奖励选卡 ── */
   if (modal.kind === "reward") {

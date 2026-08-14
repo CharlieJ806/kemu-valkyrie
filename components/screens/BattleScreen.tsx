@@ -10,6 +10,8 @@ import { spawnDmg, spawnFxText, domBurst } from "@/lib/dom-fx";
 import { BattleFX } from "@/lib/fx3d";
 import { getQuestionCat, getValkById } from "@/data";
 import { ATTR_SHORT, attrBadgeStyle } from "@/lib/attr";
+import { getBossMechanic } from "@/lib/bossMechanics";
+import { AFFIX_NAMES, BATTLE_Q_TIME_MS } from "@/data/constants";
 import type { Card } from "@/lib/types";
 
 function enemyStatusText(status: { type: string; turns: number } | null): string {
@@ -33,6 +35,54 @@ function cardOf(id: string, leaderId: number | null): Card | null {
     return v ? buildUltCard(v) : null;
   }
   return hydrateCard(id);
+}
+
+/** 答题倒计时条:按题目 key 重挂载,初始剩余时间来自 limit 参数 */
+function QuestionTimer({
+  qKey,
+  limit,
+  onExpire,
+}: {
+  qKey: string | null;
+  limit: number;
+  onExpire: () => void;
+}) {
+  const [remain, setRemain] = useState(limit);
+  const expireRef = useRef(onExpire);
+
+  // 同步最新到期回调(不在渲染期写 ref)
+  useEffect(() => {
+    expireRef.current = onExpire;
+  }, [onExpire]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setRemain((v) => {
+        if (v <= 250) {
+          clearInterval(timer);
+          expireRef.current();
+          return 0;
+        }
+        return v - 250;
+      });
+    }, 250);
+    return () => clearInterval(timer);
+  }, [qKey]);
+
+  if (!qKey) return null;
+  return (
+    <div className={`battle-timer ${remain <= 10000 ? "low" : ""}`}>
+      <div
+        className="battle-timer-fill"
+        style={{
+          width: `${Math.max(0, (remain / Math.max(1, limit)) * 100)}%`,
+        }}
+      />
+      <span className="battle-timer-text">
+        ⏱ {Math.max(0, Math.ceil(remain / 1000))}s
+      </span>
+    </div>
+  );
 }
 
 export default function BattleScreen() {
@@ -65,17 +115,19 @@ export default function BattleScreen() {
     lastProcessedRef.current = lastAnswer.id;
     const res = lastAnswer;
     setAnswerState({ picked: res.pickedIdx, correct: res.correct });
+    const stage = document.getElementById("battle-stage");
 
     if (res.correct) {
       AudioEngine.sfx("correct");
-      const stage = document.getElementById("battle-stage");
       // 玩家攻击动画:学员前冲 + 光弹 + 命中粒子 + 受击抖动
       const crit = res.combo > 0 && res.combo % 5 === 0;
       if (BattleFX.ok) {
         BattleFX.attack("player", { crit });
         BattleFX.comboAura(res.combo);
       }
-      spawnDmg(stage, 66, 34, `-${res.dmg}`, crit ? "#ffd700" : "#ff6688", crit);
+      if (res.dmg > 0) {
+        spawnDmg(stage, 66, 34, `-${res.dmg}`, crit ? "#ffd700" : "#ff6688", crit);
+      }
       if (crit) {
         AudioEngine.sfx("crit");
         spawnFxText(stage, 66, 20, "暴击！", "#ffd700");
@@ -97,12 +149,19 @@ export default function BattleScreen() {
         setTimeout(() => BattleFX.ko("enemy"), 350);
       }
     } else {
-      AudioEngine.sfx("wrong");
-      // 答错反伤 → 敌方攻击动画
-      if (BattleFX.ok) {
-        BattleFX.attack("enemy", {});
+      if (res.timedOut) {
+        AudioEngine.sfx("timeout");
+        spawnFxText(stage, 50, 30, "⏰ 超时!", "#ff8800");
+      } else {
+        AudioEngine.sfx("wrong");
       }
-      spawnDmg(document.getElementById("battle-stage"), 28, 55, `-${res.counterDmg}`, "#ff0044");
+      // 答错/超时反伤 → 敌方攻击动画(仅在真实掉血时播放)
+      if (res.counterDmg > 0) {
+        if (BattleFX.ok) {
+          BattleFX.attack("enemy", {});
+        }
+        spawnDmg(stage, 28, 55, `-${res.counterDmg}`, "#ff0044");
+      }
       // 答错:先展示正确答案(绿框高亮),再进入出牌阶段
       if (!res.playerDead) {
         nextTimerRef.current = setTimeout(() => {
@@ -146,6 +205,10 @@ export default function BattleScreen() {
       domBurst(stage, 16, 10, "#ffd700", 16);
       if (BattleFX.ok) BattleFX.attack("player", { crit: true });
       AudioEngine.sfx("crit");
+    }
+    if (lastPlay.events.some((e) => e.type === "dodge")) {
+      spawnFxText(stage, 60, 34, "💨 雾隐·闪避!", "#9db6d2");
+      AudioEngine.sfx("flee");
     }
   }, [lastPlay]);
 
@@ -230,6 +293,8 @@ export default function BattleScreen() {
   if (!run || !run.enemyPkm) return null;
   if (!run.inBattle) return null;
 
+  const qTimerKey =
+    run.turnPhase === "question" && !run.questionAnswered ? run.currentQ?.id ?? null : null;
   const enemy = run.enemyPkm;
   const enemySprite = ICON(enemy.id);
   const handCards: Card[] = run.hand
@@ -275,12 +340,39 @@ export default function BattleScreen() {
       enterCardPhase();
       return;
     }
-    endTurnAction();
-    // 回合结束 → 敌方攻击动画(泄能/异常结算后)
-    if (BattleFX.ok) {
-      setTimeout(() => BattleFX.attack("enemy", {}), 500);
+    const res = endTurnAction();
+    // 回合结束 → 敌方攻击动画(仅真实造成伤害时播放)
+    if (res && res.enemyDmg > 0 && !res.playerDead) {
+      const stage = document.getElementById("battle-stage");
+      spawnDmg(stage, 28, 55, `-${res.enemyDmg}`, "#ff0044");
+      if (BattleFX.ok) {
+        setTimeout(() => BattleFX.attack("enemy", {}), 500);
+      }
     }
   };
+
+  // 敌方意图文案(明牌;迷雾 Boss 隐藏伤害数字)
+  const mech = run.enemyPkm ? getBossMechanic(run.enemyPkm.id) : null;
+  const intentText = (() => {
+    if (!run.enemyIntent) return "准备攻击...";
+    const hidden = !!mech?.hideIntent;
+    const dmg = run.enemyIntent.damage;
+    switch (run.enemyIntent.type) {
+      case "attack":
+        return `攻击 ${hidden ? "???" : dmg} 伤害`;
+      case "guard":
+        return `防御(+${run.enemyIntent.block ?? 15}🛡️) ${hidden ? "?" : dmg} 伤害`;
+      case "multi":
+        return `连环攻击 ${hidden ? "?" : dmg}×2`;
+      case "charge":
+        return `蓄力中 — 下回合爆发`;
+    }
+  })();
+  const intentExtras: string[] = [];
+  if (run.bossVars?.red) intentExtras.push("🔴红灯暴怒");
+  if (mech?.dodgeActive?.(run)) intentExtras.push("💨雾隐中");
+  if (run.enemyWeakTurns > 0)
+    intentExtras.push(`⚖️削弱中(${run.enemyWeakTurns}回合)`);
 
   return (
     <section className="screen active" id="scr-battle">
@@ -312,6 +404,19 @@ export default function BattleScreen() {
                 {enemyStatusText(run.enemyStatus)}
               </span>
             </div>
+            {/* 精英词缀 / Boss 机制标签 */}
+            <div className="enemy-tags">
+              {run.enemyAffix.map((a) => (
+                <span key={a} className="affix-badge" title={`精英词缀:${AFFIX_NAMES[a] ?? a}`}>
+                  {AFFIX_NAMES[a] ?? a}
+                </span>
+              ))}
+              {mech && (
+                <span className="boss-mech-tag" title={mech.desc}>
+                  {mech.name}
+                </span>
+              )}
+            </div>
             <div className="enemy-hp-bar">
               <div
                 className="enemy-hp-fill"
@@ -329,9 +434,9 @@ export default function BattleScreen() {
             </div>
             <div className="enemy-intent">
               {run.turnPhase === "question"
-                ? run.enemyIntent
-                  ? `敌方意图: 攻击 ${run.enemyIntent.damage} 伤害`
-                  : "准备攻击..."
+                ? `敌方意图: ${intentText}${
+                    intentExtras.length > 0 ? ` [${intentExtras.join(" · ")}]` : ""
+                  }`
                 : `⚡ ${run.energy} 能量 — 打出卡牌后结束回合`}
             </div>
           </div>
@@ -410,6 +515,13 @@ export default function BattleScreen() {
       >
         {run.turnPhase === "question" ? (
           <>
+            {/* 答题倒计时条(迷雾 Boss 可缩短时限) */}
+            <QuestionTimer
+              key={qTimerKey ?? "idle"}
+              qKey={qTimerKey}
+              limit={run.qTimeLimit ?? BATTLE_Q_TIME_MS}
+              onExpire={() => useGameStore.getState().timeoutQuestion()}
+            />
             <div className="battle-q-text">
               {run.currentQ ? (
                 <>
@@ -449,7 +561,14 @@ export default function BattleScreen() {
             </div>
           </>
         ) : (
-          <div className="battle-q-text">📝 出牌阶段 — 点击手牌使用技能</div>
+          <div className="battle-q-text">
+            📝 出牌阶段 — 点击手牌使用技能
+            {run.bossVars?.tax ? (
+              <span style={{ color: "var(--gold)", marginLeft: 8 }}>
+                📡 信号干扰:下一张牌费用 +1
+              </span>
+            ) : null}
+          </div>
         )}
       </div>
 

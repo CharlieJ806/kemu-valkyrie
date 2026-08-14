@@ -25,12 +25,14 @@ export default function DexScreen() {
   else if (valkFilter === "locked") valkList = valkList.filter((p) => !meta.collected[String(p.id)]);
 
   const seen = (id: number) => !!meta.seenMonsters?.[String(id)];
+  const caught = (id: number) => !!meta.caughtMonsters?.[String(id)];
   let monsterList = MONSTERS;
   if (monsterFilter === "seen") monsterList = monsterList.filter((m) => seen(m.id));
   else if (monsterFilter === "unseen") monsterList = monsterList.filter((m) => !seen(m.id));
 
   const collectedCount = Object.keys(meta.collected).length;
   const seenCount = Object.keys(meta.seenMonsters || {}).length;
+  const caughtCount = Object.keys(meta.caughtMonsters || {}).length;
 
   return (
     <section className="screen active" id="scr-dex">
@@ -134,9 +136,10 @@ export default function DexScreen() {
         ) : (
           <>
             <div className="dex-progress">
-              已遭遇: {seenCount} / {MONSTERS.length}
+              已遭遇: {seenCount} / {MONSTERS.length} · 已收服: {caughtCount} /{" "}
+              {MONSTERS.filter((m) => !m.boss).length}
               <span style={{ fontSize: 11, display: "block", marginTop: 2 }}>
-                战斗遭遇魔物即记录 · Boss 有专属标记
+                击败普通魔物自动判定收服 · Boss 不可收服
               </span>
             </div>
             <div className="dex-filter">
@@ -167,8 +170,12 @@ export default function DexScreen() {
                     <div className="dc-id">#{m.id}</div>
                     <img className="dc-img" src={ICON(m.id)} alt="" />
                     {!isSeen && <span className="dc-lock">🔒</span>}
-                    <div className="dc-name">{isSeen ? m.c : "???"}</div>
+                    <div className="dc-name">
+                      {isSeen ? m.c : "???"}
+                      {caught(m.id) ? " ✨" : ""}
+                    </div>
                     {m.boss ? <div className="dc-boss">BOSS</div> : null}
+                    {caught(m.id) ? <div className="dc-caught">已收服</div> : null}
                   </div>
                 );
               })}

@@ -22,21 +22,23 @@ export function buildExamSession(pool: Question[]): ExamSession | null {
   };
 }
 
-/** 判卷:答对数、错题 id 列表(含未答) */
+/** 判卷:答对数、错题 id 列表(含未答)、答对 id 列表 */
 export function gradeExam(
   session: ExamSession,
-): { score: number; wrongIds: string[] } {
+): { score: number; wrongIds: string[]; correctIds: string[] } {
   const wrongIds: string[] = [];
+  const correctIds: string[] = [];
   let score = 0;
   session.qs.forEach((q, i) => {
     const picked = session.picked[i];
     if (picked === q.ans) {
       score++;
+      correctIds.push(q.id);
     } else {
       wrongIds.push(q.id);
     }
   });
-  return { score, wrongIds };
+  return { score, wrongIds, correctIds };
 }
 
 export function isExamPass(score: number): boolean {

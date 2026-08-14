@@ -14,7 +14,11 @@ import {
   DEFAULT_VALKYRIES_ID,
   GACHA_COST,
   MAX_TEAM_SIZE,
+  MAX_UPGRADE_LEVEL,
   STARTING_GOLD,
+  CAPTURE_ELITE_MULT,
+  CAPTURE_REWARD,
+  BATTLE_Q_TIME_MS,
 } from "@/data/constants";
 import {
   answerBattle,
@@ -26,7 +30,11 @@ import {
   startBattleOn,
   switchActiveTo,
   switchToNextAlive,
+  timeoutBattle,
+  type EndTurnResult,
 } from "./battle";
+import { AudioEngine } from "./audio";
+import { checkAchievements } from "./achievements";
 import { applyNodeSelection, generateMapNodes } from "./map";
 import {
   ALL_CARDS,
@@ -44,7 +52,9 @@ import {
 } from "./formulas";
 import {
   defaultMeta,
+  exportSave as exportSaveToCode,
   hasRun,
+  importSave as importSaveFromCode,
   loadImportedQuestions,
   loadMeta,
   loadRun,
@@ -115,6 +125,8 @@ export type AnswerResult = {
   counterDmg: number;
   enemyDead: boolean;
   playerDead: boolean;
+  revived: boolean;
+  timedOut?: boolean;
 };
 
 /** 最近一次出牌结果(ephemeral,UI 据此播放联动/必杀反馈) */
@@ -161,6 +173,8 @@ type GameStore = {
 
   /* ---- meta 类 ---- */
   toggleSound: () => void;
+  setBgmVol: (v: number) => void;
+  setSfxVol: (v: number) => void;
   tryUpgradeHp: () => void;
   tryUpgradeAtk: () => void;
   /* 名册队伍编辑(meta.team,下次开局生效) */
@@ -172,9 +186,17 @@ type GameStore = {
   resetBuiltDeck: () => void;
   bumpWrongQ: (qid: string, n?: number) => void;
   clearWrongQ: (qid: string) => void;
-  recordExamResult: (score: number, wrongIds: string[]) => void;
+  recordExamResult: (score: number, wrongIds: string[], correctIds?: string[]) => void;
   importQuestions: (qs: Question[]) => void;
+  exportSaveCode: () => string | null;
+  importSaveCode: (code: string) => string | null;
   wipeAll: () => void;
+  /** 成就判定 + 发放奖励(meta 为克隆对象,直接修改并持久化) */
+  awardFor: (
+    meta: MetaState,
+    run: RunState | null,
+    extra?: Parameters<typeof checkAchievements>[2],
+  ) => void;
 
   /* ---- 开局 ---- */
   newRun: (starterId?: number) => void;
@@ -190,6 +212,7 @@ type GameStore = {
   leaveShop: () => void;
   buyShopCard: (cardId: string, price: number) => void;
   removeDeckCard: () => void;
+  confirmRemoveCard: (cardId: string) => void;
   openRest: () => void;
   restHeal: () => void;
   restTrain: () => void;
@@ -202,10 +225,11 @@ type GameStore = {
   startBattle: (node: MapNode, isBoss?: boolean) => void;
   switchPoke: (idx: number) => void;
   answer: (idx: number) => AnswerResult | null;
+  timeoutQuestion: () => AnswerResult | null;
   nextBattleQuestion: () => void;
   enterCardPhase: () => void;
   playCard: (idx: number) => void;
-  endTurnAction: () => void;
+  endTurnAction: () => EndTurnResult | null;
   endBattle: (won: boolean) => void;
   clearChapter: () => void;
   chooseRewardCard: (cardId: string) => void;
@@ -303,9 +327,29 @@ export const useGameStore = create<GameStore>((set, get) => ({
     persistMeta(meta);
   },
 
+  setBgmVol: (v) => {
+    const meta = cloneMeta(get().meta);
+    meta.bgmVol = Math.max(0, Math.min(1, v));
+    set({ meta });
+    persistMeta(meta);
+    AudioEngine.setBgmVol(meta.bgmVol);
+  },
+
+  setSfxVol: (v) => {
+    const meta = cloneMeta(get().meta);
+    meta.sfxVol = Math.max(0, Math.min(1, v));
+    set({ meta });
+    persistMeta(meta);
+    AudioEngine.setSfxVol(meta.sfxVol);
+  },
+
   tryUpgradeHp: () => {
     const meta = cloneMeta(get().meta);
     ensureMetaDefaults(meta);
+    if (meta.metaHpLv >= MAX_UPGRADE_LEVEL) {
+      get().showToast(`生命已达最高等级(${MAX_UPGRADE_LEVEL})`, 1500);
+      return;
+    }
     const cost = upgradeCost(meta.metaHpLv);
     if (meta.metaGold < cost) {
       get().showToast("养成金币不足！", 1500);
@@ -334,6 +378,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   tryUpgradeAtk: () => {
     const meta = cloneMeta(get().meta);
     ensureMetaDefaults(meta);
+    if (meta.metaAtkLv >= MAX_UPGRADE_LEVEL) {
+      get().showToast(`攻击已达最高等级(${MAX_UPGRADE_LEVEL})`, 1500);
+      return;
+    }
     const cost = upgradeCost(meta.metaAtkLv);
     if (meta.metaGold < cost) {
       get().showToast("养成金币不足！", 1500);
@@ -406,6 +454,20 @@ export const useGameStore = create<GameStore>((set, get) => ({
     meta.ownedCards![pick.id] = true;
     set({ meta, gachaLastId: pick.id });
     persistMeta(meta);
+    get().awardFor(meta, get().run, {});
+  },
+
+  /** 成就判定 + 发放奖励(内部辅助:meta 已克隆,直接修改并 toast 新解锁) */
+  awardFor: (meta, run, extra) => {
+    const unlocked = checkAchievements(meta, run, extra);
+    if (unlocked.length > 0) {
+      const names = unlocked.map((a) => a.name).join("、");
+      const total = unlocked.reduce((s, a) => s + a.reward, 0);
+      get().showToast(`🏅 成就达成:${names} (+${total} 金币)`, 2800);
+      AudioEngine.sfx("levelup");
+      set({ meta });
+      persistMeta(meta);
+    }
   },
 
   toggleDeckCard: (id) => {
@@ -451,22 +513,55 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
   },
 
-  /** 考试交卷:错题只增不删,totalAnswered += 100(线上版行为) */
-  recordExamResult: (score, wrongIds) => {
+  /** 考试交卷:错题答错只增、答对移出(统一「答对即移出」规则),totalAnswered += 100 */
+  recordExamResult: (score, wrongIds, correctIds = []) => {
     const meta = cloneMeta(get().meta);
     meta.totalAnswered += 100;
     meta.totalCorrect += score;
     for (const id of wrongIds) {
       meta.wrongQ[id] = (meta.wrongQ[id] || 0) + 1;
     }
+    for (const id of correctIds) {
+      if (meta.wrongQ[id]) delete meta.wrongQ[id];
+    }
     set({ meta });
     persistMeta(meta);
+    get().awardFor(meta, get().run, { examScore: score });
   },
 
   importQuestions: (qs) => {
     set({ questionPool: qs });
     saveImportedQuestions(qs);
     get().showToast(`成功导入 ${qs.length} 道题！`, 2000);
+  },
+
+  exportSaveCode: () => exportSaveToCode(),
+
+  importSaveCode: (code) => {
+    const err = importSaveFromCode(code);
+    if (err) {
+      get().showToast(`导入失败:${err}`, 2200);
+      return err;
+    }
+    // 重新读取并注入状态
+    const meta = loadMeta();
+    ensureMetaDefaults(meta);
+    const imported = getImportedQuestions();
+    const run = loadRun();
+    set({
+      meta,
+      run,
+      questionPool: imported ? imported : [...QUESTIONS],
+      screen: "title",
+      prevScreen: get().screen,
+      gameOver: null,
+      modal: null,
+    });
+    persistMeta(meta);
+    if (run) persistRun(run);
+    get().showToast("✅ 存档导入成功!", 2200);
+    AudioEngine.sfx("caught");
+    return null;
   },
 
   wipeAll: () => {
@@ -556,6 +651,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
       enemyAtkMult: 1,
       playerDmgMult: 1,
       playerDefMult: 1,
+      enemyWeakTurns: 0,
+      enemyChargeMul: 1,
+      enemyAffix: [],
+      affixSwiftDone: false,
+      affixRevived: false,
+      bossVars: {},
+      qTimeLimit: BATTLE_Q_TIME_MS,
+      chapterDamaged: false,
       currentQ: null,
       questionAnswered: false,
       cardPlayedThisTurn: false,
@@ -682,7 +785,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
     get().showToast(`购买: ${findCard(cardId)?.name ?? cardId}`, 1500);
   },
 
+  /** 打开「移除一张牌」选择模态(校验金币/牌数后由 Modal 自选) */
   removeDeckCard: () => {
+    const run0 = get().run;
+    if (!run0) return;
+    if (run0.gold < 75) {
+      get().showToast("金币不足！", 1500);
+      return;
+    }
+    if (run0.deck.length <= 5) {
+      get().showToast("牌组至少保留5张！", 1500);
+      return;
+    }
+    set({ modal: { kind: "removeCard" } });
+  },
+
+  confirmRemoveCard: (cardId) => {
     const run0 = get().run;
     if (!run0) return;
     if (run0.gold < 75) {
@@ -695,14 +813,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
     const run = cloneRun(run0);
     run.gold -= 75;
-    const idx = Math.floor(Math.random() * run.deck.length);
-    const removed = run.deck.splice(idx, 1)[0]!;
-    run.drawPile = run.drawPile.filter((id) => id !== removed);
-    run.discardPile = run.discardPile.filter((id) => id !== removed);
-    run.hand = run.hand.filter((id) => id !== removed);
-    set({ run });
+    run.deck.splice(run.deck.indexOf(cardId), 1);
+    run.drawPile = run.drawPile.filter((id) => id !== cardId);
+    run.discardPile = run.discardPile.filter((id) => id !== cardId);
+    run.hand = run.hand.filter((id) => id !== cardId);
+    set({ run, modal: null });
     persistRun(run);
-    get().showToast(`移除: ${findCard(removed)?.name ?? removed}`, 1500);
+    get().showToast(`移除: ${findCard(cardId)?.name ?? cardId}`, 1500);
   },
 
   openRest: () => {
@@ -885,12 +1002,41 @@ export const useGameStore = create<GameStore>((set, get) => ({
     persistRun(run);
     persistMeta(meta);
 
+    if (res.revived) {
+      get().showToast("💚 复苏词缀:敌方残骸重新拼合!", 2000);
+      AudioEngine.sfx("boss");
+    }
+    get().awardFor(meta, run, {});
+
     // 答题击杀敌人 → 结束战斗;答错反伤致死 → 败北(迁移自 standalone handleBattleAnswer)
     if (res.enemyDead) {
       get().endBattle(true);
     } else if (res.playerDead) {
       get().gameOverDefeat();
     }
+    return result;
+  },
+
+  /** 答题超时:按答错处理(连击清零 + 反伤 + 展示答案后进入出牌阶段) */
+  timeoutQuestion: () => {
+    const run0 = get().run;
+    const meta0 = get().meta;
+    if (!run0 || run0.turnPhase !== "question" || run0.questionAnswered) return null;
+    const run = cloneRun(run0);
+    const meta = cloneMeta(meta0);
+    const res = timeoutBattle(run);
+    if (!res) return null;
+    const q = run.currentQ;
+    if (q) meta.wrongQ[q.id] = (meta.wrongQ[q.id] || 0) + 1;
+    const result: AnswerResult = {
+      ...res,
+      id: ++answerEventSeq,
+      pickedIdx: -1,
+    };
+    set({ run, meta, lastAnswer: result });
+    persistRun(run);
+    persistMeta(meta);
+    if (res.playerDead) get().gameOverDefeat();
     return result;
   },
 
@@ -923,6 +1069,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ run, lastPlay: { id: ++playEventSeq, cardId: res.cardId, events: res.events } });
     persistRun(run);
 
+    if (res.events.some((e) => e.type === "revive")) {
+      get().showToast("💚 复苏词缀:敌方残骸重新拼合!", 2000);
+      AudioEngine.sfx("boss");
+    }
+    const tax = res.events.find((e) => e.type === "tax");
+    if (tax && tax.type === "tax") {
+      get().showToast(tax.message, 1800);
+    }
+
     if (res.enemyDead) {
       get().endBattle(true);
     } else if (res.playerDead) {
@@ -933,17 +1088,23 @@ export const useGameStore = create<GameStore>((set, get) => ({
   endTurnAction: () => {
     const run0 = get().run;
     const meta0 = get().meta;
-    if (!run0) return;
+    if (!run0) return null;
     const run = cloneRun(run0);
     const res = endTurn(run, get().questionPool, meta0.metaAtkLv);
     set({ run });
     persistRun(run);
+
+    if (res.revived) {
+      get().showToast("💚 复苏词缀:敌方残骸重新拼合!", 2000);
+      AudioEngine.sfx("boss");
+    }
 
     if (res.enemyDead) {
       get().endBattle(true);
     } else if (res.playerDead) {
       get().gameOverDefeat();
     }
+    return res;
   },
 
   endBattle: (won) => {
@@ -954,16 +1115,54 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const run = cloneRun(run0);
       saveActiveFromHp(run); // 出战学员血量回写(跨战斗保留)
       const node = currentNode(run);
+      const meta = cloneMeta(get().meta);
       if (node && node.rewards) {
         const g = node.rewards.gold || 20;
         run.gold += g;
-        const meta = cloneMeta(get().meta);
         meta.metaGold += g;
         run.score +=
           node.type === "boss" ? 100 : node.type === "elite" ? 50 : 20;
-        set({ meta });
-        persistMeta(meta);
       }
+
+      // 净化收服:击败普通/精英魔物后自动按概率判定(仅图鉴收集 + 奖励)
+      if (
+        node &&
+        (node.type === "battle" || node.type === "elite") &&
+        run.enemyPkm &&
+        !run.enemyPkm.boss
+      ) {
+        const rate =
+          run.enemyCaptureRate *
+          (node.type === "elite" ? CAPTURE_ELITE_MULT : 1);
+        if (Math.random() < rate) {
+          const id = run.enemyPkm.id;
+          const first = !meta.caughtMonsters[String(id)];
+          meta.caughtMonsters = { ...meta.caughtMonsters, [String(id)]: true };
+          if (first) {
+            run.gold += CAPTURE_REWARD.gold;
+            meta.metaGold += CAPTURE_REWARD.metaGold;
+            get().showToast(
+              `✨ 净化成功!${run.enemyPkm.c} 已收服(+${CAPTURE_REWARD.gold}金)`,
+              2600,
+            );
+            AudioEngine.sfx("caught");
+          } else {
+            run.gold += CAPTURE_REWARD.dupGold;
+            get().showToast(
+              `已收服过 ${run.enemyPkm.c},+${CAPTURE_REWARD.dupGold}金币`,
+              2000,
+            );
+            AudioEngine.sfx("coin");
+          }
+        }
+      }
+
+      set({ meta });
+      persistMeta(meta);
+      get().awardFor(meta, run, {
+        battleWon: node?.type === "battle",
+        caughtCount: Object.keys(meta.caughtMonsters).length,
+      });
 
       // 击败 Boss:章节通关 → 解锁角色 → 下一章/下一周目
       if (node && node.type === "boss") {
@@ -1076,6 +1275,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     run.hp = run.teamMaxHp[run.activeIdx] ?? run.hp;
     run.maxHp = run.teamMaxHp[run.activeIdx] ?? run.maxHp;
 
+    // 成就判定(通关/无伤/周目/集结)+ 重置本章受伤标记
+    get().awardFor(meta, run, { chapterCleared: true });
+    run.chapterDamaged = false;
+
     set({ run, meta, storyQueue: queue, screen: queue ? "story" : "map", modal: null });
     persistRun(run);
     persistMeta(meta);
@@ -1147,6 +1350,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     });
     persistRun(run);
     persistMeta(meta);
+    get().awardFor(meta, run, {});
   },
 
   showOverScreen: () => {

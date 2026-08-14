@@ -79,6 +79,31 @@ export const EXAM_QUESTION_COUNT = 100;
 export const EXAM_TIME_MS = 45 * 60 * 1000; // 45 分钟
 export const EXAM_PASS_LINE = 90; // 90 分合格
 
+/* ============ 战斗 v2 常量 ============ */
+
+/** 答题限时(毫秒) */
+export const BATTLE_Q_TIME_MS = 60_000;
+/** 迷雾 Boss 缩短后的答题限时 */
+export const FOG_Q_TIME_MS = 30_000;
+/** 敌方减伤下限(总削减不超过 60%) */
+export const ENEMY_WEAK_FLOOR = 0.4;
+/** 敌方减伤持续回合数(重复施加刷新) */
+export const ENEMY_WEAK_TURNS = 2;
+
+/** 精英词缀定义(id → 显示名) */
+export const AFFIX_NAMES: Record<string, string> = {
+  thorn: "荆棘",
+  rage: "狂暴",
+  thick: "厚甲",
+  swift: "迅捷",
+  revive: "复苏",
+};
+
+/** 精英战斗的收服概率倍率 */
+export const CAPTURE_ELITE_MULT = 0.6;
+/** 收服奖励:首次 {金币, 养成金币} / 重复金币 */
+export const CAPTURE_REWARD = { gold: 40, metaGold: 15, dupGold: 20 };
+
 /** Aggregated export matching ref/pokedriver window.GAME_CONST shape */
 export const GAME_CONST = {
   TIER1_LEGEND: Array.from(TIER1_LEGEND),

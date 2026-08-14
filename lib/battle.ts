@@ -1,4 +1,4 @@
-import type { MapNode, Question, RunState } from "./types";
+import type { EnemyIntent, MapNode, Question, RunState } from "./types";
 import {
   applyCardFx,
   hydrateCard,
@@ -15,6 +15,33 @@ import {
   rand,
   shuffle,
 } from "./formulas";
+import {
+  AFFIX_NAMES,
+  BATTLE_Q_TIME_MS,
+  FOG_Q_TIME_MS,
+} from "@/data/constants";
+import { bossDodgeActive, getBossMechanic } from "./bossMechanics";
+
+/** 精英词缀池(按节点类型/周目投掷) */
+export const AFFIX_POOL = Object.keys(AFFIX_NAMES);
+
+/** 敌方意图权重:攻击 / 防御 / 连环 / 蓄力 */
+const INTENT_WEIGHTS: [EnemyIntent["type"], number][] = [
+  ["attack", 60],
+  ["guard", 15],
+  ["multi", 15],
+  ["charge", 10],
+];
+
+function pickIntentType(): EnemyIntent["type"] {
+  const total = INTENT_WEIGHTS.reduce((a, [, w]) => a + w, 0);
+  let r = Math.random() * total;
+  for (const [t, w] of INTENT_WEIGHTS) {
+    r -= w;
+    if (r <= 0) return t;
+  }
+  return "attack";
+}
 
 /* ============ 牌堆 ============ */
 
@@ -142,13 +169,45 @@ export function switchActiveTo(run: RunState, idx: number): boolean {
 
 /* ============ 伤害 ============ */
 
-/** 对敌方造成伤害(格挡结算)。返回 { dealt, blocked } */
+/** 敌方是否闪避本次玩家攻击(Boss 雾隐) */
+export function enemyDodges(run: RunState): boolean {
+  return bossDodgeActive(run);
+}
+
+/** Boss 机制伤害倍率(路障减伤等) */
+function bossDmgMult(run: RunState): number {
+  if (!run.enemyPkm) return 1;
+  return getBossMechanic(run.enemyPkm.id)?.dmgMult?.(run) ?? 1;
+}
+
+/** 词缀·复苏:首次阵亡复活 50% HP */
+function tryAffixRevive(run: RunState): boolean {
+  if (!run.enemyAffix.includes("revive")) return false;
+  if (run.affixRevived) return false;
+  if (run.enemyHp > 0) return false;
+  run.affixRevived = true;
+  run.enemyHp = Math.max(1, Math.floor(run.enemyMaxHp * 0.5));
+  return true;
+}
+
+/** 词缀·荆棘:反伤 25%(无视格挡);DoT/敌方自伤不触发 */
+function applyThorn(run: RunState, dealt: number): void {
+  if (dealt <= 0) return;
+  if (!run.enemyAffix.includes("thorn")) return;
+  damagePlayer(run, Math.max(1, Math.floor(dealt * 0.25)));
+}
+
+/** 对敌方造成伤害(格挡结算)。返回 { dealt, blocked, revived } */
 export function dealEnemyDamage(
   run: RunState,
   amount: number,
   ignoreBlock = false,
-): { dealt: number; blocked: number } {
-  let actual = Math.floor(amount * run.playerDmgMult);
+  opts?: { reflect?: boolean },
+): { dealt: number; blocked: number; revived: boolean } {
+  if (amount <= 0) return { dealt: 0, blocked: 0, revived: false };
+  // Boss 雾隐闪避
+  if (enemyDodges(run)) return { dealt: 0, blocked: 0, revived: false };
+  let actual = Math.floor(amount * run.playerDmgMult * bossDmgMult(run));
   let blocked = 0;
   if (!ignoreBlock && run.enemyBlock > 0) {
     blocked = Math.min(run.enemyBlock, actual);
@@ -156,7 +215,10 @@ export function dealEnemyDamage(
     actual -= blocked;
   }
   run.enemyHp = Math.max(0, run.enemyHp - actual);
-  return { dealt: actual, blocked };
+  const revived = tryAffixRevive(run);
+  // 荆棘反伤:实际造成伤害后反噬(敌方自伤/异常灼烧不触发)
+  if (opts?.reflect !== false && actual > 0) applyThorn(run, actual);
+  return { dealt: actual, blocked, revived };
 }
 
 /** 对玩家造成伤害(格挡结算);当前学员倒下且队伍有存活成员时自动换人 */
@@ -168,6 +230,7 @@ export function damagePlayer(run: RunState, amount: number): number {
     actual -= blocked;
   }
   run.hp = Math.max(0, run.hp - Math.floor(actual));
+  if (Math.floor(actual) > 0) run.chapterDamaged = true;
   if (run.hp <= 0 && run.team.length > 1) {
     switchToNextAlive(run);
   }
@@ -230,7 +293,14 @@ export function startTurn(run: RunState, allQuestions: Question[]): void {
   run.questionAnswered = false;
   run.playerDmgMult = 1;
   run.playerDefMult = 1;
-  run.enemyBlock = 0;
+  // 敌方格挡跨回合保留(防御意图/厚甲/路障均依赖)
+
+  // Boss 机制:玩家回合开始钩子(雾隐/信号干扰/路障/迷雾限时)
+  if (run.enemyPkm) getBossMechanic(run.enemyPkm.id)?.onPlayerTurnStart?.(run);
+
+  // 答题限时:默认 60 秒;迷雾 Boss 的迷障回合缩短为 30 秒
+  run.qTimeLimit = run.bossVars.fog ? FOG_Q_TIME_MS : BATTLE_Q_TIME_MS;
+  run.bossVars.fog = 0;
 
   // 手牌清空入弃牌堆(必杀卡不入堆)
   stripUltCards(run);
@@ -239,10 +309,15 @@ export function startTurn(run: RunState, allQuestions: Question[]): void {
     run.hand = [];
   }
 
-  run.enemyIntent = {
-    damage: run.enemyBaseDamage + rand(-2, 3),
-    type: "attack",
-  };
+  // 意图明牌:按权重抽 4 种意图之一
+  const type = pickIntentType();
+  const baseDmg = run.enemyBaseDamage + rand(-2, 3);
+  run.enemyIntent =
+    type === "guard"
+      ? { damage: Math.max(1, Math.floor(baseDmg * 0.5)), type, block: rand(10, 20) }
+      : type === "multi"
+        ? { damage: Math.max(1, Math.floor(baseDmg * 0.6)), type }
+        : { damage: Math.max(1, baseDmg), type };
 
   pickBattleQuestion(run, allQuestions);
 }
@@ -262,9 +337,10 @@ export type EndTurnResult = {
   dumpDmg: number;
   enemyDmg: number;
   statusTick: { type: string; dmg: number } | null;
+  revived: boolean;
 };
 
-/** 结束回合:泄能 → 异常结算 → 敌方攻击 → 开始新回合 */
+/** 结束回合:泄能 → 异常结算 → 敌方按意图行动 → 开始新回合 */
 export function endTurn(
   run: RunState,
   allQuestions: Question[],
@@ -276,6 +352,7 @@ export function endTurn(
     dumpDmg: 0,
     enemyDmg: 0,
     statusTick: null,
+    revived: false,
   };
 
   if (run.turnPhase === "question") {
@@ -286,7 +363,8 @@ export function endTurn(
   if (run.energy > 0 && run.enemyHp > 0) {
     const dump = run.energy * getPlayerAtk(metaAtkLv);
     if (dump > 0) {
-      dealEnemyDamage(run, dump);
+      const r = dealEnemyDamage(run, dump);
+      if (r.revived) res.revived = true;
       res.dumpDmg = dump;
     }
     run.energy = 0;
@@ -304,14 +382,16 @@ export function endTurn(
   run.discardPile = [...run.discardPile, ...run.hand];
   run.hand = [];
 
-  // 异常状态回合结算(灼烧/中毒)
+  // 异常状态回合结算(灼烧/中毒;DoT 不触发荆棘反伤)
   if (run.enemyStatus && run.enemyHp > 0) {
     const st = run.enemyStatus;
     if (st.type === "burn") {
-      dealEnemyDamage(run, 4, true);
+      const r = dealEnemyDamage(run, 4, true, { reflect: false });
+      if (r.revived) res.revived = true;
       res.statusTick = { type: "burn", dmg: 4 };
     } else if (st.type === "poison") {
-      dealEnemyDamage(run, 6, true);
+      const r = dealEnemyDamage(run, 6, true, { reflect: false });
+      if (r.revived) res.revived = true;
       res.statusTick = { type: "poison", dmg: 6 };
     }
     st.turns -= 1;
@@ -322,53 +402,120 @@ export function endTurn(
     }
   }
 
-  // 敌方攻击
+  // 敌方按意图行动
   if (run.enemyPkm && run.enemyHp > 0 && run.enemyIntent) {
-    if (run.enemyStatus && run.enemyStatus.type === "sleep") {
-      // 敌方睡着了… 跳过攻击
-      run.enemyStatus.turns -= 1;
-      if (run.enemyStatus.turns <= 0) run.enemyStatus = null;
-    } else if (
+    const intent = run.enemyIntent;
+    const mech = getBossMechanic(run.enemyPkm.id);
+    mech?.onEnemyActStart?.(run);
+
+    const atkBase =
+      intent.damage *
+      run.playerDefMult *
+      (run.enemyAtkMult || 1) *
+      (run.enemyChargeMul || 1) *
+      (mech?.atkMult?.(run) ?? 1);
+
+    /** 实际挥出一击(意图伤害 × para 修正),蓄力倍率在攻击后消耗 */
+    const strike = (dmg: number): boolean => {
+      let d = dmg;
+      if (run.enemyStatus && run.enemyStatus.type === "para") {
+        d = Math.floor(d * 0.6);
+      }
+      const actual = damagePlayer(run, Math.floor(d));
+      res.enemyDmg += actual;
+      run.enemyChargeMul = 1; // 蓄力倍率已随本次攻击消耗
+      if (run.hp <= 0) res.playerDead = true;
+      return res.playerDead;
+    };
+
+    const asleep = run.enemyStatus && run.enemyStatus.type === "sleep";
+    const frozen = run.enemyStatus && run.enemyStatus.type === "freeze";
+    const confused =
       run.enemyStatus &&
       run.enemyStatus.type === "confuse" &&
-      Math.random() < 0.5
-    ) {
-      const selfDmg = Math.floor(
-        (run.enemyIntent.damage || run.enemyBaseDamage) * 0.5,
-      );
-      dealEnemyDamage(run, selfDmg, true);
+      Math.random() < 0.5;
+
+    let acted = false;
+    if (asleep) {
+      // 睡着了…跳过行动
+      run.enemyStatus!.turns -= 1;
+      if (run.enemyStatus!.turns <= 0) run.enemyStatus = null;
+    } else if (intent.type === "charge") {
+      // 蓄力:本回合不攻击,下回合攻击 ×1.8
+      run.enemyChargeMul = 1.8;
+      acted = true;
+    } else if (confused) {
+      // 混乱:50% 概率自伤(蓄力以外的攻击意图)
+      const selfDmg = Math.floor(intent.damage * 0.5);
+      const r = dealEnemyDamage(run, selfDmg, true, { reflect: false });
+      if (r.revived) res.revived = true;
+      acted = true;
       if (run.enemyHp <= 0) {
         res.enemyDead = true;
         return res;
       }
+    } else if (frozen) {
+      // 冻结:无法行动
+      run.enemyStatus!.turns -= 1;
+      if (run.enemyStatus!.turns <= 0) run.enemyStatus = null;
+    } else if (intent.type === "guard") {
+      // 防御:先竖格挡,再轻攻击
+      run.enemyBlock += intent.block ?? 15;
+      acted = true;
+      if (strike(atkBase)) return res;
+    } else if (intent.type === "multi") {
+      // 连环:两段攻击(每段 60%,格挡分别结算)
+      acted = true;
+      if (strike(atkBase)) return res;
+      if (strike(atkBase)) return res;
     } else {
-      let dmg = Math.floor(
-        (run.enemyIntent.damage || run.enemyBaseDamage) *
-          run.playerDefMult *
-          (run.enemyAtkMult || 1),
-      );
-      if (run.enemyStatus && run.enemyStatus.type === "para") {
-        dmg = Math.floor(dmg * 0.6);
+      // 普通攻击
+      acted = true;
+      if (strike(atkBase)) return res;
+    }
+
+    // 词缀·迅捷:本场首个行动回合,若成功出手则追加一次普通攻击
+    if (
+      acted &&
+      run.enemyAffix.includes("swift") &&
+      !run.affixSwiftDone &&
+      !res.playerDead &&
+      run.enemyHp > 0
+    ) {
+      run.affixSwiftDone = true;
+      const extra =
+        intent.damage *
+        run.playerDefMult *
+        (run.enemyAtkMult || 1) *
+        (mech?.atkMult?.(run) ?? 1);
+      const actual = damagePlayer(run, Math.floor(extra));
+      res.enemyDmg += actual;
+      if (run.hp <= 0) {
+        res.playerDead = true;
+        return res;
       }
-      if (run.enemyStatus && run.enemyStatus.type === "freeze") {
-        // 敌方被冰冻,无法行动
-        run.enemyStatus.turns -= 1;
-        if (run.enemyStatus.turns <= 0) run.enemyStatus = null;
-      } else {
-        const actual = damagePlayer(run, dmg);
-        res.enemyDmg = actual;
-        if (run.hp <= 0) {
-          res.playerDead = true;
-          return res;
-        }
-      }
+    }
+
+    // Boss 机制:敌方行动结束钩子(违停堆积/速度狂飙/狂暴回血/清除临时旗标)
+    mech?.onEnemyActEnd?.(run);
+
+    // 词缀·厚甲:每回合 +10 格挡
+    if (run.enemyAffix.includes("thick") && run.enemyHp > 0) {
+      run.enemyBlock += 10;
+    }
+
+    // 敌方减伤回合递减:归零才恢复伤害
+    if (run.enemyWeakTurns > 0) {
+      run.enemyWeakTurns -= 1;
+      if (run.enemyWeakTurns <= 0) run.enemyAtkMult = 1;
+    } else {
+      run.enemyAtkMult = 1;
     }
   }
 
   run.block = Math.max(0, run.block);
   run.playerDmgMult = 1;
   run.playerDefMult = 1;
-  run.enemyAtkMult = 1;
 
   if (!res.playerDead) startTurn(run, allQuestions);
   return res;
@@ -407,6 +554,12 @@ export function playCardOn(
   run.energy -= card.cost;
   run.cardPlayedThisTurn = true;
 
+  // Boss 机制:出牌前钩子(信号干扰 +1 费;必杀卡不受干扰)
+  const taxMsg = run.enemyPkm
+    ? getBossMechanic(run.enemyPkm.id)?.onPlayCard?.(run) ?? null
+    : null;
+  if (taxMsg && !isUlt) card.cost += 1;
+
   const ctx: BattleCtx = {
     enemyHp: run.enemyHp,
     enemyMaxHp: run.enemyMaxHp,
@@ -418,9 +571,14 @@ export function playCardOn(
     playerDmgMult: run.playerDmgMult,
     playerDefMult: run.playerDefMult,
     enemyAtkMult: run.enemyAtkMult,
+    enemyWeakTurns: run.enemyWeakTurns,
     enemyStatus: run.enemyStatus,
     atk: getPlayerAtk(metaAtkLv),
     draw: (n) => drawCardsInto(run, n),
+    dodge: enemyDodges(run),
+    dmgMult: bossDmgMult(run),
+    reflect: (amt) => applyThorn(run, amt),
+    revive: run.enemyAffix.includes("revive") && !run.affixRevived,
   };
 
   const events = applyCardFx(card, ctx);
@@ -434,7 +592,12 @@ export function playCardOn(
   run.playerDmgMult = ctx.playerDmgMult;
   run.playerDefMult = ctx.playerDefMult;
   run.enemyAtkMult = ctx.enemyAtkMult;
+  run.enemyWeakTurns = ctx.enemyWeakTurns ?? 0;
   run.enemyStatus = ctx.enemyStatus;
+  if (events.some((e) => e.type === "revive")) {
+    run.affixRevived = true;
+  }
+  if (taxMsg) events.push({ type: "tax", message: taxMsg });
 
   // 板块联动:队伍有该板块存活学员 → 追加联动效果
   if (run.enemyHp > 0) {
@@ -479,6 +642,9 @@ export type AnswerBattleResult = {
   counterDmg: number;
   enemyDead: boolean;
   playerDead: boolean;
+  revived: boolean;
+  /** 答题超时(pickedIdx = -1 时由 UI 判定) */
+  timedOut?: boolean;
 };
 
 export function answerBattle(
@@ -500,6 +666,7 @@ export function answerBattle(
     counterDmg: 0,
     enemyDead: false,
     playerDead: false,
+    revived: false,
   };
 
   if (correct) {
@@ -513,9 +680,10 @@ export function answerBattle(
     const baseDmg = 3 + Math.floor(run.combo / 3) * 2 + getPlayerAtk(metaAtkLv);
     const comboMult = 1 + (run.combo - 1) * 0.15;
     const totalDmg = Math.floor(baseDmg * comboMult * run.playerDmgMult);
-    dealEnemyDamage(run, totalDmg);
+    const dmgRes = dealEnemyDamage(run, totalDmg);
     res.combo = run.combo;
-    res.dmg = totalDmg;
+    res.dmg = dmgRes.dealt;
+    res.revived = dmgRes.revived;
 
     if (run.enemyHp <= 0) res.enemyDead = true;
   } else {
@@ -536,7 +704,44 @@ export function answerBattle(
   return res;
 }
 
+/** 答题超时:按答错处理(连击清零 + 反伤 + 进入出牌阶段) */
+export function timeoutBattle(run: RunState): AnswerBattleResult | null {
+  if (run.turnPhase !== "question" || run.questionAnswered) return null;
+  run.totalAnswered++;
+  run.combo = 0;
+  run.questionAnswered = true;
+  const counterDmg = Math.floor(run.enemyBaseDamage * 0.5);
+  damagePlayer(run, counterDmg);
+  return {
+    correct: false,
+    combo: 0,
+    dmg: 0,
+    counterDmg,
+    enemyDead: false,
+    playerDead: run.hp <= 0,
+    revived: false,
+    timedOut: true,
+  };
+}
+
 /* ============ 战斗开始(迁移自 startBattle) ============ */
+
+/** 按节点类型/周目投掷精英词缀 */
+export function rollAffixes(nodeType: string, loop: number): string[] {
+  const pool = [...AFFIX_POOL];
+  const pickOne = () => {
+    const i = Math.floor(Math.random() * pool.length);
+    return pool.splice(i, 1)[0]!;
+  };
+  if (nodeType === "elite") {
+    const n = loop >= 2 ? 2 : 1;
+    return Array.from({ length: n }, pickOne);
+  }
+  if (nodeType === "battle" && loop >= 3 && Math.random() < 0.2) {
+    return [pickOne()];
+  }
+  return [];
+}
 
 export function startBattleOn(
   run: RunState,
@@ -556,10 +761,14 @@ export function startBattleOn(
   run.hand = [];
   run.enemyStatus = null;
   run.enemyAtkMult = 1;
+  run.enemyWeakTurns = 0;
+  run.enemyChargeMul = 1;
   run.currentQ = null;
   run.questionAnswered = false;
   run.cardPlayedThisTurn = false;
   run.ultGauge = 0; // 每场战斗大招槽从 0 开始(领队/觉醒跨战斗保留)
+  run.bossVars = {}; // Boss 机制变量按场重置
+  run.qTimeLimit = BATTLE_Q_TIME_MS;
 
   const pkm = node.enemyPkm!;
   const stats = getEnemyStats(pkm, run.floor);
@@ -569,6 +778,20 @@ export function startBattleOn(
   run.enemyBlock = 0;
   run.enemyBaseDamage = stats.dmg;
   run.enemyCaptureRate = stats.captureRate;
+
+  // 精英词缀
+  run.enemyAffix = rollAffixes(node.type, run.loop);
+  run.affixSwiftDone = false;
+  run.affixRevived = false;
+  if (run.enemyAffix.includes("rage")) {
+    run.enemyBaseDamage = Math.floor(run.enemyBaseDamage * 1.3);
+  }
+  if (run.enemyAffix.includes("thick")) {
+    run.enemyBlock = 30;
+  }
+
+  // Boss 机制:战斗开始钩子(记录初始攻击等)
+  getBossMechanic(pkm.id)?.onBattleStart?.(run);
 
   run.drawPile = shuffle(run.deck);
   run.discardPile = [];

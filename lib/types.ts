@@ -74,7 +74,14 @@ export type MapNode = {
   rewards: { gold: number; cardChoices: number };
 };
 
-export type EnemyIntent = { damage: number; type: "attack" };
+export type EnemyIntentType = "attack" | "guard" | "multi" | "charge";
+
+export type EnemyIntent = {
+  damage: number;
+  type: EnemyIntentType;
+  /** guard 意图的格挡量 */
+  block?: number;
+};
 
 export type EnemyStatus = { type: StatusType; turns: number };
 
@@ -102,6 +109,14 @@ export type MetaState = {
   storyCleared: number;
   /** 已遭遇的魔物 id 集(图鉴用,跨局) */
   seenMonsters: Record<string, boolean>;
+  /** 已收服(净化)的魔物 id 集(图鉴用,跨局) */
+  caughtMonsters: Record<string, boolean>;
+  /** 已解锁成就 id 集 */
+  achievements: Record<string, boolean>;
+  /** BGM 音量 0-1 */
+  bgmVol: number;
+  /** 音效音量 0-1 */
+  sfxVol: number;
 };
 
 /* ============ Run(单局,持久化到 dungeonDrive_save) ============ */
@@ -159,6 +174,22 @@ export type RunState = {
   enemyAtkMult: number;
   playerDmgMult: number;
   playerDefMult: number;
+  /** 敌方减伤剩余回合(0 = 无减益;回合结束递减,归零时 enemyAtkMult 恢复 1) */
+  enemyWeakTurns: number;
+  /** 敌方蓄力倍率(charge 意图设定,下次攻击结算后归 1) */
+  enemyChargeMul: number;
+  /** 精英词缀列表 */
+  enemyAffix: string[];
+  /** 词缀·迅捷:本场额外攻击是否已消耗 */
+  affixSwiftDone: boolean;
+  /** 词缀·复苏:是否已复活过 */
+  affixRevived: boolean;
+  /** Boss 专属机制运行时变量(每场战斗重置) */
+  bossVars: Record<string, number>;
+  /** 本题答题时限(毫秒;默认 60000,迷雾 Boss 可缩短) */
+  qTimeLimit: number;
+  /** 本章是否受过伤(成就·无伤传说用) */
+  chapterDamaged: boolean;
   currentQ: Question | null;
   questionAnswered: boolean;
   cardPlayedThisTurn: boolean;
@@ -184,6 +215,7 @@ export type ScreenId =
   | "study"
   | "exam"
   | "wrong"
+  | "achievements"
   | "over";
 
 /* ============ UI 状态 ============ */
@@ -195,6 +227,7 @@ export type ModalState =
   | { kind: "event"; eventId: string }
   | { kind: "confirm"; title: string; message: string; okText: string; cancelText: string }
   | { kind: "pkmDetail"; id: number }
+  | { kind: "removeCard" }
   | null;
 
 /* ============ 考试 ============ */

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./cards.css";
 import "./art.css";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -29,7 +30,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
-      <body>{children}</body>
+      <body>
+        {children}
+        <ServiceWorkerRegister />
+      </body>
     </html>
   );
 }

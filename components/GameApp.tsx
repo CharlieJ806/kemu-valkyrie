@@ -19,6 +19,7 @@ import SettingsScreen from "./screens/SettingsScreen";
 import StudyScreen from "./screens/StudyScreen";
 import ExamScreen from "./screens/ExamScreen";
 import WrongScreen from "./screens/WrongScreen";
+import AchievementsScreen from "./screens/AchievementsScreen";
 import OverScreen from "./screens/OverScreen";
 import Modal from "./ui/Modal";
 import Toast from "./ui/Toast";
@@ -51,8 +52,9 @@ export default function GameApp() {
 
   useEffect(() => {
     if (!hydrated) return;
-    AudioEngine.setSfxVol(meta.soundEnabled ? 0.8 : 0);
-  }, [hydrated, meta.soundEnabled]);
+    AudioEngine.setBgmVol(meta.soundEnabled ? meta.bgmVol : 0);
+    AudioEngine.setSfxVol(meta.soundEnabled ? meta.sfxVol : 0);
+  }, [hydrated, meta.soundEnabled, meta.bgmVol, meta.sfxVol]);
 
   // 首触解锁音频
   useEffect(() => {
@@ -156,6 +158,7 @@ export default function GameApp() {
         {screen === "study" && <StudyScreen />}
         {screen === "exam" && <ExamScreen />}
         {screen === "wrong" && <WrongScreen />}
+        {screen === "achievements" && <AchievementsScreen />}
         {screen === "over" && <OverScreen />}
       </div>
       <div
