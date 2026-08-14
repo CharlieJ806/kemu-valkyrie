@@ -54,10 +54,10 @@ const M: Record<number, BossMechanic> = {
     },
   },
 
-  /* 3 章 · 迷雾之夜:隐藏意图;每 3 回合下一题限时缩短为 30 秒 */
+  /* 3 章 · 迷雾之夜:隐藏意图;每 3 回合下一题限时缩短为 10 秒 */
   119: {
     name: "雾夜迷雾",
-    desc: "隐藏攻击伤害;每 3 回合下一题限时 30 秒",
+    desc: "隐藏攻击伤害;每 3 回合下一题限时 10 秒",
     hideIntent: true,
     onPlayerTurnStart: (run) => {
       run.bossVars.turn = (run.bossVars.turn || 0) + 1;

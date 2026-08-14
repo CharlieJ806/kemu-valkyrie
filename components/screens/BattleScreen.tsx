@@ -70,8 +70,9 @@ function QuestionTimer({
   }, [qKey]);
 
   if (!qKey) return null;
+  const low = remain <= Math.min(5000, limit * 0.3);
   return (
-    <div className={`battle-timer ${remain <= 10000 ? "low" : ""}`}>
+    <div className={`battle-timer ${low ? "low" : ""}`}>
       <div
         className="battle-timer-fill"
         style={{

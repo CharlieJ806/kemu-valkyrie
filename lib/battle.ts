@@ -298,7 +298,7 @@ export function startTurn(run: RunState, allQuestions: Question[]): void {
   // Boss 机制:玩家回合开始钩子(雾隐/信号干扰/路障/迷雾限时)
   if (run.enemyPkm) getBossMechanic(run.enemyPkm.id)?.onPlayerTurnStart?.(run);
 
-  // 答题限时:默认 60 秒;迷雾 Boss 的迷障回合缩短为 30 秒
+  // 答题限时:默认 15 秒;迷雾 Boss 的迷障回合缩短为 10 秒
   run.qTimeLimit = run.bossVars.fog ? FOG_Q_TIME_MS : BATTLE_Q_TIME_MS;
   run.bossVars.fog = 0;
 

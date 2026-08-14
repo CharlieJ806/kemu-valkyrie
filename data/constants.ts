@@ -82,9 +82,9 @@ export const EXAM_PASS_LINE = 90; // 90 分合格
 /* ============ 战斗 v2 常量 ============ */
 
 /** 答题限时(毫秒) */
-export const BATTLE_Q_TIME_MS = 60_000;
+export const BATTLE_Q_TIME_MS = 15_000;
 /** 迷雾 Boss 缩短后的答题限时 */
-export const FOG_Q_TIME_MS = 30_000;
+export const FOG_Q_TIME_MS = 10_000;
 /** 敌方减伤下限(总削减不超过 60%) */
 export const ENEMY_WEAK_FLOOR = 0.4;
 /** 敌方减伤持续回合数(重复施加刷新) */

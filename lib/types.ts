@@ -186,7 +186,7 @@ export type RunState = {
   affixRevived: boolean;
   /** Boss 专属机制运行时变量(每场战斗重置) */
   bossVars: Record<string, number>;
-  /** 本题答题时限(毫秒;默认 60000,迷雾 Boss 可缩短) */
+  /** 本题答题时限(毫秒;默认 15000,迷雾 Boss 缩短为 10000) */
   qTimeLimit: number;
   /** 本章是否受过伤(成就·无伤传说用) */
   chapterDamaged: boolean;

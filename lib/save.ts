@@ -223,7 +223,7 @@ export function loadRun(): RunState | null {
       affixSwiftDone: !!d.affixSwiftDone,
       affixRevived: !!d.affixRevived,
       bossVars: d.bossVars && typeof d.bossVars === "object" ? d.bossVars : {},
-      qTimeLimit: typeof d.qTimeLimit === "number" ? d.qTimeLimit : 60000,
+      qTimeLimit: typeof d.qTimeLimit === "number" ? d.qTimeLimit : 15000,
       chapterDamaged: !!d.chapterDamaged,
       currentQ: d.currentQ || null,
       questionAnswered: !!d.questionAnswered,
