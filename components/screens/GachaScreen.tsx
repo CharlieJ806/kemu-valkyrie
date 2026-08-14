@@ -32,7 +32,7 @@ export default function GachaScreen() {
           >
             ← 返回
           </button>
-          <div style={{ fontWeight: 800 }}>🎴 技能补给箱</div>
+          <div style={{ fontWeight: 800, flex: 1, textAlign: "center" }}>🎴 技能补给箱</div>
         </div>
 
         <div className="set-row">

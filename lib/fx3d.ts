@@ -10,13 +10,6 @@ export type AttackOpts = {
   crit?: boolean;
 };
 
-export type CaptureSeq = {
-  result?: boolean;
-  onAbsorbed?: () => void;
-  onShake?: (n: number) => void;
-  onResult?: (success: boolean) => void;
-};
-
 type Tween = {
   dur: number;
   t: number;
@@ -77,7 +70,6 @@ type SceneState = {
   camera: THREE.PerspectiveCamera | null;
   player: PokeGroup | null;
   enemy: PokeGroup | null;
-  ball: THREE.Mesh | null;
   playerAura: THREE.Sprite | null;
   enemyAura: THREE.Sprite | null;
   playerId: number;
@@ -98,6 +90,8 @@ type SceneState = {
   arenaColor: number;
   camY: number;
   onResize: (() => void) | null;
+  decoLight: THREE.Sprite | null;
+  decoCones: THREE.Sprite[];
 };
 
 const S: SceneState = {
@@ -108,7 +102,6 @@ const S: SceneState = {
   camera: null,
   player: null,
   enemy: null,
-  ball: null,
   playerAura: null,
   enemyAura: null,
   playerId: 0,
@@ -129,6 +122,8 @@ const S: SceneState = {
   arenaColor: 0x00f0ff,
   camY: 1.9,
   onResize: null,
+  decoLight: null,
+  decoCones: [],
 };
 
 let glowTex: THREE.CanvasTexture | null = null;
@@ -147,42 +142,68 @@ function makeGlowTexture(): THREE.CanvasTexture {
   return new THREE.CanvasTexture(c);
 }
 
-function makeFloorTexture(): THREE.CanvasTexture {
+/** 道路地面:浅沥青路面 + 黄色中央虚线 + 白色边缘实线(科目一考场风) */
+function makeRoadTexture(): THREE.CanvasTexture {
   const c = document.createElement("canvas");
-  c.width = c.height = 256;
+  c.width = c.height = 1024;
   const g = c.getContext("2d")!;
-  g.fillStyle = "#0a0f1e";
-  g.fillRect(0, 0, 256, 256);
-  g.strokeStyle = "rgba(0,240,255,0.35)";
-  g.lineWidth = 2;
-  for (let i = 0; i <= 8; i++) {
-    g.beginPath();
-    g.moveTo(i * 32, 0);
-    g.lineTo(i * 32, 256);
-    g.stroke();
-    g.beginPath();
-    g.moveTo(0, i * 32);
-    g.lineTo(256, i * 32);
-    g.stroke();
-  }
+  // 浅色人行道底
+  g.fillStyle = "#dfe6ea";
+  g.fillRect(0, 0, 1024, 1024);
+  // 横向路面带
+  const top = 1024 * 0.35;
+  const h = 1024 * 0.3;
+  g.fillStyle = "#b6c1cb";
+  g.fillRect(0, top, 1024, h);
+  // 路肩阴影
+  g.fillStyle = "#9aa8b4";
+  g.fillRect(0, top, 1024, 10);
+  g.fillRect(0, top + h - 10, 1024, 10);
+  // 中央黄色虚线
+  g.fillStyle = "#eec14f";
+  const cy = top + h / 2 - 5;
+  for (let x = 0; x < 1024; x += 96) g.fillRect(x, cy, 56, 10);
+  // 两侧白色边缘实线
+  g.fillStyle = "#ffffff";
+  g.fillRect(0, top + 22, 1024, 8);
+  g.fillRect(0, top + h - 30, 1024, 8);
   const t = new THREE.CanvasTexture(c);
-  t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  t.repeat.set(6, 6);
+  t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
   return t;
 }
 
-function makeBallTexture(): THREE.CanvasTexture {
+/** 黄黑警戒斜纹(战斗站位圈,替代纯色圆环) */
+function makeHazardTexture(): THREE.CanvasTexture {
   const c = document.createElement("canvas");
-  c.width = 64;
-  c.height = 32;
+  c.width = c.height = 256;
   const g = c.getContext("2d")!;
-  g.fillStyle = "#e33";
-  g.fillRect(0, 0, 64, 14);
-  g.fillStyle = "#111";
-  g.fillRect(0, 14, 64, 4);
-  g.fillStyle = "#eee";
-  g.fillRect(0, 18, 64, 14);
+  g.clearRect(0, 0, 256, 256);
+  g.save();
+  g.translate(128, 128);
+  g.rotate(-Math.PI / 4);
+  const w = 40;
+  for (let i = -4; i < 9; i++) {
+    g.fillStyle = i % 2 === 0 ? "#ffd23f" : "#40404c";
+    g.fillRect(-256, i * w, 512, w);
+  }
+  g.restore();
   return new THREE.CanvasTexture(c);
+}
+
+/** 街景装饰立牌(复用游戏自带像素素材:红绿灯 / 路锥) */
+function makeDecoSprite(src: string, w: number, h: number, opacity = 1): THREE.Sprite {
+  const tex = new THREE.TextureLoader().load(src);
+  tex.magFilter = THREE.NearestFilter;
+  tex.minFilter = THREE.NearestFilter;
+  const mat = new THREE.SpriteMaterial({
+    map: tex,
+    transparent: true,
+    depthWrite: false,
+    opacity,
+  });
+  const sp = new THREE.Sprite(mat);
+  sp.scale.set(w, h, 1);
+  return sp;
 }
 
 function spriteTexture(id: number | string): THREE.Texture {
@@ -484,37 +505,42 @@ function init(canvas: HTMLCanvasElement): boolean {
 
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(24, 24),
-      new THREE.MeshBasicMaterial({ map: makeFloorTexture(), transparent: true, opacity: 0.22 }),
+      new THREE.MeshBasicMaterial({ map: makeRoadTexture() }),
     );
     floor.rotation.x = -Math.PI / 2;
     S.scene.add(floor);
     S.floorMat = floor.material as THREE.MeshBasicMaterial;
 
     const ringGeo = new THREE.RingGeometry(0.55, 0.68, 40);
-    const mkRing = (color: number, x: number, z: number) => {
+    const mkRing = (x: number, z: number) => {
       const r = new THREE.Mesh(
         ringGeo,
         new THREE.MeshBasicMaterial({
-          color,
+          map: makeHazardTexture(),
           transparent: true,
-          opacity: 0.7,
+          opacity: 0.9,
           side: THREE.DoubleSide,
+          depthWrite: false,
         }),
       );
       r.rotation.x = -Math.PI / 2;
-      r.position.set(x, 0.015, z);
+      r.position.set(x, 0.02, z);
       S.scene!.add(r);
       return r;
     };
-    S.playerRing = mkRing(0x00ff88, -0.95, 1.0);
-    S.enemyRing = mkRing(0x00f0ff, 0.95, -0.3);
+    S.playerRing = mkRing(-0.95, 1.0);
+    S.enemyRing = mkRing(0.95, -0.3);
 
-    S.ball = new THREE.Mesh(
-      new THREE.SphereGeometry(0.17, 20, 14),
-      new THREE.MeshBasicMaterial({ map: makeBallTexture() }),
-    );
-    S.ball.visible = false;
-    S.scene.add(S.ball);
+    // 街景装饰:红绿灯 + 路锥(复用游戏自带像素素材)
+    S.decoLight = makeDecoSprite("/art/deco-traffic-light.webp", 0.42, 1.45, 0.85);
+    S.decoLight.position.set(3.2, 0.72, -2.4);
+    S.scene.add(S.decoLight);
+    S.decoCones = [-2.0, -1.2, -0.4].map((z) => {
+      const cone = makeDecoSprite("/art/deco-cone.webp", 0.44, 0.54, 0.75);
+      cone.position.set(-3.1, 0.27, z);
+      S.scene.add(cone);
+      return cone;
+    });
 
     initParticles();
     initDust();
@@ -621,7 +647,7 @@ function setEnemy(
   S.enemyAura = makeAura(color, isBoss ? 2.6 : 1.9);
   S.enemyAura.position.set(0.95, 0.76 * scale, -0.44);
   S.scene.add(S.enemyAura);
-  (S.enemyRing.material as THREE.MeshBasicMaterial).color.setHex(color);
+  // 站位圈保持黄黑斜纹;稀有度颜色由光环与轮廓光体现
   S.rimLight.color.setHex(color);
   S.arenaColor = color;
   if (S.dust) (S.dust.material as THREE.PointsMaterial).color.setHex(color);
@@ -758,6 +784,9 @@ function ko(side: BattleSide, done?: () => void): void {
   }
   const p = { x: g.position.x, y: 0.5, z: g.position.z };
   burst(p, 0x8888aa, 50, 1.5, 1.2, -2);
+  // 违章罚单纸片:白纸 + 红印飞散
+  burst(p, 0xffffff, 26, 1.3, 1.0, -1.6);
+  burst(p, 0xff5f6d, 16, 1.7, 0.8, -2);
   const plane = g.userData.plane;
   const mat = plane.material as THREE.MeshBasicMaterial;
   tween({
@@ -771,115 +800,6 @@ function ko(side: BattleSide, done?: () => void): void {
       done?.();
     },
   });
-}
-
-function capture(seq: CaptureSeq = {}): void {
-  if (!S.ok || !S.ball || !S.scene) {
-    seq.onResult?.(!!seq.result);
-    return;
-  }
-  const tp = S.enemy ? S.enemy.position : { x: 0.95, y: 0, z: -0.3 };
-  const scale = S.enemy ? S.enemy.scale.x : 1;
-  const color = S.enemyAura ? S.enemyAura.material.color.getHex() : 0x00f0ff;
-  S.ball.visible = true;
-  S.ball.position.set(-0.95, 1.4, 1.0);
-  S.ball.rotation.set(0, 0, 0);
-
-  const dropAndShake = () => {
-    if (!S.ball) return;
-    tween({
-      dur: 0.35,
-      update(k) {
-        if (!S.ball) return;
-        S.ball.position.y =
-          1.4 - 1.0 - 0.4 * easeIn(k) + Math.abs(Math.sin(k * Math.PI * 2)) * 0.12 * (1 - k);
-        S.ball.position.x = tp.x;
-        S.ball.position.z = tp.z;
-      },
-      done() {
-        if (!S.ball) return;
-        S.ball.position.y = 0.17;
-        let n = 0;
-        const shakeOnce = () => {
-          n++;
-          seq.onShake?.(n);
-          tween({
-            dur: 0.5,
-            update(k) {
-              if (!S.ball) return;
-              S.ball.rotation.z = Math.sin(k * Math.PI * 4) * 0.5 * (1 - k * 0.5);
-            },
-            done() {
-              if (n < 3) setTimeout(shakeOnce, 250);
-              else
-                setTimeout(() => {
-                  const success = !!seq.result;
-                  if (success) {
-                    if (S.ball) {
-                      burst(S.ball.position, 0xffd700, 70, 2.4, 1.1, -2);
-                      burst(S.ball.position, 0xff3355, 30, 1.6, 0.9, -2);
-                    }
-                    S.shakePower = 0.12;
-                  } else {
-                    if (S.ball) S.ball.visible = false;
-                    if (S.enemy) {
-                      S.enemy.visible = true;
-                      spawnIn(S.enemy, tp.x, tp.z, color);
-                    }
-                    burst({ x: tp.x, y: 0.8, z: tp.z }, color, 40, 2, 0.8, -2);
-                  }
-                  seq.onResult?.(success);
-                }, 350);
-            },
-          });
-        };
-        setTimeout(shakeOnce, 400);
-      },
-    });
-  };
-
-  tween({
-    dur: 0.55,
-    update(k) {
-      if (!S.ball) return;
-      const e = k;
-      S.ball.position.x = -0.95 + (tp.x + 0.95) * e;
-      S.ball.position.z = 1.0 + (tp.z - 1.0) * e;
-      S.ball.position.y = 1.4 - 1.0 * e + Math.sin(k * Math.PI) * 0.8;
-      S.ball.rotation.x += 0.3;
-    },
-    done() {
-      burst({ x: tp.x, y: 0.8, z: tp.z }, 0xff3355, 40, 1.8, 0.6, -1);
-      if (S.enemy) {
-        const plane = S.enemy.userData.plane;
-        const mat = plane.material as THREE.MeshBasicMaterial;
-        tween({
-          dur: 0.3,
-          update(k) {
-            if (!S.enemy) return;
-            S.enemy.scale.setScalar(Math.max(0.01, scale * (1 - k)));
-            mat.opacity = 1 - k;
-          },
-          done() {
-            if (S.enemy) {
-              S.enemy.visible = false;
-              mat.opacity = 1;
-              S.enemy.scale.setScalar(scale);
-            }
-            seq.onAbsorbed?.();
-            dropAndShake();
-          },
-        });
-      } else {
-        seq.onAbsorbed?.();
-        dropAndShake();
-      }
-    },
-  });
-}
-
-function endCapture(hideBall?: boolean): void {
-  if (hideBall !== false && S.ball) S.ball.visible = false;
 }
 
 function setRunning(v: boolean): void {
@@ -935,7 +855,8 @@ function dispose(): void {
   }
   S.scene = null;
   S.camera = null;
-  S.ball = null;
+  S.decoLight = null;
+  S.decoCones = [];
   S.particles = null;
   S.pGeo = null;
   S.pData = [];
@@ -962,8 +883,6 @@ export const BattleFX = {
   ko,
   /** alias of ko */
   faint: ko,
-  capture,
-  endCapture,
   setRunning,
   resize,
   dispose,

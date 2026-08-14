@@ -45,7 +45,7 @@ body{
   text-shadow:none;
 }
 .btn-mini{
-  display:inline-block;width:auto;padding:7px 12px;font-size:13px;letter-spacing:1px;border-radius:10px;white-space:nowrap;
+  display:inline-block;width:auto;padding:8px 14px;min-height:34px;font-size:13px;letter-spacing:1px;border-radius:10px;white-space:nowrap;
   border:1px solid var(--line);background:linear-gradient(180deg,var(--panel2),var(--panel));
   color:var(--txt);font-weight:600;cursor:pointer;font-family:inherit;
   transition:transform .12s,filter .12s;vertical-align:middle;
@@ -53,7 +53,7 @@ body{
 .btn-mini:active{transform:scale(.95);filter:brightness(1.2)}
 .btn-mini:hover{border-color:var(--cyan)}
 .btn-danger{border-color:var(--red);color:#c81f4e;background:rgba(255,61,104,.08);font-weight:700}
-.btn:disabled{opacity:.45;pointer-events:none}
+.btn:disabled,.btn-mini:disabled,.btn-ghost:disabled,.chip:disabled{opacity:.45;pointer-events:none;filter:grayscale(.35)}
 .btn:hover{border-color:var(--cyan);filter:brightness(1.04)}
 .btn-primary:hover{filter:brightness(1.07)}
 .chip{
@@ -76,7 +76,7 @@ body{
 @keyframes gridMove{from{background-position:0 0,0 0}to{background-position:0 44px,0 0}}
 .title-glow{position:absolute;left:50%;top:30%;width:70vmin;height:70vmin;transform:translate(-50%,-50%);
   background:radial-gradient(circle,rgba(255,143,174,.16),transparent 60%)}
-.title-inner{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:18px;width:min(92vw,420px);max-height:100%;padding:20px 0 calc(20px + var(--safe-b))}
+.title-inner{position:relative;z-index:2;display:flex;flex-direction:column;align-items:stretch;gap:18px;width:min(92vw,420px);max-height:100%;padding:20px 0 calc(20px + var(--safe-b))}
 .title-logo .logo-top{
   font-size:min(13vw,60px);font-weight:900;letter-spacing:6px;line-height:1;
   background:linear-gradient(180deg,#ff9db4,#ff6b81 48%,#d84a6e);
@@ -92,7 +92,7 @@ body{
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .menu{display:flex;flex-direction:column;gap:12px;width:100%}
-.title-stats{font-size:12px;color:var(--dim);display:flex;gap:16px;justify-content:center}
+.title-stats{font-size:12px;color:var(--dim);display:flex;gap:8px 16px;justify-content:center;flex-wrap:wrap}
 .title-team{display:flex;align-items:center;justify-content:center;gap:10px;font-size:13px;color:var(--dim);flex-wrap:wrap}
 .title-team-poke{display:inline-flex;align-items:center;gap:5px;padding:3px 10px 3px 5px;border:1px solid var(--line);border-radius:20px;background:var(--panel)}
 .title-team-poke img{width:24px;height:30px;object-fit:contain}
@@ -374,6 +374,13 @@ body{
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* 剧情对白期间:toast 移到顶部,避免挡住底部对话框 */
+#app:has(#scr-story.active) #toast{
+  top:calc(58px + var(--safe-t));bottom:auto;
+  transform:translateX(-50%) translateY(-16px);
+}
+#app:has(#scr-story.active) #toast.show{transform:translateX(-50%) translateY(0)}
+
 /* ---------- 桌面端优化 ---------- */
 @media (min-width:768px){
   .battle-panel{max-width:640px;width:100%;margin:0 auto;border-left:1px solid var(--line);border-right:1px solid var(--line)}
@@ -388,3 +395,27 @@ body{
   .menu{gap:8px}
   .btn{padding:11px 20px}
 }
+
+/* ---------- 键盘可达性 & 细节打磨 ---------- */
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{
+  outline:2px solid var(--cyan);outline-offset:2px;
+}
+/* 自定义滚动条:浅色细圆角,贴合整体画风 */
+*{scrollbar-width:thin;scrollbar-color:rgba(168,135,142,.4) transparent}
+*::-webkit-scrollbar{width:9px;height:9px}
+*::-webkit-scrollbar-thumb{background:rgba(168,135,142,.35);border-radius:9px;border:2px solid transparent;background-clip:content-box}
+*::-webkit-scrollbar-thumb:hover{background:rgba(168,135,142,.6);background-clip:content-box}
+*::-webkit-scrollbar-track{background:transparent}
+
+/* ---------- 启动加载动画 ---------- */
+.load-ring{
+  width:46px;height:46px;margin:6px auto 0;border-radius:50%;
+  border:4px solid var(--line);
+  border-top-color:var(--cyan);border-right-color:#ff8fae;
+  animation:loadSpin .85s linear infinite;
+  box-shadow:0 0 16px rgba(87,199,167,.35);
+}
+@keyframes loadSpin{to{transform:rotate(360deg)}}
+.load-text{font-size:13px;color:var(--dim);letter-spacing:3px;text-align:center}
+.load-text::after{content:"…";display:inline-block;animation:loadBlink 1.2s ease-in-out infinite}
+@keyframes loadBlink{0%,100%{opacity:.25}50%{opacity:1}}

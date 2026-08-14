@@ -47,7 +47,7 @@ export default function WrongScreen() {
     if (active.length === 0) {
       return (
         <section className="screen active" id="scr-wrong">
-          <div className="title-inner">
+          <div className="title-inner center">
             <div className="over-title win">🎉 错题全部清空！</div>
             <button className="btn btn-primary" onClick={() => setPractice(false)}>
               返回错题本
@@ -73,7 +73,7 @@ export default function WrongScreen() {
           >
             ← 返回
           </button>
-          <div style={{ fontWeight: 800 }}>❌ 错题本 ({wrongList.length})</div>
+          <div style={{ fontWeight: 800, flex: 1, textAlign: "center" }}>❌ 错题本 ({wrongList.length})</div>
           <button
             className="btn-mini"
             disabled={practiceQs.length === 0}
@@ -146,7 +146,7 @@ function PracticeSession({ qs, onDone }: { qs: Question[]; onDone: () => void })
   if (!q) {
     return (
       <section className="screen active" id="scr-wrong">
-        <div className="title-inner">
+        <div className="title-inner center">
           <div className="over-title win">🎉 错题全部清空！</div>
           <button className="btn btn-primary" onClick={onDone}>
             返回错题本

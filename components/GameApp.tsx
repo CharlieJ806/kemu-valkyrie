@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useGameStore } from "@/lib/store";
 import { AudioEngine } from "@/lib/audio";
 import { domBurst } from "@/lib/dom-fx";
@@ -31,6 +31,7 @@ export default function GameApp() {
   const gameOver = useGameStore((s) => s.gameOver);
   const run = useGameStore((s) => s.run);
   const overSfxDone = useRef(false);
+  const [minLoadDone, setMinLoadDone] = useState(false);
 
   // 章节场景背景:地图/战斗/剧情/结算屏按当前章节换背景图
   const chapter = run?.chapter ?? 0;
@@ -41,6 +42,12 @@ export default function GameApp() {
   useEffect(() => {
     hydrate();
   }, [hydrate]);
+
+  // 启动加载动画:至少展示一小段时间,避免一闪而过
+  useEffect(() => {
+    const t = setTimeout(() => setMinLoadDone(true), 650);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -112,7 +119,7 @@ export default function GameApp() {
     }
   }, [screen, gameOver]);
 
-  if (!hydrated) {
+  if (!hydrated || !minLoadDone) {
     return (
       <div id="app">
         <div id="shake-wrap">
@@ -122,6 +129,8 @@ export default function GameApp() {
                 <div className="logo-top">驾考女武神</div>
                 <div className="logo-sub">交规里世界净化战</div>
               </div>
+              <div className="load-ring" aria-hidden="true" />
+              <div className="load-text">加载中</div>
             </div>
           </section>
         </div>

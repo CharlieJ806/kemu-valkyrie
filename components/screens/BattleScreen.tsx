@@ -156,9 +156,8 @@ export default function BattleScreen() {
     };
   }, []);
 
-  // 3D 战斗场景初始化(学员入场/攻击/受击/倒下/投球捕获动画)
-  // 生命周期 = 组件挂载/卸载(每场战斗重新挂载);捕获弹窗期间组件保持渲染,
-  // 投球动画播完(screen 切回 map)组件卸载才 dispose。
+  // 3D 战斗场景初始化(学员入场/攻击/受击/倒下动画;街景:道路/红绿灯/路锥)
+  // 生命周期 = 组件挂载/卸载(每场战斗重新挂载)。
   useEffect(() => {
     const canvas = fxCanvasRef.current;
     if (!canvas) return;
@@ -463,7 +462,7 @@ export default function BattleScreen() {
         {handCards.length === 0 && run.turnPhase === "card" ? (
           <div
             style={{
-              color: "var(--text2)",
+              color: "var(--dim)",
               fontSize: 10,
               textAlign: "center",
               width: "100%",

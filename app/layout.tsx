@@ -16,6 +16,10 @@ export const metadata: Metadata = {
   title: "驾考女武神",
   description: "交规里世界净化战！答题·组牌·点火觉醒的科目一卡牌肉鸽",
   manifest: "/manifest.json",
+  icons: {
+    icon: [{ url: "/icon.png", type: "image/png" }, { url: "/favicon.ico" }],
+    apple: "/apple-icon.png",
+  },
 };
 
 export default function RootLayout({

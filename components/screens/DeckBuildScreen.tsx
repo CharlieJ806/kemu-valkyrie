@@ -53,7 +53,7 @@ export default function DeckBuildScreen() {
           >
             ← 返回
           </button>
-          <div style={{ fontWeight: 800 }}>
+          <div style={{ fontWeight: 800, flex: 1, textAlign: "center" }}>
             构建牌组 {built.length}/{DECK_MAX}
           </div>
           <button

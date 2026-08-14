@@ -1,12 +1,14 @@
 /* ============ 卡牌版扩展样式(迁移自 standalone css) ============ */
 .btn-ghost{
-  display:inline-block;padding:10px 16px;border-radius:12px;font-size:14px;letter-spacing:1px;
+  display:inline-block;width:auto;flex:0 0 auto;padding:10px 16px;border-radius:12px;font-size:14px;letter-spacing:1px;
   border:1px solid var(--line);background:rgba(255,255,255,.55);color:var(--dim);
   font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;
   transition:transform .12s,color .12s,border-color .12s;vertical-align:middle;
 }
 .btn-ghost:hover{color:var(--txt);border-color:var(--dim)}
 .btn-ghost:active{transform:scale(.96)}
+/* 弹窗内 ghost 按钮保持整行(关闭/跳过等) */
+.modal .btn-ghost{display:block;width:100%}
 .btn-mini.empty{opacity:.45}
 .search-input{flex:1;padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--txt);font-size:14px;outline:none;min-width:0}
 .search-input:focus{border-color:var(--cyan)}
@@ -14,6 +16,7 @@
 /* 菜单屏滚动:title-inner 占满屏幕,内容多时可滚动;标题屏保持居中 */
 .title-inner{flex:1;min-height:0;overflow-y:auto;margin-left:auto;margin-right:auto}
 #scr-title .title-inner{justify-content:center}
+.title-inner.center{text-align:center}
 /* PC 端横屏满屏:各屏宽度上限放宽,充分利用宽屏 */
 #scr-dex .title-inner{width:min(96vw,900px)} /* 名册:移动端 96vw,桌面被下方 @media 覆盖 */
 @media (min-width:768px){
@@ -23,15 +26,12 @@
   #scr-battle > *{max-width:min(96vw,1600px);width:100%;margin-left:auto;margin-right:auto}
   .shop-list,.rest-list{max-width:min(96vw,1200px)}  /* 商店/营地 */
 }
-/* title-inner 的 align-items:center 会让 flex 子项收缩到内容宽度,
-   需要撑满的容器必须显式 width:100%(否则 grid 塌成一列) */
-.dex-grid,.dex-filter,.bank-list,.deck-pool,.deck-active,.exam-grid,.study-cards,.gacha-result,.title-menu,.title-menu-extra,.set-card,.rest-card,.over-btns,
-.set-row,.set-note,.bank-pagination,.dex-progress,.over-stats{width:100%}
+
 /* 名册稀有度标签 */
 .dc-rarity{font-size:9px;color:var(--dim)}
 /* 战斗精灵与信息区 */
 /* 3D 战斗场景:固定高度、不透明实心舞台(上浅下深:天空→地面) */
-#scr-battle .battle-stage{flex:none;height:min(54vh,520px)}
+#scr-battle .battle-stage{flex:none;height:min(54vh,520px);display:flex;flex-direction:column}
 @media (max-height:640px){
   #scr-battle .battle-stage{height:min(44vh,360px)}
 }
@@ -40,6 +40,8 @@
   background:linear-gradient(180deg,#cfe6f8 0%,#e9f5fe 36%,#a9cfe8 72%,#7fb5dd 100%);
 }
 .battle-stage.fx-3d > *{position:relative;z-index:1}
+/* 经典对战布局:敌方信息置顶,队伍槽+我方信息置底 */
+.battle-stage .team-bar{margin-top:auto}
 /* 经典对战布局:敌方信息贴右、我方贴左 */
 .battle-stage.fx-3d .battle-enemy{align-items:flex-end}
 .battle-stage.fx-3d .enemy-info{
@@ -140,7 +142,7 @@
 
 /* ---------- 地图(卡牌版) ---------- */
 .map-inner{flex:1;display:flex;flex-direction:column;min-height:0;position:relative;width:100%}
-.map-topbar{display:flex;align-items:center;gap:8px;padding:calc(8px + var(--safe-t)) 12px 8px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.88)}
+.map-topbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:calc(8px + var(--safe-t)) 12px 8px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.88)}
 .map-floor{font-weight:900;color:var(--cyan);font-size:14px}
 .map-hud{font-size:12px;color:var(--dim);display:flex;gap:8px;flex:1;justify-content:flex-end}
 .map-canvas-wrap{flex:1;position:relative;min-height:0}
@@ -461,4 +463,24 @@
   right: 14px;
   z-index: 4;
   opacity: 0.8;
+}
+
+/* ═══ 战斗控制条 & 短屏适配 ═══ */
+
+/* 底部控制条:补安全区,能量靠左、必杀槽/结束回合靠右 */
+.battle-actions{
+  padding:6px 12px calc(8px + var(--safe-b));
+  align-items:center;
+  gap:10px;
+}
+.energy-display{margin-right:auto;flex:none}
+
+/* 短屏/横屏:压缩答题与手牌区,保证控制条始终可见 */
+@media (max-height:640px){
+  .hand-area{min-height:84px;padding:8px 10px}
+  .battle-q-area{padding:8px 10px;gap:6px}
+  .battle-q-text{min-height:28px;font-size:14px}
+  .battle-options{gap:6px}
+  .battle-opt-btn{padding:9px 12px;font-size:13px}
+  .battle-actions{padding:4px 10px calc(6px + var(--safe-b))}
 }

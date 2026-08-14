@@ -127,7 +127,7 @@ export default function BankScreen() {
           >
             ← 返回
           </button>
-          <div style={{ fontWeight: 800 }}>题库 ({questionPool.length}题)</div>
+          <div style={{ fontWeight: 800, flex: 1, textAlign: "center" }}>题库 ({questionPool.length}题)</div>
           <button
             className="btn-mini"
             disabled={quizQs.length === 0}

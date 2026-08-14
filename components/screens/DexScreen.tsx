@@ -34,7 +34,19 @@ export default function DexScreen() {
 
   return (
     <section className="screen active" id="scr-dex">
-      <div className="title-inner" style={{ justifyContent: "flex-start", paddingTop: 24 }}>
+      <div className="title-inner" style={{ justifyContent: "flex-start", paddingTop: 16 }}>
+        <div className="set-row">
+          <button
+            className="btn btn-ghost"
+            onClick={() => {
+              AudioEngine.sfx("click");
+              setScreen("title");
+            }}
+          >
+            ← 返回
+          </button>
+          <div style={{ fontWeight: 800, flex: 1, textAlign: "center" }}>📖 学员名册</div>
+        </div>
         <div className="dex-tabs">
           <button className={`chip ${tab === "valk" ? "active" : ""}`} onClick={() => setTab("valk")}>
             学员 {VALKYRIES.length}
@@ -109,6 +121,7 @@ export default function DexScreen() {
                   >
                     <div className="dc-id">#{p.id}</div>
                     <img className="dc-img" src={ICON(p.id)} alt="" />
+                    {!collected && <span className="dc-lock">🔒</span>}
                     <div className="dc-name">
                       {collected ? p.c : "???"}
                       {inTeam ? " ⭐" : ""}
@@ -152,12 +165,8 @@ export default function DexScreen() {
                     }}
                   >
                     <div className="dc-id">#{m.id}</div>
-                    <img
-                      className="dc-img"
-                      src={ICON(m.id)}
-                      alt=""
-                      style={isSeen ? undefined : { filter: "brightness(0)" }}
-                    />
+                    <img className="dc-img" src={ICON(m.id)} alt="" />
+                    {!isSeen && <span className="dc-lock">🔒</span>}
                     <div className="dc-name">{isSeen ? m.c : "???"}</div>
                     {m.boss ? <div className="dc-boss">BOSS</div> : null}
                   </div>
@@ -167,15 +176,6 @@ export default function DexScreen() {
           </>
         )}
 
-        <button
-          className="btn btn-ghost"
-          onClick={() => {
-            AudioEngine.sfx("click");
-            setScreen("title");
-          }}
-        >
-          ← 返回
-        </button>
       </div>
     </section>
   );

@@ -68,7 +68,7 @@ export default function ExamScreen() {
   if (result && session?.done) {
     return (
       <section className="screen active" id="scr-exam">
-        <div className="title-inner">
+        <div className="title-inner center">
           <div className={`over-title ${result.pass ? "win" : ""}`}>
             {result.pass ? "🎉 考试合格！" : "💀 未达合格线"}
           </div>
@@ -230,7 +230,7 @@ export default function ExamScreen() {
   /* ── 开考确认 ── */
   return (
     <section className="screen active" id="scr-exam">
-      <div className="title-inner">
+      <div className="title-inner center">
         <div className="title-logo">
           <div className="logo-top">科目一模拟</div>
           <div className="logo-sub">正式模考</div>

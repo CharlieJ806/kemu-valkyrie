@@ -45,7 +45,7 @@ export default function SettingsScreen() {
           >
             ← 返回
           </button>
-          <div style={{ fontWeight: 800 }}>⚙️ 游戏设置</div>
+          <div style={{ fontWeight: 800, flex: 1, textAlign: "center" }}>⚙️ 游戏设置</div>
         </div>
 
         <div className="set-row">

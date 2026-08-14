@@ -30,7 +30,7 @@ export default function TrainScreen() {
           >
             ← 返回
           </button>
-          <div style={{ fontWeight: 800 }}>🔧 训练营 · 全队特训</div>
+          <div style={{ fontWeight: 800, flex: 1, textAlign: "center" }}>🔧 训练营 · 全队特训</div>
         </div>
 
         <div className="set-row">

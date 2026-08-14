@@ -29,7 +29,7 @@ export default function StudyScreen() {
           >
             ← 返回
           </button>
-          <div style={{ fontWeight: 800 }}>🏫 学习中心</div>
+          <div style={{ fontWeight: 800, flex: 1, textAlign: "center" }}>🏫 学习中心</div>
         </div>
 
         <div className="study-cards">

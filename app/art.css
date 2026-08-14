@@ -5,7 +5,7 @@
    ================================================================ */
 .px-icon{image-rendering:pixelated;display:inline-block;vertical-align:middle;object-fit:contain;flex:0 0 auto}
 
-/* ---------- 按钮(浅色渐变,青色为主色) ---------- */
+/* ---------- 按钮(浅色渐变:粉色主按钮 + 青色强调) ---------- */
 .btn{
   background:linear-gradient(180deg,var(--panel2),var(--panel));
   border:1px solid var(--line);border-radius:12px;
@@ -36,7 +36,7 @@
 .chip{
   border:1px solid var(--line);border-radius:20px;
   background:var(--panel);color:var(--dim);text-shadow:none;
-  padding:6px 12px;
+  padding:8px 14px;min-height:32px;
 }
 .chip.active{
   background:var(--cyan);border-color:var(--cyan);
@@ -141,6 +141,12 @@
 .dex-cell.locked{
   border-color:var(--line);background:var(--panel);
   opacity:.55;cursor:default;box-shadow:none;
+}
+/* 未解锁:黑色剪影 + 锁定图标 */
+.dex-cell.locked .dc-img{filter:brightness(0)}
+.dc-lock{
+  position:absolute;top:5px;right:5px;z-index:1;font-size:13px;
+  filter:drop-shadow(0 1px 2px rgba(40,80,130,.45));pointer-events:none;
 }
 /* 流光扫过(保留动效) */
 .dex-cell::after{
