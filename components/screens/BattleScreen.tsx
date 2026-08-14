@@ -573,11 +573,11 @@ export default function BattleScreen() {
         )}
       </div>
 
-      {/* 手牌(战斗结算期间隐藏) */}
+      {/* 手牌(答题阶段隐藏,出牌阶段显示) */}
       <div
         className="hand-area"
         id="hand-area"
-        
+        style={{ display: run.turnPhase === "question" ? "none" : undefined }}
       >
         {handCards.length === 0 && run.turnPhase === "card" ? (
           <div
