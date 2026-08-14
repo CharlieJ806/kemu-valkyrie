@@ -239,6 +239,10 @@ export type ExamSession = {
   marked: boolean[];
   timeLeft: number;
   done: boolean;
+  /** 实时得分:100 起,每答错一题 -1 */
+  score: number;
+  /** 分数跌破合格线(89)提前终止 */
+  failed: boolean;
 };
 
 export type GameOverInfo = {

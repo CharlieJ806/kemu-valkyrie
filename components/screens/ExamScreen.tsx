@@ -24,8 +24,25 @@ export default function ExamScreen() {
     score: number;
     wrongCount: number;
     pass: boolean;
+    failed: boolean;
+    answered: number;
   } | null>(null);
   const recordedRef = useRef(false);
+
+  const submit = (sess: ExamSession) => {
+    if (recordedRef.current) return;
+    recordedRef.current = true;
+    const { score, wrongIds, correctIds } = gradeExam(sess);
+    recordExamResult(score, wrongIds, correctIds);
+    setResult({
+      score,
+      wrongCount: wrongIds.length,
+      pass: isExamPass(score),
+      failed: sess.failed,
+      answered: sess.picked.filter((p) => p != null).length,
+    });
+    AudioEngine.sfx(isExamPass(score) ? "fanfare" : "defeat");
+  };
 
   // 倒计时(250ms 间隔,线上版行为)
   useEffect(() => {
@@ -46,14 +63,13 @@ export default function ExamScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.done]);
 
-  const submit = (sess: ExamSession) => {
-    if (recordedRef.current) return;
-    recordedRef.current = true;
-    const { score, wrongIds, correctIds } = gradeExam(sess);
-    recordExamResult(score, wrongIds, correctIds);
-    setResult({ score, wrongCount: wrongIds.length, pass: isExamPass(score) });
-    AudioEngine.sfx(isExamPass(score) ? "fanfare" : "defeat");
-  };
+  // 答错扣至 89 分 → 直接不合格并终止本次模拟
+  useEffect(() => {
+    if (session?.done && session.failed && !recordedRef.current) {
+      submit(session);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.done, session?.failed]);
 
   const start = () => {
     const sess = buildExamSession(questionPool);
@@ -70,7 +86,7 @@ export default function ExamScreen() {
       <section className="screen active" id="scr-exam">
         <div className="title-inner center">
           <div className={`over-title ${result.pass ? "win" : ""}`}>
-            {result.pass ? "🎉 考试合格！" : "💀 未达合格线"}
+            {result.pass ? "🎉 考试合格！" : result.failed ? "❌ 考试不合格！" : "💀 未达合格线"}
           </div>
           <div className="over-stats">
             <div className="over-stat">
@@ -80,11 +96,16 @@ export default function ExamScreen() {
               合格线: <b>{EXAM_CONST.PASS_LINE}</b>
             </div>
             <div className="over-stat">
+              已作答: <b>{result.answered}</b> / {session.qs.length}
+            </div>
+            <div className="over-stat">
               错题: <b>{result.wrongCount}</b> 道 (已记入错题本)
             </div>
           </div>
           <div className="over-sub">
-            错题计入错题本 · 本次答对的题自动移出错题本
+            {result.failed
+              ? "错题扣分至 89 分,本次模拟提前终止"
+              : "错题计入错题本 · 本次答对的题自动移出错题本"}
           </div>
           <div className="over-btns">
             <button className="btn btn-primary" onClick={() => setScreen("study")}>
@@ -104,10 +125,16 @@ export default function ExamScreen() {
 
     const pick = (i: number) => {
       setSession((s) => {
-        if (!s || s.done) return s;
+        if (!s || s.done || s.picked[s.idx] !== null) return s; // 选择后不可修改
         const picked2 = [...s.picked];
         picked2[s.idx] = i;
-        return { ...s, picked: picked2 };
+        const wrong = i !== s.qs[s.idx]!.ans;
+        const score = wrong ? s.score - 1 : s.score;
+        // 扣至 89 分:直接不合格,终止本次模拟
+        if (score < EXAM_CONST.PASS_LINE) {
+          return { ...s, picked: picked2, score, done: true, failed: true };
+        }
+        return { ...s, picked: picked2, score };
       });
     };
 
@@ -124,7 +151,10 @@ export default function ExamScreen() {
       setSession((s) => (s ? { ...s, idx: i } : s));
     };
 
-    const submitNow = () => submit(session);
+    const submitNow = () => {
+      setSession((s) => (s ? { ...s, done: true } : s));
+      submit(session);
+    };
 
     return (
       <section className="screen active" id="scr-exam">
@@ -133,7 +163,9 @@ export default function ExamScreen() {
             <div style={{ fontWeight: 800 }}>
               科目一模拟 · {session.idx + 1}/{session.qs.length}
             </div>
-            <div className="exam-timer">⏱ {fmtTime(session.timeLeft)}</div>
+            <div className="exam-timer">
+              {session.score}分 ⏱ {fmtTime(session.timeLeft)}
+            </div>
           </div>
 
           <div className="exam-body">
@@ -153,14 +185,21 @@ export default function ExamScreen() {
                     key={i}
                     className={
                       "battle-opt-btn" +
-                      (picked === i ? (i === q.ans ? " correct" : " wrong") : "")
+                      (picked === i ? (i === q.ans ? " correct" : " wrong") : "") +
+                      (picked !== null ? " disabled" : "")
                     }
+                    disabled={picked !== null}
                     onClick={() => pick(i)}
                   >
                     {opt}
                   </button>
                 ))}
               </div>
+              {picked !== null && (
+                <div style={{ fontSize: 12, color: "var(--dim)", textAlign: "center" }}>
+                  已作答,不可修改 — 选择下一题继续
+                </div>
+              )}
 
               <div className="set-row">
                 <button
@@ -241,7 +280,8 @@ export default function ExamScreen() {
           <div className="over-stat">合格线: {EXAM_CONST.PASS_LINE} 分</div>
         </div>
         <div className="over-sub">
-          错题将计入错题本。可标记存疑题、自由交卷。
+          每题选择后不可修改 · 100 分起答错一题扣 1 分<br />
+          扣至 89 分直接不合格并终止 · 错题计入错题本
         </div>
         <div className="over-btns">
           <button

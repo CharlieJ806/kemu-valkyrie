@@ -19,26 +19,29 @@ export function buildExamSession(pool: Question[]): ExamSession | null {
     marked: Array(qs.length).fill(false),
     timeLeft: EXAM_CONST.TIME_MS,
     done: false,
+    score: 100,
+    failed: false,
   };
 }
 
-/** 判卷:答对数、错题 id 列表(含未答)、答对 id 列表 */
+/** 判卷:100 分起,每答错一题 -1;未作答(提前终止)不计。返回得分/错题/答对列表 */
 export function gradeExam(
   session: ExamSession,
 ): { score: number; wrongIds: string[]; correctIds: string[] } {
   const wrongIds: string[] = [];
   const correctIds: string[] = [];
-  let score = 0;
+  let score = 100;
   session.qs.forEach((q, i) => {
     const picked = session.picked[i];
+    if (picked == null) return; // 未作答(不合格提前终止)不计分也不入错题本
     if (picked === q.ans) {
-      score++;
       correctIds.push(q.id);
     } else {
       wrongIds.push(q.id);
+      score -= 1;
     }
   });
-  return { score, wrongIds, correctIds };
+  return { score: Math.max(0, score), wrongIds, correctIds };
 }
 
 export function isExamPass(score: number): boolean {
