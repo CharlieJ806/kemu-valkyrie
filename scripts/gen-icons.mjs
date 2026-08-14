@@ -3,16 +3,19 @@
  *   app/icon.png       256x256
  *   app/apple-icon.png 180x180
  *   app/favicon.ico    16+32 双帧(PNG-in-ICO)
- * 素材:resource/icon.png(方形源图,居中裁切缩放)。
- * 运行: node scripts/gen-icons.mjs [源图路径(默认 resource/icon.png)]
+ * 素材:resource/icon.png 或 resource/icon.jpg(方形源图,居中裁切缩放)。
+ * 运行: node scripts/gen-icons.mjs [源图路径(默认自动查找 resource/icon.png|jpg)]
  */
 import fs from "node:fs";
 import path from "node:path";
 import sharp from "sharp";
 
-const srcPath = process.argv[2] || "resource/icon.png";
-if (!fs.existsSync(srcPath)) {
-  console.error(`源图不存在: ${srcPath}`);
+const candidates = process.argv[2]
+  ? [process.argv[2]]
+  : ["resource/icon.png", "resource/icon.jpg"];
+const srcPath = candidates.find((p) => fs.existsSync(p));
+if (!srcPath) {
+  console.error(`未找到源图(尝试: ${candidates.join(", ")})`);
   process.exit(1);
 }
 
