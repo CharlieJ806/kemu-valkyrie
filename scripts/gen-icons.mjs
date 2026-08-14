@@ -14,7 +14,7 @@ const TEAL = "#1c7a63";   // 盾徽描边(深薄荷青)
 const CREAM = "#fffdf5";  // 盾徽底(奶油白)
 const PINK = "#ff6b81";   // 中央四芒星(樱粉)
 
-// 16x16 像素网格:徽章盾形 + 中央 7x7 四芒星
+// 16x16 像素网格:徽章盾形 + 中央 8x8 四芒星(偶数尺寸,精确对齐网格中心 7.5)
 const G = 16;
 const grid = Array.from({ length: G }, () => Array(G).fill(null));
 function rect(r0, r1, c0, c1, col) {
@@ -34,19 +34,20 @@ rect(9, 9, 4, 11, CREAM);
 rect(10, 10, 5, 10, CREAM);
 rect(11, 11, 6, 9, CREAM);
 rect(12, 12, 7, 8, CREAM);
-// 四芒星(7x7, 网格行 3-9, 列 4-10):竖臂尖→展→细,中行横贯
+// 四芒星(8x8, 网格行 4-11, 列 4-11, 中心恰为 7.5):竖臂尖→展→细,中两行横贯
 const STAR = [
-  "...#...",
-  "..###..",
-  "...#...",
-  "#######",
-  "...#...",
-  "..###..",
-  "...#...",
+  "...##...",
+  "..####..",
+  "...##...",
+  "########",
+  "########",
+  "...##...",
+  "..####..",
+  "...##...",
 ];
-for (let i = 0; i < 7; i++) {
-  for (let j = 0; j < 7; j++) {
-    if (STAR[i][j] === "#") grid[3 + i][4 + j] = PINK;
+for (let i = 0; i < 8; i++) {
+  for (let j = 0; j < 8; j++) {
+    if (STAR[i][j] === "#") grid[4 + i][4 + j] = PINK;
   }
 }
 
@@ -68,8 +69,8 @@ function svg(S) {
       <stop offset="0.52" stop-color="#57c7a7"/>
       <stop offset="1" stop-color="#2f9d80"/>
     </linearGradient>
-    <radialGradient id="glow" cx="0.3" cy="0.22" r="0.95">
-      <stop offset="0" stop-color="#ffffff" stop-opacity="0.4"/>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.95">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.3"/>
       <stop offset="0.55" stop-color="#ffffff" stop-opacity="0"/>
     </radialGradient>
   </defs>
