@@ -20,8 +20,10 @@ if (!srcPath) {
 }
 
 async function renderPng(S) {
+  // ensureAlpha:ICO 内嵌 PNG 帧必须是 RGBA(JPEG 源图无透明通道,否则 Next 构建 ICO 解码失败)
   return sharp(srcPath)
     .resize(S, S, { fit: "cover", position: "centre" })
+    .ensureAlpha()
     .png()
     .toBuffer();
 }
