@@ -538,7 +538,7 @@ function init(canvas: HTMLCanvasElement): boolean {
     S.decoCones = [-2.0, -1.2, -0.4].map((z) => {
       const cone = makeDecoSprite("/art/deco-cone.webp", 0.44, 0.54, 0.75);
       cone.position.set(-3.1, 0.27, z);
-      S.scene.add(cone);
+      S.scene!.add(cone);
       return cone;
     });
 
