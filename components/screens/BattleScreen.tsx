@@ -156,7 +156,7 @@ export default function BattleScreen() {
       } else {
         AudioEngine.sfx("wrong");
       }
-      // 答错/超时反伤 → 敌方攻击动画(仅在真实掉血时播放)
+      // 答错/超时不再反伤;此守卫保留(若未来恢复反伤,仅在真实掉血时播放动画)
       if (res.counterDmg > 0) {
         if (BattleFX.ok) {
           BattleFX.attack("enemy", {});

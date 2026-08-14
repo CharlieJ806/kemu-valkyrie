@@ -689,36 +689,26 @@ export function answerBattle(
   } else {
     run.combo = 0;
     res.combo = 0;
-
-    const counterDmg = Math.floor(run.enemyBaseDamage * 0.5);
-    damagePlayer(run, counterDmg);
-    res.counterDmg = counterDmg;
-    if (run.hp <= 0) {
-      res.playerDead = true;
-    } else {
-      // 答错先停留在答题阶段,由 UI 展示正确答案后再进入出牌阶段
-      run.questionAnswered = true;
-    }
+    // 答错不再反伤:仅连击清零,展示正确答案后进入出牌阶段
+    run.questionAnswered = true;
   }
 
   return res;
 }
 
-/** 答题超时:按答错处理(连击清零 + 反伤 + 进入出牌阶段) */
+/** 答题超时:按答错处理(连击清零,不再反伤;展示答案后进入出牌阶段) */
 export function timeoutBattle(run: RunState): AnswerBattleResult | null {
   if (run.turnPhase !== "question" || run.questionAnswered) return null;
   run.totalAnswered++;
   run.combo = 0;
   run.questionAnswered = true;
-  const counterDmg = Math.floor(run.enemyBaseDamage * 0.5);
-  damagePlayer(run, counterDmg);
   return {
     correct: false,
     combo: 0,
     dmg: 0,
-    counterDmg,
+    counterDmg: 0,
     enemyDead: false,
-    playerDead: run.hp <= 0,
+    playerDead: false,
     revived: false,
     timedOut: true,
   };

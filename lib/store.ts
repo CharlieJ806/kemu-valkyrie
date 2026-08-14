@@ -1008,7 +1008,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
     get().awardFor(meta, run, {});
 
-    // 答题击杀敌人 → 结束战斗;答错反伤致死 → 败北(迁移自 standalone handleBattleAnswer)
+    // 答题击杀敌人 → 结束战斗(答错不再反伤,无败北路径;保留守卫)
     if (res.enemyDead) {
       get().endBattle(true);
     } else if (res.playerDead) {
