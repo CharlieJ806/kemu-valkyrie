@@ -190,6 +190,7 @@ export function loadRun(): RunState | null {
       runWon: !!d.runWon,
       visitedNodes: d.visitedNodes || [],
       questionHistory: d.questionHistory || [],
+      restUsed: !!d.restUsed,
 
       bossPhase: typeof d.bossPhase === "number" ? d.bossPhase : 1,
       enemyPkm: d.enemyPkm || null,

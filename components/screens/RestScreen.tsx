@@ -19,8 +19,14 @@ export default function RestScreen() {
           <div style={{ fontSize: 12, color: "var(--dim)", marginBottom: 8 }}>
             当前 HP: {Math.ceil(run.hp)} / {run.maxHp}
           </div>
+          {run.restUsed && (
+            <div style={{ fontSize: 12, color: "var(--dim)", marginBottom: 8 }}>
+              ✅ 本咖啡厅已使用过，离开后继续前进
+            </div>
+          )}
           <button
             className="btn"
+            disabled={run.restUsed}
             onClick={() => {
               AudioEngine.sfx("heal");
               restHeal();
@@ -30,6 +36,7 @@ export default function RestScreen() {
           </button>
           <button
             className="btn"
+            disabled={run.restUsed}
             onClick={() => {
               AudioEngine.sfx("heal");
               restTrain();

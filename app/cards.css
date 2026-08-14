@@ -53,6 +53,15 @@
   background:rgba(255,255,255,.72);border:1px solid var(--line);border-radius:12px;
   padding:6px 12px;width:auto;text-align:left;flex:none;
 }
+
+/* 移动端:信息框降透明并收紧,避免遮挡 3D 角色模型 */
+@media (max-width: 480px) {
+  .battle-stage.fx-3d .player-info,
+  .battle-stage.fx-3d .enemy-info {
+    background: rgba(255,255,255,.4);
+    padding: 4px 8px;
+  }
+}
 .enemy-sprite{width:96px;height:80px;object-fit:contain;image-rendering:pixelated}
 .player-info{flex:1;text-align:left}
 .energy-orbs{display:inline-flex;gap:3px;margin-left:6px;flex-wrap:wrap}
@@ -151,6 +160,15 @@
 .deck-pick-card.locked{opacity:.4;cursor:default}
 .dp-name{font-size:12px;font-weight:800;margin-top:3px}
 .dp-meta{font-size:9px;color:var(--dim);line-height:1.4}
+
+/* ---------- 节点说明面板 ---------- */
+.legend-panel{position:absolute;left:10px;top:46px;z-index:20;width:min(78vw,260px);max-height:60vh;overflow-y:auto;background:rgba(255,255,255,.97);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.legend-panel h3{font-size:14px;color:var(--cyan)}
+.legend-list{display:flex;flex-direction:column;gap:6px}
+.legend-item{display:flex;gap:8px;align-items:flex-start}
+.legend-emoji{font-size:16px;line-height:1.3;width:22px;text-align:center;flex:none}
+.legend-name{font-size:12px;font-weight:700;color:var(--cyan)}
+.legend-desc{font-size:10px;color:var(--dim);line-height:1.4}
 
 /* ---------- 捕获弹窗 ---------- */
 .capture-title{font-size:20px;font-weight:900;text-align:center;margin-bottom:10px;color:var(--gold)}

@@ -194,6 +194,16 @@ export const NODE_NAMES: Record<NodeType, string> = {
   boss: "违章魔王",
 };
 
+export const NODE_DESC: Record<NodeType, string> = {
+  battle: "击败违章魔物，获得金币与卡牌奖励",
+  elite: "精英魔物，更强但奖励更丰厚",
+  shop: "花费金币购买或移除卡牌",
+  rest: "恢复生命，或特训获得养成金币（每处限一次）",
+  event: "触发随机事件，有收益也有风险",
+  treasure: "直接获得金币与卡牌",
+  boss: "击败本章魔王即可通关",
+};
+
 export function enemyPoolForNode(type: NodeType): Partial<Record<Rarity, number>> {
   if (type === "boss") return { c: 20, u: 30, r: 30, l: 20 };
   if (type === "elite") return { c: 30, u: 35, r: 25, l: 10 };

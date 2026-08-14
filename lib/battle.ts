@@ -528,7 +528,8 @@ export function answerBattle(
     if (run.hp <= 0) {
       res.playerDead = true;
     } else {
-      enterCardPhase(run);
+      // 答错先停留在答题阶段,由 UI 展示正确答案后再进入出牌阶段
+      run.questionAnswered = true;
     }
   }
 

@@ -138,7 +138,8 @@ export type RunState = {
   runWon: boolean;
   visitedNodes: string[];
   questionHistory: string[];
-
+  /** 咖啡厅(rest)本节点是否已使用过休息/特训(每处休息点限一次) */
+  restUsed: boolean;
   // ── 点火觉醒/领队(单局字段,不跨局) ──
   leaderId: number | null; // 领队(点火觉醒学员,每局最多 1 名)
   awakened: Record<number, AttrKey>; // 本局觉醒名单 valkId → 第二板块

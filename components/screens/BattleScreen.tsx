@@ -103,8 +103,17 @@ export default function BattleScreen() {
         BattleFX.attack("enemy", {});
       }
       spawnDmg(document.getElementById("battle-stage"), 28, 55, `-${res.counterDmg}`, "#ff0044");
-      // 答错:立即进入出牌阶段(answerBattle 已调 enterCardPhase),清除高亮
-      setAnswerState(null);
+      // 答错:先展示正确答案(绿框高亮),再进入出牌阶段
+      if (!res.playerDead) {
+        nextTimerRef.current = setTimeout(() => {
+          nextTimerRef.current = null;
+          const st = useGameStore.getState();
+          if (st.run && st.run.inBattle && st.run.turnPhase === "question") {
+            st.enterCardPhase();
+          }
+          setAnswerState(null);
+        }, 900);
+      }
     }
   }, [lastAnswer]);
 
@@ -201,13 +210,21 @@ export default function BattleScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [run?.bossPhase, fxOk]);
 
-  // 全灭 → 玩家倒下动画
+  // 全灭 → 玩家倒下动画 → 切结算页
   useEffect(() => {
-    if (!fxOk || !run) return;
-    if (run.gameOver) {
-      const t = setTimeout(() => BattleFX.ko("player"), 500);
-      return () => clearTimeout(t);
+    if (!run) return;
+    if (!run.gameOver) return;
+    if (!fxOk) {
+      // 3D 不可用:直接切结算页
+      useGameStore.getState().showOverScreen();
+      return;
     }
+    const t = setTimeout(() => {
+      BattleFX.ko("player", () => {
+        useGameStore.getState().showOverScreen();
+      });
+    }, 400);
+    return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [run?.gameOver, fxOk]);
 
@@ -222,11 +239,13 @@ export default function BattleScreen() {
   const atk = getPlayerAtk(meta.metaAtkLv);
 
   const handleAnswer = (idx: number) => {
-    if (!run.currentQ || run.turnPhase !== "question") return;
+    if (run.gameOver) return;
+    if (!run.currentQ || run.turnPhase !== "question" || run.questionAnswered) return;
     answer(idx);
   };
 
   const handlePlayCard = (idx: number) => {
+    if (run.gameOver) return;
     const st = useGameStore.getState();
     const r = st.run;
     if (!r || r.turnPhase !== "card") return;
@@ -251,6 +270,7 @@ export default function BattleScreen() {
   };
 
   const handleEndTurn = () => {
+    if (run.gameOver) return;
     if (run.turnPhase === "question") {
       // 停止答题 → 进入出牌阶段
       enterCardPhase();
@@ -327,7 +347,7 @@ export default function BattleScreen() {
               className={`team-slot ${
                 i === run.activeIdx ? "active" : ""
               } ${(run.teamHp[i] || 0) <= 0 ? "fainted" : ""}`}
-              onClick={() => switchPoke(i)}
+              onClick={() => { if (!run.gameOver) switchPoke(i); }}
             >
               {run.leaderId === id && <span className="leader-star">👑</span>}
               {ICON(id) ? (
@@ -416,7 +436,7 @@ export default function BattleScreen() {
                         ? " correct"
                         : " wrong"
                       : "") +
-                    (answerState && answerState.picked === run.currentQ?.ans && !answerState.correct
+                    (answerState && i === run.currentQ?.ans && !answerState.correct
                       ? " reveal"
                       : "") +
                     (answerState ? " disabled" : "")

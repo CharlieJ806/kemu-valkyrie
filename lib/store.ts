@@ -30,6 +30,7 @@ import {
 import { applyNodeSelection, generateMapNodes } from "./map";
 import {
   ALL_CARDS,
+  findCard,
   STARTER_CARD_IDS,
   ULT_GAUGE_MAX,
   type CardFxEvent,
@@ -210,6 +211,7 @@ type GameStore = {
   chooseRewardCard: (cardId: string) => void;
   skipReward: () => void;
   gameOverDefeat: () => void;
+  showOverScreen: () => void;
 };
 
 function cloneMeta(meta: MetaState): MetaState {
@@ -542,6 +544,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       runWon: false,
       visitedNodes: [],
       questionHistory: [],
+      restUsed: false,
       enemyPkm: null,
       enemyHp: 0,
       enemyMaxHp: 0,
@@ -676,7 +679,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     run.deck.push(cardId);
     set({ run });
     persistRun(run);
-    get().showToast(`购买: ${cardId}`, 1500);
+    get().showToast(`购买: ${findCard(cardId)?.name ?? cardId}`, 1500);
   },
 
   removeDeckCard: () => {
@@ -699,17 +702,30 @@ export const useGameStore = create<GameStore>((set, get) => ({
     run.hand = run.hand.filter((id) => id !== removed);
     set({ run });
     persistRun(run);
-    get().showToast(`移除: ${removed}`, 1500);
+    get().showToast(`移除: ${findCard(removed)?.name ?? removed}`, 1500);
   },
 
   openRest: () => {
-    set({ screen: "rest", prevScreen: get().screen });
+    const run0 = get().run;
+    if (run0) {
+      const run = cloneRun(run0);
+      run.restUsed = false; // 每次进入休息点重置,本节点限一次
+      set({ run, screen: "rest", prevScreen: get().screen });
+      persistRun(run);
+    } else {
+      set({ screen: "rest", prevScreen: get().screen });
+    }
   },
 
   restHeal: () => {
     const run0 = get().run;
     if (!run0) return;
+    if (run0.restUsed) {
+      get().showToast("本咖啡厅已使用过，无法再次休息", 1500);
+      return;
+    }
     const run = cloneRun(run0);
+    run.restUsed = true;
     // 全队恢复 30%
     run.teamHp = run.teamHp.map((h, i) =>
       Math.min(run.teamMaxHp[i] ?? h, h + Math.floor((run.teamMaxHp[i] ?? h) * 0.3)),
@@ -723,7 +739,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
   restTrain: () => {
     const run0 = get().run;
     if (!run0) return;
+    if (run0.restUsed) {
+      get().showToast("本咖啡厅已使用过，无法再次特训", 1500);
+      return;
+    }
     const run = cloneRun(run0);
+    run.restUsed = true;
     // 全队恢复 15%
     run.teamHp = run.teamHp.map((h, i) =>
       Math.min(run.teamMaxHp[i] ?? h, h + Math.floor((run.teamMaxHp[i] ?? h) * 0.15)),
@@ -838,7 +859,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   answer: (idx) => {
     const run0 = get().run;
     const meta0 = get().meta;
-    if (!run0 || run0.turnPhase !== "question") return null;
+    if (!run0 || run0.turnPhase !== "question" || run0.questionAnswered) return null;
     const run = cloneRun(run0);
     const meta = cloneMeta(meta0);
     const q = run.currentQ;
@@ -1072,7 +1093,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // 奖励来自战斗胜利:关闭模态并回到地图(否则 screen 停在 battle 导致空白)
     set({ run, modal: null, screen: "map", prevScreen: get().screen });
     persistRun(run);
-    get().showToast(`获得卡片: ${cardId}`, 1800);
+    get().showToast(`获得卡片: ${findCard(cardId)?.name ?? cardId}`, 1800);
   },
 
   skipReward: () => {
@@ -1092,7 +1113,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const meta = cloneMeta(get().meta);
     saveActiveFromHp(run);
     run.gameOver = true;
-    run.inBattle = false;
+    // 战败保留战场:由 BattleScreen 播放倒下动画后经 showOverScreen 收尾
 
     // 剩余金币入库养成
     if (run.gold > 0) {
@@ -1123,11 +1144,21 @@ export const useGameStore = create<GameStore>((set, get) => ({
       meta,
       gameOver: info,
       modal: null,
-      screen: "over",
-      prevScreen: get().screen,
     });
     persistRun(run);
     persistMeta(meta);
+  },
+
+  showOverScreen: () => {
+    const run0 = get().run;
+    if (run0) {
+      const run = cloneRun(run0);
+      run.inBattle = false;
+      set({ run, screen: "over", prevScreen: get().screen });
+      persistRun(run);
+    } else {
+      set({ screen: "over", prevScreen: get().screen });
+    }
   },
 }));
 
