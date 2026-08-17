@@ -117,7 +117,7 @@
 .battle-q-text{font-size:15px;line-height:1.55;min-height:44px}
 .battle-options{display:flex;flex-direction:column;gap:8px}
 .battle-opt-btn{display:block;width:100%;text-align:left;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font-size:14px;line-height:1.4;cursor:pointer;transition:.12s;font-family:inherit}
-.battle-opt-btn:hover{border-color:var(--cyan)}
+@media (hover:hover){.battle-opt-btn:hover{border-color:var(--cyan)}}
 .battle-opt-btn:active{transform:scale(.98);border-color:var(--cyan)}
 .battle-opt-btn.correct{border-color:var(--green);background:rgba(0,255,136,.12)}
 .battle-opt-btn.wrong{border-color:var(--red);background:rgba(255,0,68,.12);animation:shake .3s}
@@ -549,7 +549,7 @@
 .pvp-f-stat{font-size:11px;color:var(--dim)}
 .pvp-round{font-size:12px;font-weight:800;color:var(--gold);align-self:center;padding:0 6px}
 .pvp-stage{flex:1;position:relative;min-height:0;display:flex;align-items:flex-end;justify-content:space-between;background:radial-gradient(ellipse at 50% 80%,var(--panel2),transparent 70%)}
-.pvp-me-sprite,.pvp-opp-sprite{height:78%;max-height:400px;object-fit:contain;position:relative}
+.pvp-me-sprite,.pvp-opp-sprite{height:78%;max-height:min(400px,56vw);object-fit:contain;position:relative}
 .pvp-opp-sprite{margin-right:3%}
 .pvp-me-sprite{margin-left:3%;z-index:2}
 @media (max-width:480px){.pvp-me-sprite,.pvp-opp-sprite{height:70%}}
@@ -586,3 +586,8 @@
 .pvp-team-dots .dead{color:var(--dim);opacity:.5}
 .pvp-me-sprite.hitflash,.pvp-opp-sprite.hitflash{animation:pvpHitFlash .45s ease}
 @keyframes pvpHitFlash{25%{filter:brightness(1.9) saturate(2.4) hue-rotate(-18deg);transform:translateX(7px)}55%{transform:translateX(-6px)}}
+
+/* ---------- PvP: 等待方对方倒计时 ---------- */
+.pvp-wait-timer{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--purple)}
+.pvp-wait-timer .bar{flex:1;max-width:180px;height:6px;border-radius:4px;background:rgba(0,0,0,.12);overflow:hidden}
+.pvp-wait-timer .bar i{display:block;height:100%;background:var(--purple);border-radius:4px;transition:width .25s linear}

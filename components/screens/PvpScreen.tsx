@@ -104,6 +104,9 @@ export default function PvpScreen() {
   const oppImgRef = useRef<HTMLImageElement>(null);
   const lastFxSeqRef = useRef(0); // 飘字消费游标(按 seq 播放新增条目)
   const wrongPlayedRef = useRef(""); // 答错音效去重
+  const pendingRef = useRef<{ idx: number; qId: string } | null>(null); // 待判定答对反馈
+  const correctFlashRef = useRef(false); // 键盘侧同款守卫
+  const [correctFlash, setCorrectFlash] = useState<{ idx: number } | null>(null);
   const confettiDoneRef = useRef(false);
   const preloadedRef = useRef(""); // 动作立绘预载去重(按队伍指纹)
 
@@ -145,8 +148,16 @@ export default function PvpScreen() {
       if (!cur || cur.over || cur.turn !== s.side) return;
       if (cur.phase === "question") {
         const idx = ["1", "2", "3", "4"].indexOf(e.key);
-        if (idx >= 0 && cur.currentQ && idx < cur.currentQ.opts.length && !cur.qLocked && !cur.answered) {
+        if (
+          idx >= 0 &&
+          cur.currentQ &&
+          idx < cur.currentQ.opts.length &&
+          !cur.qLocked &&
+          !cur.answered &&
+          !correctFlashRef.current
+        ) {
           AudioEngine.sfx("click");
+          pendingRef.current = { idx, qId: cur.currentQ.id };
           s.act({ act: "answer", pick: idx });
           return;
         }
@@ -289,6 +300,25 @@ export default function PvpScreen() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [st, side]);
+
+  // 答对反馈:点击后若快照已换题且无答错标记 → 上题答对,对应选项闪绿 400ms
+  useEffect(() => {
+    const p = pendingRef.current;
+    if (!p || !st) return;
+    if (st.answered || st.qLocked) {
+      pendingRef.current = null; // 答错/超时走既有红显路径
+      return;
+    }
+    if ((st.currentQ?.id ?? "") !== p.qId) {
+      pendingRef.current = null;
+      correctFlashRef.current = true;
+      setCorrectFlash({ idx: p.idx });
+      setTimeout(() => {
+        correctFlashRef.current = false;
+        setCorrectFlash(null);
+      }, 400);
+    }
+  }, [st]);
 
   // 答错/超时音效 + 展示 900ms 后自动进入出牌阶段
   useEffect(() => {
@@ -672,16 +702,19 @@ export default function PvpScreen() {
                   <div className="battle-options">
                     {st.currentQ?.opts.map((opt, i) => (
                       <button
-                        key={i}
+                        key={`${st.currentQ?.id ?? "q"}-${i}`}
                         className={
                           "battle-opt-btn" +
                           (st.answered && st.answered.pick === i ? " wrong" : "") +
+                          (correctFlash?.idx === i ? " correct" : "") +
                           (st.qLocked && i === st.currentQ?.ans ? " reveal" : "") +
-                          (st.qLocked ? " disabled" : "")
+                          (st.qLocked || correctFlash ? " disabled" : "")
                         }
-                        disabled={st.qLocked}
+                        disabled={st.qLocked || !!correctFlash}
                         onClick={() => {
+                          if (correctFlash) return;
                           AudioEngine.sfx("click");
+                          pendingRef.current = { idx: i, qId: st.currentQ?.id ?? "" };
                           act({ act: "answer", pick: i });
                         }}
                       >
@@ -774,6 +807,17 @@ export default function PvpScreen() {
             ⏳ 对方行动中(
             {st.phase === "question" ? `第 ${Math.min(st.turnQIdx + 1, PVP_MAX_Q)}/${PVP_MAX_Q} 题 · ⚡${st.turnCorrect}` : "出牌阶段"}
             )
+          </div>
+          {/* 对方本阶段倒计时(宿主取引擎时钟,客机本地递减;归零兜底提示) */}
+          <div className="pvp-wait-timer">
+            {remainMs > 0 ? `⏱ ${Math.ceil(remainMs / 1000)}s` : "对方思考中…"}
+            <span className="bar">
+              <i
+                style={{
+                  width: `${Math.min(100, (remainMs / (st.phase === "question" ? Q_TIME_MS : CARD_TIME_MS)) * 100)}%`,
+                }}
+              />
+            </span>
           </div>
           {/* 等待方可同步心算:显示对方正在答的题干(不含选项) */}
           {st.phase === "question" && st.currentQ && (
