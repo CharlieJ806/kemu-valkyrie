@@ -1,6 +1,7 @@
 "use client";
 
 import { useGameStore } from "@/lib/store";
+import { VALKYRIES } from "@/data";
 import { AudioEngine } from "@/lib/audio";
 
 export default function OverScreen() {
@@ -35,7 +36,7 @@ export default function OverScreen() {
             最大连击: <b>{gameOver.maxCombo}</b>
           </div>
           <div className="over-stat">
-            结识学员: <b>{gameOver.caught} / 4</b>
+            结识学员: <b>{gameOver.caught} / {VALKYRIES.length}</b>
           </div>
         </div>
         <div className="over-sub">
