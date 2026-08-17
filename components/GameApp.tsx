@@ -20,6 +20,7 @@ import StudyScreen from "./screens/StudyScreen";
 import ExamScreen from "./screens/ExamScreen";
 import WrongScreen from "./screens/WrongScreen";
 import AchievementsScreen from "./screens/AchievementsScreen";
+import PvpScreen from "./screens/PvpScreen";
 import OverScreen from "./screens/OverScreen";
 import Modal from "./ui/Modal";
 import Toast from "./ui/Toast";
@@ -159,6 +160,7 @@ export default function GameApp() {
         {screen === "exam" && <ExamScreen />}
         {screen === "wrong" && <WrongScreen />}
         {screen === "achievements" && <AchievementsScreen />}
+        {screen === "pvp" && <PvpScreen />}
         {screen === "over" && <OverScreen />}
       </div>
       <div

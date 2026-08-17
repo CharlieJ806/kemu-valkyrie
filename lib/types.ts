@@ -216,6 +216,7 @@ export type ScreenId =
   | "exam"
   | "wrong"
   | "achievements"
+  | "pvp"
   | "over";
 
 /* ============ UI 状态 ============ */
