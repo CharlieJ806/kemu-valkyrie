@@ -494,7 +494,7 @@
 
 /* 答题倒计时条(限时答题):固定在答题区顶部,不随题目滚动 */
 .battle-timer{
-  flex:none;height:14px;z-index:2;
+  position:relative;flex:none;height:14px;z-index:2;
   background:rgba(16,32,56,.15);border-radius:0 0 6px 6px;overflow:hidden;
 }
 .battle-timer-fill{
