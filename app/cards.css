@@ -549,8 +549,10 @@
 .pvp-f-stat{font-size:11px;color:var(--dim)}
 .pvp-round{font-size:12px;font-weight:800;color:var(--gold);align-self:center;padding:0 6px}
 .pvp-stage{flex:1;position:relative;min-height:0;display:flex;align-items:flex-end;justify-content:space-between;background:radial-gradient(ellipse at 50% 80%,var(--panel2),transparent 70%)}
-.pvp-opp-sprite{height:86%;max-height:340px;object-fit:contain;margin-right:6%}
-.pvp-me-sprite{height:46%;max-height:170px;object-fit:contain;margin-left:5%;margin-bottom:6px}
+.pvp-me-sprite,.pvp-opp-sprite{height:78%;max-height:400px;object-fit:contain;position:relative}
+.pvp-opp-sprite{margin-right:3%}
+.pvp-me-sprite{margin-left:3%;z-index:2}
+@media (max-width:480px){.pvp-me-sprite,.pvp-opp-sprite{height:70%}}
 .pvp-fx-list{position:absolute;top:8px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:2px;font-size:12px;font-weight:700;text-align:center;pointer-events:none;text-shadow:0 1px 2px #fff}
 .pvp-wait{padding:8px;text-align:center;font-size:13px;font-weight:700;color:var(--purple);background:rgba(180,140,240,.1)}
 
@@ -566,7 +568,8 @@
 .pvp-hp-bar.low i{animation:pvpHpBlink .7s ease-in-out infinite}
 @keyframes pvpHpBlink{0%,100%{filter:brightness(1)}50%{filter:brightness(1.9) saturate(1.6)}}
 .pvp-me-sprite.ko,.pvp-opp-sprite.ko{filter:grayscale(1) brightness(.75);transform:rotate(8deg) translateY(14px);opacity:.6;transition:all .6s ease}
-.pvp-stage{background:url('/art/bg-battle.webp') center/cover no-repeat,radial-gradient(ellipse at 50% 80%,var(--panel2),transparent 70%)}
+.pvp-stage{background:url('/art/bg-battle.webp') center/cover no-repeat,radial-gradient(ellipse at 50% 80%,var(--panel2),transparent 70%);overflow:hidden}
+#scr-pvp .battle-topbar{position:relative;z-index:10;background:var(--panel);border-bottom:1px solid var(--line);border-radius:0 0 14px 14px;padding:6px 10px}
 .pvp-surrender{margin-left:6px;padding:2px 8px;font-size:12px}
 .pvp-wait-live{display:flex;flex-direction:column;gap:8px;padding:10px}
 .pvp-wait-q{font-size:13px;color:var(--txt);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;max-height:30vh;overflow-y:auto;line-height:1.5}
@@ -581,9 +584,5 @@
 .pvp-team-dots{font-size:12px;letter-spacing:2px;line-height:1;margin:2px 0}
 .pvp-team-dots .alive{color:var(--green)}
 .pvp-team-dots .dead{color:var(--dim);opacity:.5}
-.pvp-me-sprite.lunge-r{animation:pvpLungeR .38s ease}
-.pvp-opp-sprite.lunge-l{animation:pvpLungeL .38s ease}
-@keyframes pvpLungeR{35%{transform:translateX(52px) scale(1.04)}}
-@keyframes pvpLungeL{35%{transform:translateX(-52px) scale(1.04)}}
 .pvp-me-sprite.hitflash,.pvp-opp-sprite.hitflash{animation:pvpHitFlash .45s ease}
 @keyframes pvpHitFlash{25%{filter:brightness(1.9) saturate(2.4) hue-rotate(-18deg);transform:translateX(7px)}55%{transform:translateX(-6px)}}

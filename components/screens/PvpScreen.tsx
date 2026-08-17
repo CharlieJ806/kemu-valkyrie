@@ -182,21 +182,22 @@ export default function PvpScreen() {
     }
   }, [mode, st]);
 
-  /** 攻击/受击动作:切动作立绘 + CSS 位移闪红,420ms 后切回 */
-  const poseBurst = (
+  /** 切换动作立绘(可选附加 class,如受击闪红),ms 后切回主立绘 */
+  const swapPose = (
     img: HTMLImageElement | null,
     pose: "attack" | "hurt",
-    cls: string,
+    cls?: string,
+    ms = 420,
   ) => {
     if (!img) return;
     const vid = img.dataset.vid;
     if (!vid) return;
     img.src = poseUrl(Number(vid), pose);
-    img.classList.add(cls);
+    if (cls) img.classList.add(cls);
     setTimeout(() => {
-      img.classList.remove(cls);
-      img.src = portraitUrl(Number(vid));
-    }, 420);
+      if (cls) img.classList.remove(cls);
+      if (img.isConnected) img.src = portraitUrl(Number(vid));
+    }, ms);
   };
 
   // 飘字/伤害数字/粒子/震动/攻受动作消费(双方各自播放新增 seq)
@@ -206,36 +207,85 @@ export default function PvpScreen() {
     if (fresh.length === 0) return;
     lastFxSeqRef.current = Math.max(...st.lastFx.map((f) => f.seq));
     const stage = stageRef.current;
+
+    // 非伤害类(文本/状态)立即展示;伤害类延迟到冲刺命中瞬间,形成因果节奏
+    const dmgEntries: typeof fresh = [];
     for (const f of fresh) {
       const mine = f.side === side;
-      if (stage) {
-        if (f.dmg != null && f.dmg > 0) {
-          spawnDmg(stage, mine ? 72 : 26, mine ? 32 : 52, `-${f.dmg}`, f.crit ? "#ffd700" : "#ff6688", f.crit);
-        } else {
-          spawnFxText(stage, mine ? 60 : 38, mine ? 22 : 56, f.text, f.color);
-        }
-        if (f.crit) domBurst(stage, 70, 34, "#ffd700", 20);
+      if (f.dmg != null && f.dmg > 0) {
+        dmgEntries.push(f);
+      } else if (stage) {
+        spawnFxText(stage, mine ? 60 : 38, mine ? 22 : 56, f.text, f.color);
       }
       if (mine) {
         if (f.kind === "answer") AudioEngine.sfx(f.crit ? "crit" : "correct");
         else if (f.kind === "timeout") AudioEngine.sfx("timeout");
       }
     }
-    // 攻受动作:最后一笔伤害 → 攻方前冲(attack 立绘),受方闪红(hurt 立绘)
-    const dmgFx = fresh.filter((f) => (f.dmg ?? 0) > 0);
-    if (dmgFx.length > 0) {
-      const last = dmgFx[dmgFx.length - 1]!;
+
+    if (dmgEntries.length > 0) {
+      const last = dmgEntries[dmgEntries.length - 1]!;
       const attackerIsMe = last.side === side;
-      poseBurst(attackerIsMe ? meImgRef.current : oppImgRef.current, "attack", attackerIsMe ? "lunge-r" : "lunge-l");
-      poseBurst(attackerIsMe ? oppImgRef.current : meImgRef.current, "hurt", "hitflash");
-      AudioEngine.sfx(attackerIsMe ? "hit" : "hurt");
-    }
-    // 受击:大额伤害触发镜头震动
-    const incBig = Math.max(0, ...fresh.filter((f) => f.side !== side).map((f) => f.dmg ?? 0));
-    if (incBig >= 12) {
-      const wrap = document.getElementById("shake-wrap");
-      wrap?.classList.add("shaking");
-      setTimeout(() => wrap?.classList.remove("shaking"), 350);
+      const attImg = attackerIsMe ? meImgRef.current : oppImgRef.current;
+      const defImg = attackerIsMe ? oppImgRef.current : meImgRef.current;
+
+      // 实测攻→受距离,真实冲刺(分辨率无关);命中瞬间才结算受方表现
+      const attVid = attImg?.dataset.vid;
+      if (stage && attImg && defImg && attVid) {
+        const attRect = attImg.getBoundingClientRect();
+        const defRect = defImg.getBoundingClientRect();
+        const dx =
+          defRect.left + defRect.width * 0.35 - (attRect.left + attRect.width * 0.65);
+        attImg.src = poseUrl(Number(attVid), "attack");
+        attImg.style.zIndex = "5";
+        const travel = attImg.animate(
+          [{ transform: "translateX(0)" }, { transform: `translateX(${dx}px)` }],
+          { duration: 280, easing: "cubic-bezier(.45,0,.8,1)" },
+        );
+        travel.onfinish = () => {
+          if (!attImg.isConnected) return;
+          // 命中:伤害飘字/暴击粒子/受方闪红/音效/震动同时爆发
+          for (const f of dmgEntries) {
+            const mine = f.side === side;
+            spawnDmg(
+              stage,
+              mine ? 72 : 26,
+              mine ? 32 : 52,
+              `-${f.dmg}`,
+              f.crit ? "#ffd700" : "#ff6688",
+              f.crit,
+            );
+            if (f.crit) domBurst(stage, 70, 34, "#ffd700", 20);
+          }
+          swapPose(defImg, "hurt", "hitflash");
+          AudioEngine.sfx(attackerIsMe ? "hit" : "hurt");
+          const incBig = Math.max(
+            0,
+            ...dmgEntries.filter((f) => f.side !== side).map((f) => f.dmg ?? 0),
+          );
+          if (incBig >= 12) {
+            const wrap = document.getElementById("shake-wrap");
+            wrap?.classList.add("shaking");
+            setTimeout(() => wrap?.classList.remove("shaking"), 350);
+          }
+          const back = attImg.animate(
+            [{ transform: `translateX(${dx}px)` }, { transform: "translateX(0)" }],
+            { duration: 240, easing: "ease-out" },
+          );
+          back.onfinish = () => {
+            attImg.style.zIndex = "";
+            if (attImg.isConnected) attImg.src = portraitUrl(Number(attVid));
+          };
+        };
+      } else {
+        // 无立绘兜底:直接结算表现
+        for (const f of dmgEntries) {
+          if (!stage) break;
+          const mine = f.side === side;
+          spawnDmg(stage, mine ? 72 : 26, mine ? 32 : 52, `-${f.dmg}`, f.crit ? "#ffd700" : "#ff6688", f.crit);
+        }
+        AudioEngine.sfx(attackerIsMe ? "hit" : "hurt");
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [st, side]);
