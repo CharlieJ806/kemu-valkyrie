@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Reference HTML game & assets — not part of the Next app
     "ref/**",
+    // 独立对战中继服务(自带 package.json,Node 运行时,不属 Next 应用)
+    "server/**",
   ]),
 ]);
 

@@ -1,0 +1,12 @@
+# 对战中继:默认仅绑定宿主回环地址,由部署者的反向代理(nginx/Caddy)把
+# wss://域名/ws 转发到 127.0.0.1:8787。局域网明文调试可改为 "8787:8787"。
+services:
+  pvp:
+    build: .
+    ports:
+      - "127.0.0.1:8787:8787"
+    environment:
+      - PORT=8787
+      # 生产建议开启 Origin 校验(逗号分隔允许的页面来源):
+      # - PVP_ALLOWED_ORIGINS=https://你的域名
+    restart: unless-stopped
