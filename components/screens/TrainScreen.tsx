@@ -6,6 +6,7 @@ import {
   getPlayerAtk,
   upgradeCost,
 } from "@/lib/formulas";
+import { MAX_UPGRADE_LEVEL } from "@/data/constants";
 import { AudioEngine } from "@/lib/audio";
 
 export default function TrainScreen() {
@@ -53,13 +54,13 @@ export default function TrainScreen() {
           </div>
           <button
             className="btn btn-primary"
-            disabled={meta.metaGold < hpCost}
+            disabled={meta.metaHpLv >= MAX_UPGRADE_LEVEL || meta.metaGold < hpCost}
             onClick={() => {
               AudioEngine.sfx("heal");
               tryUpgradeHp();
             }}
           >
-            升级生命 +3
+            {meta.metaHpLv >= MAX_UPGRADE_LEVEL ? "已达最高等级" : "升级生命 +3"}
           </button>
         </div>
 
@@ -78,13 +79,13 @@ export default function TrainScreen() {
           </div>
           <button
             className="btn btn-primary"
-            disabled={meta.metaGold < atkCost}
+            disabled={meta.metaAtkLv >= MAX_UPGRADE_LEVEL || meta.metaGold < atkCost}
             onClick={() => {
               AudioEngine.sfx("coin");
               tryUpgradeAtk();
             }}
           >
-            升级攻击 +1
+            {meta.metaAtkLv >= MAX_UPGRADE_LEVEL ? "已达最高等级" : "升级攻击 +1"}
           </button>
         </div>
 
