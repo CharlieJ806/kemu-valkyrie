@@ -111,12 +111,13 @@ export const usePvpStore = create<PvpStore>((set, get) => ({
     net?.sendMsg({ t: "teamSize", n });
   },
 
-  /** 准备(携带自己的 cfg;双方都准备 → 宿主自动开局) */
+  /** 准备(携带自己的 cfg;双方都准备 → 仅宿主自动开局,引擎权威唯一) */
   setReady: (on, myCfg) => {
     myCfgSaved = myCfg;
     set({ myReady: on });
     net?.sendMsg({ t: "ready", on, picks: myCfg.valkIds });
-    if (on && get().peerReady) startMatch(set);
+    const st0 = get();
+    if (on && st0.side === "host" && st0.peerReady) startMatch(set);
   },
 
   /** 牌组模式(仅宿主,改动取消双方准备) */
@@ -276,8 +277,9 @@ function handleEvt(evt: PvpNetEvt): void {
     set({ peer: evt.peer, info: "对手已就位,编排队伍并准备" });
     AudioEngine.sfx("levelup");
   } else if (evt.t === "state") {
-    // 客机:宿主快照
+    // 客机:宿主快照(首帧快照即进入对战,权威引擎只在宿主)
     set({
+      mode: "battle",
       st: evt.snap,
       remainMs:
         evt.snap.phase === "card" ? evt.snap.cardRemainMs : evt.snap.qRemainMs,
