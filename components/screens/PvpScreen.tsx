@@ -8,6 +8,7 @@ import { hydrateCard } from "@/lib/cards";
 import { PVP_MAX_Q, type PvpState } from "@/lib/pvp";
 import { usePvpStore, pvpHostTick, pvpGuestTick } from "@/lib/pvp-store";
 import { loadPvpName, savePvpName } from "@/lib/save";
+import { poseUrl, portraitUrl } from "@/lib/portrait";
 import { ICON } from "@/lib/icon";
 import { AudioEngine } from "@/lib/audio";
 import { spawnDmg, spawnFxText, domBurst } from "@/lib/dom-fx";
@@ -15,14 +16,39 @@ import { spawnDmg, spawnFxText, domBurst } from "@/lib/dom-fx";
 const Q_TIME_MS = 15000;
 const CARD_TIME_MS = 60000;
 
-/** 血条(对战双方共用;濒死闪烁) */
-function HpBar({ f, label, me }: { f: PvpState["host"]; label: string; me: boolean }) {
+/** 血条(对战双方共用;濒死闪烁 + 车轮剩余人数点) */
+function HpBar({
+  f,
+  label,
+  me,
+  teamIds,
+  teamIdx,
+}: {
+  f: PvpState["host"];
+  label: string;
+  me: boolean;
+  teamIds?: number[];
+  teamIdx?: number;
+}) {
   const low = f.hp / Math.max(1, f.maxHp) <= 0.25 && f.hp > 0;
   return (
     <div className="pvp-fighter">
       <div className="pvp-f-name" style={me ? { color: "var(--green)" } : undefined}>
         {label} · {f.name}
       </div>
+      {teamIds && teamIds.length > 1 && (
+        <div className="pvp-team-dots">
+          {teamIds.map((id, i) => (
+            <span
+              key={`${id}-${i}`}
+              className={i >= (teamIdx ?? 0) ? "alive" : "dead"}
+              title={getValkName(id)}
+            >
+              {i === (teamIdx ?? 0) ? "◉" : i > (teamIdx ?? 0) ? "●" : "○"}
+            </span>
+          ))}
+        </div>
+      )}
       <div className={`pvp-hp-bar ${low ? "low" : ""}`}>
         <i
           style={{
@@ -48,9 +74,10 @@ export default function PvpScreen() {
   const side = usePvpStore((s) => s.side);
   const room = usePvpStore((s) => s.room);
   const peer = usePvpStore((s) => s.peer);
-  const peerPick = usePvpStore((s) => s.peerPick);
+  const peerPicks = usePvpStore((s) => s.peerPicks);
   const peerReady = usePvpStore((s) => s.peerReady);
   const myReady = usePvpStore((s) => s.myReady);
+  const teamSize = usePvpStore((s) => s.teamSize);
   const deckMode = usePvpStore((s) => s.deckMode);
   const againMe = usePvpStore((s) => s.againMe);
   const againPeer = usePvpStore((s) => s.againPeer);
@@ -59,6 +86,7 @@ export default function PvpScreen() {
   const remainMs = usePvpStore((s) => s.remainMs);
   const requestJoin = usePvpStore((s) => s.requestJoin);
   const sendPick = usePvpStore((s) => s.sendPick);
+  const setTeamSize = usePvpStore((s) => s.setTeamSize);
   const setReady = usePvpStore((s) => s.setReady);
   const setDeckMode = usePvpStore((s) => s.setDeckMode);
   const act = usePvpStore((s) => s.act);
@@ -66,21 +94,38 @@ export default function PvpScreen() {
   const surrender = usePvpStore((s) => s.surrender);
   const leave = usePvpStore((s) => s.leave);
 
-  // 本地 UI 态:昵称(记忆)/选人/房码输入
+  // 本地 UI 态:昵称(记忆)/队伍(出场顺序)/房码输入
   const [name, setName] = useState(() => loadPvpName());
-  const [valkId, setValkId] = useState(1);
+  const [myTeam, setMyTeam] = useState<number[]>([]);
   const [roomIn, setRoomIn] = useState("");
 
   const stageRef = useRef<HTMLDivElement>(null);
+  const meImgRef = useRef<HTMLImageElement>(null);
+  const oppImgRef = useRef<HTMLImageElement>(null);
   const lastFxSeqRef = useRef(0); // 飘字消费游标(按 seq 播放新增条目)
   const wrongPlayedRef = useRef(""); // 答错音效去重
   const confettiDoneRef = useRef(false);
+  const preloadedRef = useRef(""); // 动作立绘预载去重(按队伍指纹)
 
-  const myName = name.trim() || getValkName(valkId);
+  const myName = name.trim() || (myTeam[0] != null ? getValkName(myTeam[0]) : "学员");
   const myCfg = {
     name: myName,
-    valkId,
+    valkIds: myTeam,
     deck: (meta.builtDeckIds || []).filter((id) => meta.ownedCards?.[id]),
+  };
+
+  /** 队伍编排:点击入队/再点移除(按点击顺序即出场顺序) */
+  const toggleTeam = (id: number) => {
+    AudioEngine.sfx("click");
+    setMyTeam((t) => {
+      const next = t.includes(id)
+        ? t.filter((x) => x !== id)
+        : t.length >= teamSize
+          ? t
+          : [...t, id];
+      sendPick(next);
+      return next;
+    });
   };
 
   // 250ms tick:宿主超时判定 / 客机倒计时递减
@@ -123,7 +168,38 @@ export default function PvpScreen() {
   // 回合切换横幅:轮到我方行动时划过(key 重挂载触发 CSS 动画,无需 state)
   const showBanner = mode === "battle" && !!st && !st.over && st.turn === side && st.turnNo > 0;
 
-  // 飘字/伤害数字/粒子/震动消费(双方各自播放新增 seq)
+  // 动作立绘预载(换人后新角色也会触发)
+  useEffect(() => {
+    if (mode !== "battle" || !st) return;
+    const fp = `${st.teams.host.join(",")}|${st.teams.guest.join(",")}`;
+    if (preloadedRef.current === fp) return;
+    preloadedRef.current = fp;
+    for (const id of [...st.teams.host, ...st.teams.guest]) {
+      for (const pose of ["attack", "hurt"] as const) {
+        const img = new Image();
+        img.src = poseUrl(id, pose);
+      }
+    }
+  }, [mode, st]);
+
+  /** 攻击/受击动作:切动作立绘 + CSS 位移闪红,420ms 后切回 */
+  const poseBurst = (
+    img: HTMLImageElement | null,
+    pose: "attack" | "hurt",
+    cls: string,
+  ) => {
+    if (!img) return;
+    const vid = img.dataset.vid;
+    if (!vid) return;
+    img.src = poseUrl(Number(vid), pose);
+    img.classList.add(cls);
+    setTimeout(() => {
+      img.classList.remove(cls);
+      img.src = portraitUrl(Number(vid));
+    }, 420);
+  };
+
+  // 飘字/伤害数字/粒子/震动/攻受动作消费(双方各自播放新增 seq)
   useEffect(() => {
     if (!st || st.lastFx.length === 0) return;
     const fresh = st.lastFx.filter((f) => f.seq > lastFxSeqRef.current);
@@ -144,6 +220,15 @@ export default function PvpScreen() {
         if (f.kind === "answer") AudioEngine.sfx(f.crit ? "crit" : "correct");
         else if (f.kind === "timeout") AudioEngine.sfx("timeout");
       }
+    }
+    // 攻受动作:最后一笔伤害 → 攻方前冲(attack 立绘),受方闪红(hurt 立绘)
+    const dmgFx = fresh.filter((f) => (f.dmg ?? 0) > 0);
+    if (dmgFx.length > 0) {
+      const last = dmgFx[dmgFx.length - 1]!;
+      const attackerIsMe = last.side === side;
+      poseBurst(attackerIsMe ? meImgRef.current : oppImgRef.current, "attack", attackerIsMe ? "lunge-r" : "lunge-l");
+      poseBurst(attackerIsMe ? oppImgRef.current : meImgRef.current, "hurt", "hitflash");
+      AudioEngine.sfx(attackerIsMe ? "hit" : "hurt");
     }
     // 受击:大额伤害触发镜头震动
     const incBig = Math.max(0, ...fresh.filter((f) => f.side !== side).map((f) => f.dmg ?? 0));
@@ -186,7 +271,12 @@ export default function PvpScreen() {
   }, []);
 
   const joinRoom = (code: string | null) => {
-    requestJoin(code, myName, myCfg);
+    // 加入时的初始信息(单角色占位,进房后队伍经 pick 信令实时互见)
+    requestJoin(code, myName, {
+      name: myName,
+      valkId: myTeam[0] ?? 1,
+      deck: myCfg.deck,
+    });
   };
 
   const copyRoom = async () => {
@@ -296,11 +386,30 @@ export default function PvpScreen() {
             <>
               {side === "host" && (
                 <div className="pvp-btns">
+                  {[1, 3, 5].map((n) => (
+                    <button
+                      key={n}
+                      className={`btn-mini ${teamSize === n ? "active" : ""}`}
+                      onClick={() => {
+                        AudioEngine.sfx("click");
+                        setTeamSize(n);
+                        if (myTeam.length > n) {
+                          setMyTeam((t) => t.slice(0, n));
+                        }
+                      }}
+                    >
+                      {n === 1 ? "⚔️ 单挑" : `🚗 ${n}人车轮`}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {side === "host" && (
+                <div className="pvp-btns">
                   <button
                     className={`btn-mini ${deckMode === "fair" ? "active" : ""}`}
                     onClick={() => {
                       AudioEngine.sfx("click");
-                      setDeckMode("fair");
+                      usePvpStore.getState().setDeckMode("fair");
                     }}
                   >
                     ⚖️ 公平模式(标准牌组)
@@ -309,33 +418,40 @@ export default function PvpScreen() {
                     className={`btn-mini ${deckMode === "own" ? "active" : ""}`}
                     onClick={() => {
                       AudioEngine.sfx("click");
-                      setDeckMode("own");
+                      usePvpStore.getState().setDeckMode("own");
                     }}
                   >
                     🃏 各自牌组
                   </button>
                 </div>
               )}
-              <div className="pvp-note">
-                牌组模式:{deckMode === "fair" ? "双方统一标准初始牌组" : "使用各自构建的牌组"}
-                {deckMode === "own" ? `(我方 ${myCfg.deck.length} 张)` : ""}
-              </div>
 
               <div className="pvp-prep">
                 <div className="pvp-prep-side">
                   <div className="pvp-prep-title">
-                    我方 {myReady ? "✅已准备" : "选择中"}
+                    我方队伍({myTeam.length}/{teamSize}) {myReady ? "✅已准备" : ""}
+                  </div>
+                  {/* 出场顺序槽位(点击移除) */}
+                  <div className="pvp-slots">
+                    {Array.from({ length: teamSize }).map((_, i) =>
+                      myTeam[i] != null ? (
+                        <div key={i} className="pvp-slot filled" onClick={() => toggleTeam(myTeam[i]!)}>
+                          <span className="pvp-slot-no">{i + 1}</span>
+                          <img src={ICON(myTeam[i]!)} alt="" />
+                        </div>
+                      ) : (
+                        <div key={i} className="pvp-slot">
+                          <span className="pvp-slot-no">{i + 1}</span>
+                        </div>
+                      ),
+                    )}
                   </div>
                   <div className="pvp-valk-grid">
                     {VALKYRIES.map((v) => (
                       <div
                         key={v.id}
-                        className={`pvp-valk-cell ${valkId === v.id ? "active" : ""}`}
-                        onClick={() => {
-                          AudioEngine.sfx("click");
-                          setValkId(v.id);
-                          sendPick(v.id);
-                        }}
+                        className={`pvp-valk-cell ${myTeam.includes(v.id) ? "active" : ""}`}
+                        onClick={() => toggleTeam(v.id)}
                       >
                         <img src={ICON(v.id)} alt={v.c} />
                         <div>{v.c}</div>
@@ -345,27 +461,38 @@ export default function PvpScreen() {
                 </div>
                 <div className="pvp-prep-side">
                   <div className="pvp-prep-title">
-                    对方 {peerReady ? "✅已准备" : "选择中…"}
+                    对方队伍({peerPicks.length}/{teamSize}) {peerReady ? "✅已准备" : "选择中…"}
                   </div>
-                  {peerPick ? (
-                    <div className="pvp-peer-pick">
-                      <img src={ICON(peerPick)} alt="" />
-                      <div>{getValkName(peerPick)}</div>
-                    </div>
-                  ) : (
-                    <div className="pvp-note">尚未选择</div>
-                  )}
+                  <div className="pvp-slots">
+                    {Array.from({ length: teamSize }).map((_, i) =>
+                      peerPicks[i] != null ? (
+                        <div key={i} className="pvp-slot filled">
+                          <span className="pvp-slot-no">{i + 1}</span>
+                          <img src={ICON(peerPicks[i]!)} alt="" />
+                        </div>
+                      ) : (
+                        <div key={i} className="pvp-slot">
+                          <span className="pvp-slot-no">{i + 1}</span>
+                        </div>
+                      ),
+                    )}
+                  </div>
                 </div>
               </div>
 
               <button
                 className={`btn ${myReady ? "" : "btn-primary"}`}
+                disabled={myTeam.length !== teamSize}
                 onClick={() => {
                   AudioEngine.sfx("click");
-                  setReady(!myReady, { name: myName, valkId, deck: myCfg.deck });
+                  setReady(!myReady, { name: myName, valkIds: myTeam, deck: myCfg.deck });
                 }}
               >
-                {myReady ? "取消准备" : "✅ 准备对战"}
+                {myTeam.length !== teamSize
+                  ? `请选满 ${teamSize} 名学员`
+                  : myReady
+                    ? "取消准备"
+                    : "✅ 准备对战"}
               </button>
             </>
           )}
@@ -388,7 +515,13 @@ export default function PvpScreen() {
   return (
     <section className="screen active" id="scr-pvp">
       <div className="battle-topbar">
-        <HpBar f={me} label="我方" me />
+        <HpBar
+          f={me}
+          label="我方"
+          me
+          teamIds={side === "host" ? st.teams.host : st.teams.guest}
+          teamIdx={side === "host" ? st.teams.hostIdx : st.teams.guestIdx}
+        />
         <div className="pvp-round">
           第 {st.round} 回合
           <button
@@ -403,14 +536,32 @@ export default function PvpScreen() {
             🏳️
           </button>
         </div>
-        <HpBar f={opp} label="对方" me={false} />
+        <HpBar
+          f={opp}
+          label="对方"
+          me={false}
+          teamIds={side === "host" ? st.teams.guest : st.teams.host}
+          teamIdx={side === "host" ? st.teams.guestIdx : st.teams.hostIdx}
+        />
       </div>
 
       {showBanner && <div key={st.turnNo} className="pvp-turn-banner">⚔️ 你的回合</div>}
 
       <div className="pvp-stage" id="pvp-stage" ref={stageRef}>
-        <img className={`pvp-me-sprite ${st.over && iLost ? "ko" : ""}`} src={ICON(me.valkId)} alt={me.name} />
-        <img className={`pvp-opp-sprite ${st.over && iWin ? "ko" : ""}`} src={ICON(opp.valkId)} alt={opp.name} />
+        <img
+          ref={meImgRef}
+          data-vid={me.valkId}
+          className={`pvp-me-sprite ${st.over && iLost ? "ko" : ""}`}
+          src={ICON(me.valkId)}
+          alt={me.name}
+        />
+        <img
+          ref={oppImgRef}
+          data-vid={opp.valkId}
+          className={`pvp-opp-sprite ${st.over && iWin ? "ko" : ""}`}
+          src={ICON(opp.valkId)}
+          alt={opp.name}
+        />
         {st.lastFx.length > 0 && (
           <div className="pvp-fx-list">
             {st.lastFx.slice(-4).map((fx, i) => (

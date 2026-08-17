@@ -571,3 +571,19 @@
 .pvp-wait-live{display:flex;flex-direction:column;gap:8px;padding:10px}
 .pvp-wait-q{font-size:13px;color:var(--txt);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;max-height:30vh;overflow-y:auto;line-height:1.5}
 .btn-mini.active{border-color:var(--cyan);color:var(--cyan);font-weight:700}
+
+/* ---------- PvP 批2: 队伍编排/人数点/攻受动作 ---------- */
+.pvp-slots{display:flex;gap:8px;justify-content:center;margin-bottom:8px}
+.pvp-slot{width:52px;height:66px;border:2px dashed var(--line);border-radius:10px;position:relative;background:var(--panel2)}
+.pvp-slot.filled{border-style:solid;border-color:var(--cyan);cursor:pointer}
+.pvp-slot img{width:100%;height:100%;object-fit:contain}
+.pvp-slot-no{position:absolute;top:-8px;left:-6px;width:18px;height:18px;border-radius:50%;background:var(--cyan);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.pvp-team-dots{font-size:12px;letter-spacing:2px;line-height:1;margin:2px 0}
+.pvp-team-dots .alive{color:var(--green)}
+.pvp-team-dots .dead{color:var(--dim);opacity:.5}
+.pvp-me-sprite.lunge-r{animation:pvpLungeR .38s ease}
+.pvp-opp-sprite.lunge-l{animation:pvpLungeL .38s ease}
+@keyframes pvpLungeR{35%{transform:translateX(52px) scale(1.04)}}
+@keyframes pvpLungeL{35%{transform:translateX(-52px) scale(1.04)}}
+.pvp-me-sprite.hitflash,.pvp-opp-sprite.hitflash{animation:pvpHitFlash .45s ease}
+@keyframes pvpHitFlash{25%{filter:brightness(1.9) saturate(2.4) hue-rotate(-18deg);transform:translateX(7px)}55%{transform:translateX(-6px)}}

@@ -2,7 +2,7 @@
 
 /* 对战会话 store(纯内存,不持久化):网络事件/引擎结算/音效等副作用全部收在
  * 模块作用域,PvpScreen 只做渲染与点击分发 — 与 store.ts 的房屋风格一致。
- * 房间信令(选人互见/双方准备/再来一局/认输/牌组模式)经服务器纯转发。 */
+ * 房间信令(队伍互见/双方准备/赛制/再来一局/认输/牌组模式)经服务器纯转发。 */
 
 import { create } from "zustand";
 import { AudioEngine } from "./audio";
@@ -37,12 +37,16 @@ type PvpStore = {
   /** 房间信令态 */
   myReady: boolean;
   peerReady: boolean;
-  peerPick: number | null;
+  /** 对方出场队伍(有序) */
+  peerPicks: number[];
+  /** 赛制队伍人数(1/3/5) */
+  teamSize: number;
   deckMode: PvpDeckMode;
   againMe: boolean;
   againPeer: boolean;
   requestJoin: (room: string | null, name: string, cfg: PvpPeerInfo) => void;
-  sendPick: (valkId: number) => void;
+  sendPick: (picks: number[]) => void;
+  setTeamSize: (n: number) => void;
   setReady: (on: boolean, myCfg: PvpCfg) => void;
   setDeckMode: (mode: PvpDeckMode) => void;
   act: (a: PvpAct) => void;
@@ -62,6 +66,14 @@ let lastCfgs: { host: PvpCfg; guest: PvpCfg } | null = null;
 let firstFirst: PvpSide = "host";
 let gameCount = 0;
 
+const INITIAL_ROOM = {
+  myReady: false,
+  peerReady: false,
+  peerPicks: [] as number[],
+  againMe: false,
+  againPeer: false,
+};
+
 export const usePvpStore = create<PvpStore>((set, get) => ({
   mode: "idle",
   side: "host",
@@ -70,12 +82,9 @@ export const usePvpStore = create<PvpStore>((set, get) => ({
   st: null,
   info: "",
   remainMs: 15000,
-  myReady: false,
-  peerReady: false,
-  peerPick: null,
+  ...INITIAL_ROOM,
+  teamSize: 3,
   deckMode: "fair",
-  againMe: false,
-  againPeer: false,
 
   requestJoin: (room, name, cfg) => {
     net?.close();
@@ -83,33 +92,30 @@ export const usePvpStore = create<PvpStore>((set, get) => ({
     myCfgSaved = null;
     lastCfgs = null;
     gameCount = 0;
-    set({
-      mode: "idle",
-      peer: null,
-      st: null,
-      info: "连接对战服务器…",
-      myReady: false,
-      peerReady: false,
-      peerPick: null,
-      againMe: false,
-      againPeer: false,
-    });
+    set({ mode: "idle", peer: null, st: null, info: "连接对战服务器…", ...INITIAL_ROOM });
     net = new PvpNet(handleEvt);
     if (room) net.join(room, name, cfg);
     else net.create(name, cfg);
   },
 
-  /** 房间内改选学员(改选即取消双方准备) */
-  sendPick: (valkId) => {
+  /** 房间内改选队伍(出场顺序;改选即取消双方准备) */
+  sendPick: (picks) => {
     set({ myReady: false });
-    net?.sendMsg({ t: "pick", valkId });
+    net?.sendMsg({ t: "pick", picks });
+  },
+
+  /** 赛制队伍人数(仅宿主,改动取消双方准备) */
+  setTeamSize: (n) => {
+    if (get().side !== "host") return;
+    set({ teamSize: n, myReady: false, peerReady: false });
+    net?.sendMsg({ t: "teamSize", n });
   },
 
   /** 准备(携带自己的 cfg;双方都准备 → 宿主自动开局) */
   setReady: (on, myCfg) => {
     myCfgSaved = myCfg;
     set({ myReady: on });
-    net?.sendMsg({ t: "ready", on, pick: myCfg.valkId });
+    net?.sendMsg({ t: "ready", on, picks: myCfg.valkIds });
     if (on && get().peerReady) startMatch(set);
   },
 
@@ -155,11 +161,7 @@ export const usePvpStore = create<PvpStore>((set, get) => ({
       st: null,
       info: msg,
       remainMs: 15000,
-      myReady: false,
-      peerReady: false,
-      peerPick: null,
-      againMe: false,
-      againPeer: false,
+      ...INITIAL_ROOM,
     });
   },
 }));
@@ -175,14 +177,17 @@ function startMatch(set: SetFn, rematch = false): void {
   const st0 = usePvpStore.getState();
   if (!st0.peer || !myCfgSaved) return;
   const fair = st0.deckMode === "fair";
+  const size = st0.teamSize;
+  const hostIds = myCfgSaved.valkIds.slice(0, size);
+  const peerIds = st0.peerPicks.length > 0 ? st0.peerPicks : [st0.peer.valkId];
   const hostCfg: PvpCfg = {
     name: myCfgSaved.name,
-    valkId: myCfgSaved.valkId,
+    valkIds: hostIds.length > 0 ? hostIds : [1],
     deck: fair ? [] : myCfgSaved.deck,
   };
   const guestCfg: PvpCfg = {
     name: st0.peer.name,
-    valkId: st0.peerPick ?? st0.peer.valkId,
+    valkIds: peerIds.slice(0, size),
     deck: fair ? [] : st0.peer.deck,
   };
   AudioEngine.sfx("boss");
@@ -194,7 +199,7 @@ function startMatch(set: SetFn, rematch = false): void {
   firstFirst = engine.firstTurn;
   gameCount += 1;
   lastCfgs = { host: hostCfg, guest: guestCfg };
-  set({ mode: "battle", againMe: false, againPeer: false, info: "" });
+  set({ mode: "battle", info: "", ...INITIAL_ROOM });
   pushEngine(set);
 }
 
@@ -202,7 +207,7 @@ function restart(set: SetFn): void {
   const cfgs = lastCfgs;
   const my = myCfgSaved;
   if (!cfgs || !my) return;
-  myCfgSaved = { ...my, deck: cfgs.host.deck, valkId: cfgs.host.valkId };
+  myCfgSaved = { ...my, deck: cfgs.host.deck, valkIds: cfgs.host.valkIds };
   startMatch(set, true);
 }
 
@@ -247,13 +252,10 @@ function peerLeft(set: SetFn, promoted: boolean): void {
   set({
     mode: "room",
     peer: null,
-    peerReady: false,
-    peerPick: null,
-    againMe: false,
-    againPeer: false,
-    st: null,
     side: promoted ? "host" : st0.side,
+    st: null,
     info: inBattle ? "对方已离开,本场判你获胜" : "对方已离开房间",
+    ...INITIAL_ROOM,
   });
   if (inBattle) AudioEngine.sfx("fanfare");
 }
@@ -267,13 +269,11 @@ function handleEvt(evt: PvpNetEvt): void {
       room: evt.room,
       mode: "room",
       peer: null,
-      peerReady: false,
-      peerPick: null,
-      myReady: false,
       info: evt.side === "host" ? "房间已创建,等待对手…" : "已加入房间",
+      ...INITIAL_ROOM,
     });
   } else if (evt.t === "peer") {
-    set({ peer: evt.peer, info: "对手已就位,选择学员并准备" });
+    set({ peer: evt.peer, info: "对手已就位,编排队伍并准备" });
     AudioEngine.sfx("levelup");
   } else if (evt.t === "state") {
     // 客机:宿主快照
@@ -288,11 +288,13 @@ function handleEvt(evt: PvpNetEvt): void {
   } else if (evt.t === "act") {
     if (engine && pvpApply(engine, "guest", evt.act)) pushEngine(set);
   } else if (evt.t === "pick") {
-    set({ peerPick: evt.valkId, peerReady: false });
+    set({ peerPicks: evt.picks, peerReady: false });
   } else if (evt.t === "ready") {
-    set({ peerReady: evt.on, peerPick: evt.pick });
+    set({ peerReady: evt.on, peerPicks: evt.picks });
     const st0 = usePvpStore.getState();
     if (evt.on && st0.side === "host" && st0.myReady) startMatch(set);
+  } else if (evt.t === "teamSize") {
+    set({ teamSize: evt.n, myReady: false, peerReady: false });
   } else if (evt.t === "mode") {
     set({ deckMode: evt.deckMode, myReady: false, peerReady: false });
   } else if (evt.t === "again") {

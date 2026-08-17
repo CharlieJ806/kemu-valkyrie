@@ -13,8 +13,9 @@ export type PvpNetEvt =
   | { t: "peer"; peer: PvpPeerInfo }
   | { t: "act"; act: PvpAct }
   | { t: "state"; snap: PvpState }
-  | { t: "pick"; valkId: number }
-  | { t: "ready"; on: boolean; pick: number }
+  | { t: "pick"; picks: number[] }
+  | { t: "ready"; on: boolean; picks: number[] }
+  | { t: "teamSize"; n: number }
   | { t: "again" }
   | { t: "quit" }
   | { t: "mode"; deckMode: PvpDeckMode }
