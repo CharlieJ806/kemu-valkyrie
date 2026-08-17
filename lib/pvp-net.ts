@@ -29,8 +29,17 @@ export class PvpNet {
 
   constructor(private onEvt: (evt: PvpNetEvt) => void) {}
 
-  /** 连接并加入房间(房间不存在则创建,创建者为宿主) */
+  /** 创建房间(房码由服务端生成,本端为宿主) */
+  create(name: string, cfg: PvpPeerInfo): void {
+    this.connectAndSend({ v: 1, t: "create", name, cfg });
+  }
+
+  /** 加入房间(房间须已存在) */
   join(room: string, name: string, cfg: PvpPeerInfo): void {
+    this.connectAndSend({ v: 1, t: "join", room, name, cfg });
+  }
+
+  private connectAndSend(first: Record<string, unknown>): void {
     this.closed = false;
     const url = pvpServerUrl();
     try {
@@ -40,9 +49,7 @@ export class PvpNet {
       return;
     }
     this.ws.onopen = () => {
-      this.ws!.send(
-        JSON.stringify({ v: 1, t: "join", room, name, cfg }),
-      );
+      this.ws!.send(JSON.stringify(first));
     };
     this.ws.onmessage = (ev) => {
       try {

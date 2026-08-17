@@ -1,9 +1,10 @@
 /* 对战(PvP)引擎:宿主权威 — 由建房玩家的浏览器执行全部结算,另一方为瘦客户端。
  * 复用 cards.ts 的 applyCardFx(双端中立的 BattleCtx 结算)与 PvE 答题伤害公式,
- * 回合编排镜像单人循环:答题(15s,可连答) → 出牌 → 结束回合(泄能) → 换对方。
- * 本引擎只操作内存态 PvpState,不接触 RunState 与 localStorage。 */
+ * 回合编排镜像单人循环:答题(15s,每回合至多 5 题) → 出牌 → 结束回合(泄能) → 换对方。
+ * 公平性:数值走 PvP 平衡表(独立于 PvE 强度曲线)/先手随机/同一回合双方共用 5 题/
+ * 回合上限 30(按剩余 HP 比例判定)。本引擎只操作内存态,不接触 RunState 与 localStorage。 */
 
-import { QUESTIONS, getValkById, isValkyrie } from "@/data";
+import { QUESTIONS, isValkyrie } from "@/data";
 import { BATTLE_Q_TIME_MS } from "@/data/constants";
 import {
   applyCardFx,
@@ -12,12 +13,28 @@ import {
   STATUS_NAMES,
   ULT_PREFIX,
   type BattleCtx,
-  type CardFxEvent,
 } from "./cards";
 import { shuffle } from "./formulas";
 import type { EnemyStatus, Question } from "./types";
 
 export type PvpSide = "host" | "guest";
+
+/** 每回合答题上限(答满自动进入出牌阶段) */
+export const PVP_MAX_Q = 5;
+/** 回合上限(一回合=双方各行动一次;超出按剩余 HP 比例判定) */
+export const PVP_MAX_ROUNDS = 30;
+
+/** PvP 平衡表(速攻型用血量换攻击;未知 id 兜底 80/2) */
+const PVP_BALANCE: Record<number, { hp: number; atk: number }> = {
+  1: { hp: 72, atk: 3 }, // 赤红 · 速攻
+  2: { hp: 84, atk: 2 }, // 蔚蓝
+  3: { hp: 88, atk: 2 }, // 白银 · 最坦
+  4: { hp: 80, atk: 2 }, // 深夜
+  5: { hp: 76, atk: 2 }, // 藏青
+  6: { hp: 84, atk: 2 }, // 格瑞
+  7: { hp: 72, atk: 3 }, // 晴岚 · 速攻
+  8: { hp: 80, atk: 2 }, // 刹
+};
 
 /** 对战方(镜像 PvE 玩家侧字段;deck/hand 等均为卡 id) */
 export type PvpFighter = {
@@ -25,6 +42,8 @@ export type PvpFighter = {
   valkId: number;
   hp: number;
   maxHp: number;
+  /** 平衡表攻击(答题/泄能/卡牌加成共用) */
+  atk: number;
   block: number;
   energy: number;
   /** 出伤倍率(本回合卡牌 mult 累积,自己回合开始重置 1) */
@@ -43,16 +62,34 @@ export type PvpFighter = {
   maxCombo: number;
 };
 
-export type PvpFx = { side: PvpSide; text: string; color: string };
+/** 飘字事件(seq 单调递增,屏幕按 seq 播放新增条目) */
+export type PvpFx = {
+  side: PvpSide;
+  text: string;
+  color: string;
+  seq: number;
+  kind: "answer" | "card" | "dump" | "heal" | "status" | "timeout" | "info";
+  dmg?: number;
+  crit?: boolean;
+};
 
 export type PvpState = {
   v: 1;
+  /** 总行动序号(每次行动+1;一回合=双方各一次) */
+  turnNo: number;
+  /** 回合序号 = ceil(turnNo/2) */
   round: number;
   host: PvpFighter;
   guest: PvpFighter;
+  /** 先手方(随机) */
+  firstTurn: PvpSide;
   /** 当前行动方 */
   turn: PvpSide;
   phase: "question" | "card";
+  /** 本回合 5 题(同一回合双方共用,保证难度对称) */
+  roundQs: Question[];
+  /** 本回合已答到第几题(0-4) */
+  turnQIdx: number;
   currentQ: Question | null;
   /** 答题截止(宿主时钟毫秒;快照时换算 qRemainMs) */
   qEndsAt: number;
@@ -60,17 +97,21 @@ export type PvpState = {
   qRemainMs: number;
   /** 本回合答对数 → 出牌能量 */
   turnCorrect: number;
-  /** 答错/超时后锁定答题,等待进入出牌阶段 */
+  /** 答错/超时/答满后锁定答题,等待进入出牌阶段 */
   qLocked: boolean;
   /** 本题作答反馈(展示正确/错误用;进下一题时清空) */
   answered: { pick: number; correct: boolean } | null;
-  /** 共享抽题历史(避免近期重复,上限 40) */
+  /** 抽题去重历史(上限 40) */
   qHistory: string[];
   winner: PvpSide | null;
+  /** 对局结束(winner=null 且 over=true 为平局) */
+  over: boolean;
   /** 冻结/禁行导致的跳过提示(本回合) */
   skipNote: string | null;
-  /** 最近动作飘字(双方按 side 渲染) */
+  /** 最近动作飘字(双方按 side/seq 渲染) */
   lastFx: PvpFx[];
+  /** 飘字批次序号(每次引擎动作 +1) */
+  fxSeq: number;
 };
 
 export type PvpCfg = { name: string; valkId: number; deck: string[] };
@@ -91,9 +132,17 @@ function other(side: PvpSide): PvpSide {
   return side === "host" ? "guest" : "host";
 }
 
-function pushFx(st: PvpState, side: PvpSide, text: string, color: string): void {
-  st.lastFx.push({ side, text, color });
-  if (st.lastFx.length > 6) st.lastFx.splice(0, st.lastFx.length - 6);
+function pushFx(
+  st: PvpState,
+  side: PvpSide,
+  text: string,
+  color: string,
+  kind: PvpFx["kind"] = "info",
+  dmg?: number,
+  crit?: boolean,
+): void {
+  st.lastFx.push({ side, text, color, seq: st.fxSeq, kind, dmg, crit });
+  if (st.lastFx.length > 8) st.lastFx.splice(0, st.lastFx.length - 8);
 }
 
 /** 净化牌组:过滤非法/必杀 id,不足 5 张补初始卡,上限 12 张 */
@@ -111,13 +160,14 @@ export function sanitizePvpDeck(deck: string[]): string[] {
 
 export function createPvpState(hostCfg: PvpCfg, guestCfg: PvpCfg): PvpState {
   const mk = (cfg: PvpCfg): PvpFighter => {
-    const valk = getValkById(cfg.valkId);
+    const bal = PVP_BALANCE[cfg.valkId] ?? { hp: 80, atk: 2 };
     const deck = sanitizePvpDeck(cfg.deck);
     return {
       name: cfg.name.slice(0, 8) || "学员",
       valkId: isValkyrie(cfg.valkId) ? cfg.valkId : 1,
-      hp: (valk?.hp ?? 60) + 20,
-      maxHp: (valk?.hp ?? 60) + 20,
+      hp: bal.hp,
+      maxHp: bal.hp,
+      atk: bal.atk,
       block: 0,
       energy: 0,
       dmgMult: 1,
@@ -133,13 +183,19 @@ export function createPvpState(hostCfg: PvpCfg, guestCfg: PvpCfg): PvpState {
       maxCombo: 0,
     };
   };
+  // 先手随机(公平:双方各 50%)
+  const first: PvpSide = Math.random() < 0.5 ? "host" : "guest";
   const st: PvpState = {
     v: 1,
-    round: 1,
+    turnNo: 0,
+    round: 0,
     host: mk(hostCfg),
     guest: mk(guestCfg),
-    turn: "host",
+    firstTurn: first,
+    turn: first,
     phase: "question",
+    roundQs: [],
+    turnQIdx: 0,
     currentQ: null,
     qEndsAt: 0,
     qRemainMs: 0,
@@ -148,36 +204,35 @@ export function createPvpState(hostCfg: PvpCfg, guestCfg: PvpCfg): PvpState {
     answered: null,
     qHistory: [],
     winner: null,
+    over: false,
     skipNote: null,
     lastFx: [],
+    fxSeq: 0,
   };
-  beginTurn(st, "host");
+  st.fxSeq += 1;
+  pushFx(st, first, `${fighterOf(st, first).name} 先攻!`, "#ffd700");
+  beginTurn(st, first);
   return st;
 }
 
-/* ============ 抽牌 ============ */
+/* ============ 抽题 ============ */
 
-function drawInto(f: PvpFighter, n: number): void {
-  for (let i = 0; i < n; i++) {
-    if (f.drawPile.length === 0) {
-      if (f.discardPile.length === 0) break;
-      f.drawPile = shuffle(f.discardPile);
-      f.discardPile = [];
-    }
-    const id = f.drawPile.pop();
-    if (id) f.hand.push(id);
-  }
+/** 新回合开始:抽 5 题(避开近期历史;同一回合双方共用同一组题,保证难度对称) */
+function refreshRoundQs(st: PvpState): void {
+  const recent = st.qHistory.slice(-40);
+  let pool = QUESTIONS.filter((q) => !recent.includes(q.id));
+  if (pool.length < 5) pool = QUESTIONS;
+  const picked = shuffle(pool).slice(0, PVP_MAX_Q);
+  for (const q of picked) st.qHistory.push(q.id);
+  if (st.qHistory.length > 40) st.qHistory.splice(0, st.qHistory.length - 40);
+  st.roundQs = picked;
 }
 
-function pickQuestion(st: PvpState): void {
-  const recent = st.qHistory.slice(-10);
-  let pool = QUESTIONS.filter((q) => !recent.includes(q.id));
-  if (pool.length === 0) pool = QUESTIONS;
-  const q = pool[Math.floor(Math.random() * pool.length)]!;
+/** 展示本回合第 idx 题(索引越界视为锁定) */
+function showQuestion(st: PvpState): void {
+  const q = st.roundQs[st.turnQIdx] ?? null;
   st.currentQ = q;
-  st.qHistory.push(q.id);
-  if (st.qHistory.length > 40) st.qHistory.splice(0, 20);
-  st.qLocked = false;
+  st.qLocked = q == null;
   st.answered = null;
   st.qEndsAt = Date.now() + BATTLE_Q_TIME_MS;
 }
@@ -200,21 +255,25 @@ function hit(
     amt -= blocked;
   }
   def.hp = Math.max(0, def.hp - amt);
-  if (def.hp <= 0 && !st.winner) st.winner = attSide;
-  if (amt > 0) pushFx(st, other(attSide), `-${amt}`, "#ff6688");
+  if (def.hp <= 0 && !st.over) {
+    st.over = true;
+    st.winner = attSide;
+  }
   return amt;
 }
 
 /* ============ 回合流转 ============ */
 
-/** side 回合开始:重置倍率/格挡,结算冻结/禁行跳过,抽题计时 */
+/** side 回合开始:重置倍率/格挡,结算冻结/禁行跳过,展示第 1 题 */
 function beginTurn(st: PvpState, side: PvpSide): void {
   const f = fighterOf(st, side);
+  st.turnNo += 1;
+  st.round = Math.ceil(st.turnNo / 2);
   st.turn = side;
   st.phase = "question";
   st.turnCorrect = 0;
+  st.turnQIdx = 0;
   st.skipNote = null;
-  st.lastFx = [];
   f.dmgMult = 1;
   f.defMult = 1;
   f.block = 0;
@@ -222,6 +281,9 @@ function beginTurn(st: PvpState, side: PvpSide): void {
   // 手牌清入弃牌堆
   f.discardPile = [...f.discardPile, ...f.hand];
   f.hand = [];
+
+  // 新回合(奇数次行动)抽 5 题:双方共用
+  if (st.turnNo % 2 === 1) refreshRoundQs(st);
 
   // 冻结/禁行:跳过整回合(状态消耗 1 层)
   const stt = f.status;
@@ -233,33 +295,36 @@ function beginTurn(st: PvpState, side: PvpSide): void {
     endTurn(st, side, true);
     return;
   }
-  pickQuestion(st);
+  showQuestion(st);
 }
 
-/** 结束回合:泄能 → 自身 DoT → 状态/减益递减 → 换对方。
+/** 结束回合:泄能 → 自身 DoT → 状态/减益递减 → 回合上限判定 → 换对方。
  * silent=true 由 beginTurn 跳过路径调用(不再重复泄能)。 */
 function endTurn(st: PvpState, side: PvpSide, silent = false): void {
-  if (st.winner) return;
+  if (st.over) return;
   const f = fighterOf(st, side);
 
   if (!silent) {
     // 泄能:剩余能量 × (2+攻击) 直接打击对方
     if (f.energy > 0) {
-      const dump = f.energy * (2 + (getValkById(f.valkId)?.atk ?? 2));
+      const dump = f.energy * (2 + f.atk);
       const dealt = hit(st, side, dump);
-      pushFx(st, side, `泄能 -${dealt}`, "#ffd700");
+      pushFx(st, side, `泄能 -${dealt}`, "#ffd700", "dump", dealt);
       f.energy = 0;
     }
   }
 
   // DoT:burn 4 / poison 6 打在自己身上(无视格挡)
-  if (f.status && !st.winner) {
+  if (f.status && !st.over) {
     const s = f.status;
     const dot = s.type === "burn" ? 4 : s.type === "poison" ? 6 : 0;
     if (dot > 0) {
       f.hp = Math.max(0, f.hp - dot);
-      pushFx(st, side, `${STATUS_NAMES[s.type]} -${dot}`, "#c76fd8");
-      if (f.hp <= 0 && !st.winner) st.winner = other(side);
+      pushFx(st, side, `${STATUS_NAMES[s.type]} -${dot}`, "#c76fd8", "status", dot);
+      if (f.hp <= 0 && !st.over) {
+        st.over = true;
+        st.winner = other(side);
+      }
     }
     s.turns -= 1;
     if (s.turns <= 0) f.status = null;
@@ -274,32 +339,63 @@ function endTurn(st: PvpState, side: PvpSide, silent = false): void {
     }
   }
 
-  if (st.winner) return;
-  st.round += 1;
+  if (st.over) return;
+
+  // 回合上限:按剩余 HP 比例判定(完全相等为平局)
+  const nextRound = Math.ceil((st.turnNo + 1) / 2);
+  if (nextRound > PVP_MAX_ROUNDS) {
+    const hostPct = st.host.hp / st.host.maxHp;
+    const guestPct = st.guest.hp / st.guest.maxHp;
+    st.over = true;
+    st.winner = hostPct > guestPct ? "host" : hostPct < guestPct ? "guest" : null;
+    pushFx(st, st.turn, "回合上限,按剩余体力判定", "#ffd700");
+    return;
+  }
   beginTurn(st, other(side));
 }
 
 /* ============ 动作入口(宿主执行;返回是否生效) ============ */
 
-/** 答题:答对 → 伤害+连击+下一题;答错/超时 → 锁题待进入出牌阶段 */
+/** 出牌阶段公共逻辑 */
+function enterCardPhase(st: PvpState, side: PvpSide): void {
+  const f = fighterOf(st, side);
+  st.phase = "card";
+  const base = st.turnCorrect;
+  f.energy = f.status?.type === "para" ? Math.floor(base / 2) : base;
+  if (f.status?.type === "para" && base > 0) {
+    pushFx(st, side, "限速减速:能量减半", "#8fb7ff");
+  }
+  if (f.drawPile.length === 0) f.drawPile = shuffle(f.deck);
+  drawInto(f, 5);
+}
+
+/** 答题:答对 → 伤害+连击+下一题(答满 5 题自动进出牌);答错/超时 → 锁题待进入出牌阶段 */
 export function pvpAnswer(st: PvpState, side: PvpSide, pick: number): boolean {
-  if (st.winner || st.turn !== side || st.phase !== "question" || st.qLocked) return false;
+  if (st.over || st.turn !== side || st.phase !== "question" || st.qLocked) return false;
   const q = st.currentQ;
   if (!q) return false;
+  st.fxSeq += 1;
   const f = fighterOf(st, side);
   const correct = pick === q.ans;
   if (correct) {
     f.combo++;
     st.turnCorrect++;
     if (f.combo > f.maxCombo) f.maxCombo = f.combo;
-    // 伤害公式与 PvE answerBattle 一致(攻击取学员基础攻击)
-    const atk = getValkById(f.valkId)?.atk ?? 2;
-    const baseDmg = 3 + Math.floor(f.combo / 3) * 2 + atk;
+    // 伤害公式与 PvE answerBattle 一致(攻击取平衡表数值)
+    const baseDmg = 3 + Math.floor(f.combo / 3) * 2 + f.atk;
     const comboMult = 1 + (f.combo - 1) * 0.15;
     const crit = f.combo > 0 && f.combo % 5 === 0;
     const dealt = hit(st, side, Math.floor(baseDmg * comboMult * (crit ? 1.5 : 1)));
-    pushFx(st, side, crit ? `暴击! -${dealt}` : `连击${f.combo} -${dealt}`, "#ffd700");
-    if (!st.winner) pickQuestion(st);
+    pushFx(st, side, crit ? "暴击!" : `连击${f.combo}`, crit ? "#ffd700" : "#ff6688", "answer", dealt, crit);
+    if (!st.over) {
+      st.turnQIdx += 1;
+      if (st.turnQIdx >= PVP_MAX_Q) {
+        pushFx(st, side, "答题上限,进入出牌", "#ffd700");
+        enterCardPhase(st, side);
+      } else {
+        showQuestion(st);
+      }
+    }
   } else {
     f.combo = 0;
     st.qLocked = true;
@@ -310,46 +406,41 @@ export function pvpAnswer(st: PvpState, side: PvpSide, pick: number): boolean {
 
 /** 答题超时(宿主计时器调用):按答错处理(pick=-1 不高亮任何选项) */
 export function pvpTimeout(st: PvpState): boolean {
-  if (st.winner || st.phase !== "question" || st.qLocked) return false;
+  if (st.over || st.phase !== "question" || st.qLocked) return false;
+  st.fxSeq += 1;
   const f = fighterOf(st, st.turn);
   f.combo = 0;
   st.qLocked = true;
   st.answered = { pick: -1, correct: false };
-  pushFx(st, st.turn, "⏰ 超时!", "#ff8800");
+  pushFx(st, st.turn, "⏰ 超时!", "#ff8800", "timeout");
   return true;
 }
 
 /** 进入出牌阶段:答错锁定后必进;答对攒了能量也可主动停止答题 */
 export function pvpEnterCard(st: PvpState, side: PvpSide): boolean {
   if (
-    st.winner ||
+    st.over ||
     st.turn !== side ||
     st.phase !== "question" ||
     (!st.qLocked && st.turnCorrect === 0)
   ) {
     return false;
   }
-  const f = fighterOf(st, side);
-  st.phase = "card";
-  const base = st.turnCorrect;
-  f.energy = f.status?.type === "para" ? Math.floor(base / 2) : base;
-  if (f.status?.type === "para" && base > 0) {
-    pushFx(st, side, "限速减速:能量减半", "#8fb7ff");
-  }
-  if (f.drawPile.length === 0) f.drawPile = shuffle(f.deck);
-  drawInto(f, 5);
+  st.fxSeq += 1;
+  enterCardPhase(st, side);
   return true;
 }
 
 /** 出牌:费用校验 → 远光眩目 30% 打空 → applyCardFx 结算 */
 export function pvpPlayCard(st: PvpState, side: PvpSide, handIdx: number): boolean {
-  if (st.winner || st.turn !== side || st.phase !== "card") return false;
+  if (st.over || st.turn !== side || st.phase !== "card") return false;
   const f = fighterOf(st, side);
   const foe = fighterOf(st, other(side));
   const id = f.hand[handIdx];
   const card = id ? findCard(id) : undefined;
   if (!card) return false;
   if (f.energy < card.cost) return false;
+  st.fxSeq += 1;
 
   f.hand.splice(handIdx, 1);
   f.discardPile.push(id!);
@@ -376,11 +467,11 @@ export function pvpPlayCard(st: PvpState, side: PvpSide, handIdx: number): boole
     enemyAtkMult: foe.weakMult,
     enemyWeakTurns: foe.weakTurns,
     enemyStatus: foe.status,
-    atk: getValkById(f.valkId)?.atk ?? 2,
+    atk: f.atk,
     dmgMult: foe.weakMult * foe.defMult,
     draw: (n) => drawInto(f, n),
   };
-  const events: CardFxEvent[] = applyCardFx(card, ctx);
+  const events = applyCardFx(card, ctx);
 
   // 结算回写
   f.block = ctx.block;
@@ -393,21 +484,28 @@ export function pvpPlayCard(st: PvpState, side: PvpSide, handIdx: number): boole
   foe.weakMult = ctx.enemyAtkMult;
   foe.weakTurns = ctx.enemyWeakTurns;
   foe.status = ctx.enemyStatus;
-  if (foe.hp <= 0 && !st.winner) st.winner = side;
-  if (f.hp <= 0 && !st.winner) st.winner = other(side);
+  if (foe.hp <= 0 && !st.over) {
+    st.over = true;
+    st.winner = side;
+  }
+  if (f.hp <= 0 && !st.over) {
+    st.over = true;
+    st.winner = other(side);
+  }
 
-  // 飘字:伤害/回复/格挡摘要
+  // 飘字:伤害/回复/状态摘要
   for (const e of events) {
-    if (e.type === "dmg") pushFx(st, side, `${card.name} -${e.amount}`, "#ff6688");
-    else if (e.type === "heal") pushFx(st, side, `${card.name} +${e.amount}`, "#4ec98c");
-    else if (e.type === "status") pushFx(st, side, `${card.name} ${STATUS_NAMES[e.status]}`, "#c76fd8");
+    if (e.type === "dmg") pushFx(st, side, `${card.name}`, "#ff6688", "card", e.amount);
+    else if (e.type === "heal") pushFx(st, side, `${card.name} +${e.amount}`, "#4ec98c", "heal");
+    else if (e.type === "status") pushFx(st, side, `${card.name} ${STATUS_NAMES[e.status]}`, "#c76fd8", "status");
   }
   return true;
 }
 
 /** 结束回合(出牌阶段) */
 export function pvpEndTurn(st: PvpState, side: PvpSide): boolean {
-  if (st.winner || st.turn !== side || st.phase !== "card") return false;
+  if (st.over || st.turn !== side || st.phase !== "card") return false;
+  st.fxSeq += 1;
   endTurn(st, side);
   return true;
 }
@@ -426,6 +524,19 @@ export function pvpApply(st: PvpState, side: PvpSide, act: PvpAct): boolean {
   }
 }
 
+/** 抽牌(弃牌堆空自动洗回) */
+function drawInto(f: PvpFighter, n: number): void {
+  for (let i = 0; i < n; i++) {
+    if (f.drawPile.length === 0) {
+      if (f.discardPile.length === 0) break;
+      f.drawPile = shuffle(f.discardPile);
+      f.discardPile = [];
+    }
+    const id = f.drawPile.pop();
+    if (id) f.hand.push(id);
+  }
+}
+
 /** 快照:补算剩余答题毫秒后整体可 JSON 序列化 */
 export function pvpSnapshot(st: PvpState): PvpState {
   return {
@@ -436,7 +547,7 @@ export function pvpSnapshot(st: PvpState): PvpState {
 
 /** 宿主定时推进:答题超时判定(返回 true 表示状态有变,需推送) */
 export function pvpTick(st: PvpState): boolean {
-  if (st.winner || st.phase !== "question" || st.qLocked) return false;
+  if (st.over || st.phase !== "question" || st.qLocked) return false;
   if (Date.now() < st.qEndsAt) return false;
   return pvpTimeout(st);
 }

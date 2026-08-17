@@ -29,7 +29,8 @@ type PvpStore = {
   info: string;
   /** 剩余答题毫秒(host 由引擎时钟换算,guest 由快照携带+本地递减) */
   remainMs: number;
-  requestJoin: (room: string, name: string, cfg: PvpPeerInfo) => void;
+  /** 创建房间(room 传 null)或加入既有房间;房码统一由服务端回包 */
+  requestJoin: (room: string | null, name: string, cfg: PvpPeerInfo) => void;
   hostStart: (cfg: PvpCfg, peerCfg: PvpCfg) => void;
   act: (a: PvpAct) => void;
   leave: (msg: string) => void;
@@ -53,7 +54,8 @@ export const usePvpStore = create<PvpStore>((set, get) => ({
     engine = null;
     set({ mode: "idle", peer: null, st: null, info: "连接对战服务器…" });
     net = new PvpNet(handleEvt);
-    net.join(room, name, cfg);
+    if (room) net.join(room, name, cfg);
+    else net.create(name, cfg);
   },
 
   hostStart: (cfg, peerCfg) => {

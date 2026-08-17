@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useGameStore } from "@/lib/store";
 import { VALKYRIES } from "@/data";
 import { getValkName } from "@/lib/formulas";
 import { hydrateCard } from "@/lib/cards";
-import { sanitizePvpDeck } from "@/lib/pvp";
+import { PVP_MAX_Q, sanitizePvpDeck, type PvpState } from "@/lib/pvp";
 import { usePvpStore, pvpHostTick, pvpGuestTick } from "@/lib/pvp-store";
 import { ICON } from "@/lib/icon";
 import { AudioEngine } from "@/lib/audio";
-import type { PvpState } from "@/lib/pvp";
+import { spawnDmg, spawnFxText, domBurst } from "@/lib/dom-fx";
 
 const Q_TIME_MS = 15000;
 
@@ -58,6 +58,11 @@ export default function PvpScreen() {
   const [valkId, setValkId] = useState(1);
   const [roomIn, setRoomIn] = useState("");
 
+  const stageRef = useRef<HTMLDivElement>(null);
+  const lastFxSeqRef = useRef(0); // 飘字消费游标(按 seq 播放新增条目)
+  const wrongPlayedRef = useRef(""); // 答错音效去重
+  const confettiDoneRef = useRef(false);
+
   const myName = name.trim() || getValkName(valkId);
   const myCfg = {
     name: myName,
@@ -73,24 +78,67 @@ export default function PvpScreen() {
     return () => clearInterval(t);
   }, [mode, side]);
 
-  // 答错/超时展示 900ms 后自动进入出牌阶段
+  // 飘字/伤害数字/粒子/震动消费(双方各自播放新增 seq)
+  useEffect(() => {
+    if (!st || st.lastFx.length === 0) return;
+    const fresh = st.lastFx.filter((f) => f.seq > lastFxSeqRef.current);
+    if (fresh.length === 0) return;
+    lastFxSeqRef.current = Math.max(...st.lastFx.map((f) => f.seq));
+    const stage = stageRef.current;
+    for (const f of fresh) {
+      const mine = f.side === side;
+      if (stage) {
+        if (f.dmg != null && f.dmg > 0) {
+          spawnDmg(stage, mine ? 72 : 26, mine ? 32 : 52, `-${f.dmg}`, f.crit ? "#ffd700" : "#ff6688", f.crit);
+        } else {
+          spawnFxText(stage, mine ? 60 : 38, mine ? 22 : 56, f.text, f.color);
+        }
+        if (f.crit) domBurst(stage, 70, 34, "#ffd700", 20);
+      }
+      if (mine) {
+        if (f.kind === "answer") AudioEngine.sfx(f.crit ? "crit" : "correct");
+        else if (f.kind === "timeout") AudioEngine.sfx("timeout");
+      }
+    }
+    // 受击:大额伤害触发镜头震动
+    const incBig = Math.max(0, ...fresh.filter((f) => f.side !== side).map((f) => f.dmg ?? 0));
+    if (incBig >= 12) {
+      const wrap = document.getElementById("shake-wrap");
+      wrap?.classList.add("shaking");
+      setTimeout(() => wrap?.classList.remove("shaking"), 350);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [st, side]);
+
+  // 答错/超时音效 + 展示 900ms 后自动进入出牌阶段
   useEffect(() => {
     if (mode !== "battle" || !st || st.turn !== side || st.phase !== "question") return;
     if (!st.answered || st.answered.correct) return;
+    const key = `${st.turnNo}:${st.turnQIdx}`;
+    if (wrongPlayedRef.current !== key) {
+      wrongPlayedRef.current = key;
+      // 超时(pick=-1)的音效已由 fx 消费播放,这里只处理答错
+      if (st.answered.pick !== -1) AudioEngine.sfx("wrong");
+    }
     const t = setTimeout(() => act({ act: "enterCard" }), 900);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [st?.answered, st?.phase, st?.round, mode, side]);
+  }, [st?.answered, st?.phase, st?.turnNo, st?.turnQIdx, mode, side]);
+
+  // 胜利彩带(一次性)
+  useEffect(() => {
+    if (!st?.over || st.winner !== side || confettiDoneRef.current) return;
+    confettiDoneRef.current = true;
+    const target = document.getElementById("pvp-stage") ?? document.body;
+    domBurst(target, 50, 40, "#ffd700", 30);
+    domBurst(target, 50, 40, "#57c7a7", 30);
+  }, [st?.over, st?.winner, side]);
 
   useEffect(() => {
     return () => {
       usePvpStore.getState().leave("已离开对战");
     };
   }, []);
-
-  const joinRoom = (code: string) => {
-    requestJoin(code, myName, myCfg);
-  };
 
   /* ================= 大厅/房间 ================= */
   if (mode !== "battle" || !st) {
@@ -147,7 +195,7 @@ export default function PvpScreen() {
                 <input
                   className="search-input"
                   style={{ maxWidth: 120, textTransform: "uppercase" }}
-                  placeholder="4位房码"
+                  placeholder="加入时填写"
                   value={roomIn}
                   onChange={(e) => setRoomIn(e.target.value.toUpperCase().slice(0, 4))}
                 />
@@ -157,13 +205,7 @@ export default function PvpScreen() {
                   className="btn btn-primary"
                   onClick={() => {
                     AudioEngine.sfx("click");
-                    const code =
-                      roomIn ||
-                      Array.from({ length: 4 }, () =>
-                        "ABCDEFGHJKMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 31)],
-                      ).join("");
-                    setRoomIn(code);
-                    joinRoom(code);
+                    requestJoin(null, myName, myCfg);
                   }}
                 >
                   🌐 创建房间
@@ -173,7 +215,7 @@ export default function PvpScreen() {
                   disabled={roomIn.length !== 4}
                   onClick={() => {
                     AudioEngine.sfx("click");
-                    joinRoom(roomIn);
+                    requestJoin(roomIn, myName, myCfg);
                   }}
                 >
                   🔑 加入房间
@@ -220,7 +262,7 @@ export default function PvpScreen() {
   /* ================= 对战中 ================= */
   const me = side === "host" ? st.host : st.guest;
   const opp = side === "host" ? st.guest : st.host;
-  const myTurn = st.turn === side && !st.winner;
+  const myTurn = st.turn === side && !st.over;
   const handCards = me.hand.map((id) => hydrateCard(id));
 
   return (
@@ -231,25 +273,30 @@ export default function PvpScreen() {
         <HpBar f={opp} label="对方" me={false} />
       </div>
 
-      <div className="pvp-stage">
-        <img className="pvp-opp-sprite" src={ICON(opp.valkId)} alt={opp.name} />
+      <div className="pvp-stage" id="pvp-stage" ref={stageRef}>
         <img className="pvp-me-sprite" src={ICON(me.valkId)} alt={me.name} />
+        <img className="pvp-opp-sprite" src={ICON(opp.valkId)} alt={opp.name} />
         {st.lastFx.length > 0 && (
           <div className="pvp-fx-list">
             {st.lastFx.slice(-4).map((fx, i) => (
               <div key={i} style={{ color: fx.color }}>
                 {fx.side === side ? "我方" : "对方"} {fx.text}
+                {fx.dmg ? ` -${fx.dmg}` : ""}
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {st.winner ? (
+      {st.over ? (
         <div className="modal-wrap">
           <div className="modal">
             <div className="capture-title">
-              {st.winner === side ? "🏆 对战胜利！" : "💀 惜败…"}
+              {st.winner == null
+                ? "⚖️ 平局"
+                : st.winner === side
+                  ? "🏆 对战胜利！"
+                  : "💀 惜败…"}
             </div>
             <div style={{ fontSize: 12, color: "var(--dim)", margin: "8px 0" }}>
               {st.round} 回合 · 我方最大连击 {me.maxCombo}
@@ -272,7 +319,8 @@ export default function PvpScreen() {
                     style={{ width: `${(remainMs / Q_TIME_MS) * 100}%` }}
                   />
                   <span className="battle-timer-text">
-                    ⏱ {Math.ceil(remainMs / 1000)}s · ⚡{st.turnCorrect}
+                    ⏱ {Math.ceil(remainMs / 1000)}s · 第 {Math.min(st.turnQIdx + 1, PVP_MAX_Q)}/
+                    {PVP_MAX_Q} 题 · ⚡{st.turnCorrect}
                   </span>
                 </div>
                 <div className="battle-q-scroll">
@@ -365,9 +413,9 @@ export default function PvpScreen() {
         </>
       ) : (
         <div className="pvp-wait">
-          {st.skipNote && st.turn === side ? st.skipNote : `⏳ 对方行动中(${
-            st.phase === "question" ? "答题阶段" : "出牌阶段"
-          })…`}
+          {st.skipNote && st.turn === side
+            ? st.skipNote
+            : `⏳ 对方行动中(${st.phase === "question" ? "答题阶段" : "出牌阶段"})…`}
         </div>
       )}
     </section>

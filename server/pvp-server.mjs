@@ -99,7 +99,33 @@ wss.on("connection", (ws, req) => {
     }
     if (!m || typeof m !== "object" || typeof m.t !== "string") return;
 
-    // ---- 控制消息:加入房间 ----
+    // ---- 控制消息:创建房间(房码由服务端生成,保证不冲突) ----
+    if (m.t === "create") {
+      if (!ipAllowed(ip)) {
+        send(ws, { v: 1, t: "err", msg: "操作太频繁,请稍后再试" });
+        return;
+      }
+      let code = "";
+      do {
+        code = Array.from(
+          { length: 4 },
+          () => CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)],
+        ).join("");
+      } while (rooms.has(code));
+      rooms.set(code, {
+        host: ws,
+        guest: null,
+        hostInfo: m.cfg || null,
+        guestInfo: null,
+        lastActive: Date.now(),
+      });
+      joinedCode = code;
+      send(ws, { v: 1, t: "joined", side: "host", room: code });
+      console.log(`[pvp] ${ip} 创建房间 ${code} 当前房间数 ${rooms.size}`);
+      return;
+    }
+
+    // ---- 控制消息:加入房间(房间必须已存在) ----
     if (m.t === "join") {
       const code = String(m.room || "").toUpperCase();
       if (!new RegExp(`^[${CODE_CHARS}]{4}$`).test(code)) {
@@ -110,15 +136,9 @@ wss.on("connection", (ws, req) => {
         send(ws, { v: 1, t: "err", msg: "操作太频繁,请稍后再试" });
         return;
       }
-      let room = rooms.get(code);
+      const room = rooms.get(code);
       if (!room) {
-        room = { host: null, guest: null, hostInfo: null, guestInfo: null, lastActive: Date.now() };
-        rooms.set(code, room);
-        room.host = ws;
-        room.hostInfo = m.cfg || null;
-        joinedCode = code;
-        send(ws, { v: 1, t: "joined", side: "host", room: code });
-        console.log(`[pvp] ${ip} 创建房间 ${code} 当前房间数 ${rooms.size}`);
+        send(ws, { v: 1, t: "err", msg: "房间不存在或已关闭" });
         return;
       }
       if (room.host === ws || room.guest === ws) return; // 重复加入忽略
