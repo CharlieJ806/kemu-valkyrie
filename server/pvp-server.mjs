@@ -173,10 +173,33 @@ wss.on("connection", (ws, req) => {
   });
 
   ws.on("close", () => {
-    if (joinedCode) teardownRoom(joinedCode, "一方断开");
+    if (!joinedCode) return;
+    const room = rooms.get(joinedCode);
+    if (!room) return;
+    const peer = peerOf(room, ws);
+    // 房间移交给留下的人(断线即散局:对局判对方胜,由客户端呈现)
+    if (peer && peer.readyState === peer.OPEN) {
+      if (room.host === ws) {
+        // 宿主离开:客机升任房主,房码不变可继续等新对手
+        room.host = peer;
+        room.guest = null;
+        room.hostInfo = room.guestInfo;
+        room.guestInfo = null;
+        send(peer, { v: 1, t: "promoted" });
+        console.log(`[pvp] 房间 ${joinedCode} 宿主离开,客机升任房主`);
+      } else {
+        room.guest = null;
+        room.guestInfo = null;
+        send(peer, { v: 1, t: "left", reason: "对方已离开" });
+        console.log(`[pvp] 房间 ${joinedCode} 客机离开`);
+      }
+      joinedCode = null;
+      return;
+    }
+    teardownRoom(joinedCode, "一方断开");
   });
   ws.on("error", () => {
-    if (joinedCode) teardownRoom(joinedCode, "连接异常");
+    /* close 会跟随触发,统一在 close 处理 */
   });
 });
 

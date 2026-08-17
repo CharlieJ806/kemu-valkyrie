@@ -23,6 +23,10 @@ export type PvpSide = "host" | "guest";
 export const PVP_MAX_Q = 5;
 /** 回合上限(一回合=双方各行动一次;超出按剩余 HP 比例判定) */
 export const PVP_MAX_ROUNDS = 30;
+/** 出牌阶段总时限(超时自动结束回合,防挂机拖延) */
+export const PVP_CARD_TIME_MS = 60_000;
+/** 冻结/禁行被跳过后,接下来 N 个自己回合免疫同类控制 */
+export const PVP_CTRL_IMMUNE_TURNS = 2;
 
 /** PvP 平衡表(速攻型用血量换攻击;未知 id 兜底 80/2) */
 const PVP_BALANCE: Record<number, { hp: number; atk: number }> = {
@@ -54,6 +58,8 @@ export type PvpFighter = {
   weakMult: number;
   weakTurns: number;
   status: EnemyStatus | null;
+  /** 冻结/禁行免疫剩余回合数(被跳过后获得) */
+  ctrlImmuneTurns: number;
   deck: string[];
   hand: string[];
   drawPile: string[];
@@ -95,6 +101,10 @@ export type PvpState = {
   qEndsAt: number;
   /** 快照携带的剩余毫秒(guest 渲染倒计时用) */
   qRemainMs: number;
+  /** 出牌阶段截止(宿主时钟;超时自动结束回合) */
+  cardEndsAt: number;
+  /** 快照携带的出牌剩余毫秒 */
+  cardRemainMs: number;
   /** 本回合答对数 → 出牌能量 */
   turnCorrect: number;
   /** 答错/超时/答满后锁定答题,等待进入出牌阶段 */
@@ -158,7 +168,11 @@ export function sanitizePvpDeck(deck: string[]): string[] {
 
 /* ============ 建局 ============ */
 
-export function createPvpState(hostCfg: PvpCfg, guestCfg: PvpCfg): PvpState {
+export function createPvpState(
+  hostCfg: PvpCfg,
+  guestCfg: PvpCfg,
+  opts?: { firstTurn?: PvpSide },
+): PvpState {
   const mk = (cfg: PvpCfg): PvpFighter => {
     const bal = PVP_BALANCE[cfg.valkId] ?? { hp: 80, atk: 2 };
     const deck = sanitizePvpDeck(cfg.deck);
@@ -175,6 +189,7 @@ export function createPvpState(hostCfg: PvpCfg, guestCfg: PvpCfg): PvpState {
       weakMult: 1,
       weakTurns: 0,
       status: null,
+      ctrlImmuneTurns: 0,
       deck,
       hand: [],
       drawPile: shuffle(deck),
@@ -183,8 +198,8 @@ export function createPvpState(hostCfg: PvpCfg, guestCfg: PvpCfg): PvpState {
       maxCombo: 0,
     };
   };
-  // 先手随机(公平:双方各 50%)
-  const first: PvpSide = Math.random() < 0.5 ? "host" : "guest";
+  // 先手:外部指定(轮换/守擂),缺省随机
+  const first: PvpSide = opts?.firstTurn ?? (Math.random() < 0.5 ? "host" : "guest");
   const st: PvpState = {
     v: 1,
     turnNo: 0,
@@ -199,6 +214,8 @@ export function createPvpState(hostCfg: PvpCfg, guestCfg: PvpCfg): PvpState {
     currentQ: null,
     qEndsAt: 0,
     qRemainMs: 0,
+    cardEndsAt: 0,
+    cardRemainMs: 0,
     turnCorrect: 0,
     qLocked: false,
     answered: null,
@@ -264,7 +281,7 @@ function hit(
 
 /* ============ 回合流转 ============ */
 
-/** side 回合开始:重置倍率/格挡,结算冻结/禁行跳过,展示第 1 题 */
+/** side 回合开始:连击清零/倍率格挡重置,控制免疫递减,冻结/禁行跳过,展示第 1 题 */
 function beginTurn(st: PvpState, side: PvpSide): void {
   const f = fighterOf(st, side);
   st.turnNo += 1;
@@ -274,10 +291,12 @@ function beginTurn(st: PvpState, side: PvpSide): void {
   st.turnCorrect = 0;
   st.turnQIdx = 0;
   st.skipNote = null;
+  f.combo = 0; // L1:连击是回合内爆发手段,跨回合清零
   f.dmgMult = 1;
   f.defMult = 1;
   f.block = 0;
   f.energy = 0;
+  if (f.ctrlImmuneTurns > 0) f.ctrlImmuneTurns -= 1;
   // 手牌清入弃牌堆
   f.discardPile = [...f.discardPile, ...f.hand];
   f.hand = [];
@@ -285,11 +304,12 @@ function beginTurn(st: PvpState, side: PvpSide): void {
   // 新回合(奇数次行动)抽 5 题:双方共用
   if (st.turnNo % 2 === 1) refreshRoundQs(st);
 
-  // 冻结/禁行:跳过整回合(状态消耗 1 层)
+  // 冻结/禁行:跳过整回合(状态消耗 1 层),并获得控制免疫期
   const stt = f.status;
   if (stt && (stt.type === "freeze" || stt.type === "sleep")) {
     stt.turns -= 1;
     if (stt.turns <= 0) f.status = null;
+    f.ctrlImmuneTurns = PVP_CTRL_IMMUNE_TURNS;
     st.skipNote = `${STATUS_NAMES[stt.type]},跳过本回合`;
     pushFx(st, side, st.skipNote, "#8fb7ff");
     endTurn(st, side, true);
@@ -362,11 +382,15 @@ function enterCardPhase(st: PvpState, side: PvpSide): void {
   st.phase = "card";
   const base = st.turnCorrect;
   f.energy = f.status?.type === "para" ? Math.floor(base / 2) : base;
+  // L4:后手首个回合补偿 1 能量(turnNo=2 即本局第二次行动)
+  if (st.turnNo === 2) f.energy += 1;
   if (f.status?.type === "para" && base > 0) {
     pushFx(st, side, "限速减速:能量减半", "#8fb7ff");
   }
   if (f.drawPile.length === 0) f.drawPile = shuffle(f.deck);
   drawInto(f, 5);
+  // L5:出牌阶段总时限
+  st.cardEndsAt = Date.now() + PVP_CARD_TIME_MS;
 }
 
 /** 答题:答对 → 伤害+连击+下一题(答满 5 题自动进出牌);答错/超时 → 锁题待进入出牌阶段 */
@@ -471,6 +495,7 @@ export function pvpPlayCard(st: PvpState, side: PvpSide, handIdx: number): boole
     dmgMult: foe.weakMult * foe.defMult,
     draw: (n) => drawInto(f, n),
   };
+  const prevFoeStatus = foe.status;
   const events = applyCardFx(card, ctx);
 
   // 结算回写
@@ -484,6 +509,16 @@ export function pvpPlayCard(st: PvpState, side: PvpSide, handIdx: number): boole
   foe.weakMult = ctx.enemyAtkMult;
   foe.weakTurns = ctx.enemyWeakTurns;
   foe.status = ctx.enemyStatus;
+  // L3:控制免疫期内,冻结/禁行无法施加(保留其原有状态)
+  let ctrlBlocked = false;
+  if (
+    foe.ctrlImmuneTurns > 0 &&
+    foe.status &&
+    (foe.status.type === "freeze" || foe.status.type === "sleep")
+  ) {
+    foe.status = prevFoeStatus;
+    ctrlBlocked = true;
+  }
   if (foe.hp <= 0 && !st.over) {
     st.over = true;
     st.winner = side;
@@ -497,8 +532,10 @@ export function pvpPlayCard(st: PvpState, side: PvpSide, handIdx: number): boole
   for (const e of events) {
     if (e.type === "dmg") pushFx(st, side, `${card.name}`, "#ff6688", "card", e.amount);
     else if (e.type === "heal") pushFx(st, side, `${card.name} +${e.amount}`, "#4ec98c", "heal");
-    else if (e.type === "status") pushFx(st, side, `${card.name} ${STATUS_NAMES[e.status]}`, "#c76fd8", "status");
+    else if (e.type === "status" && !ctrlBlocked)
+      pushFx(st, side, `${card.name} ${STATUS_NAMES[e.status]}`, "#c76fd8", "status");
   }
+  if (ctrlBlocked) pushFx(st, side, "对方免疫控制", "#8fb7ff");
   return true;
 }
 
@@ -537,17 +574,31 @@ function drawInto(f: PvpFighter, n: number): void {
   }
 }
 
-/** 快照:补算剩余答题毫秒后整体可 JSON 序列化 */
-export function pvpSnapshot(st: PvpState): PvpState {
-  return {
+/** 快照:补算剩余毫秒;viewer 指定时隐藏对方(宿主)的牌面信息(等长空串,防作弊) */
+export function pvpSnapshot(st: PvpState, viewer?: PvpSide): PvpState {
+  const snap: PvpState = {
     ...st,
     qRemainMs: st.qLocked ? 0 : Math.max(0, st.qEndsAt - Date.now()),
+    cardRemainMs:
+      st.phase === "card" ? Math.max(0, st.cardEndsAt - Date.now()) : 0,
   };
+  if (viewer === "guest") {
+    const hide = (arr: string[]) => arr.map(() => "");
+    snap.host = { ...snap.host, deck: hide(snap.host.deck), hand: hide(snap.host.hand), drawPile: hide(snap.host.drawPile), discardPile: hide(snap.host.discardPile) };
+  }
+  return snap;
 }
 
-/** 宿主定时推进:答题超时判定(返回 true 表示状态有变,需推送) */
+/** 宿主定时推进:答题超时/出牌超时(返回 true 表示状态有变,需推送) */
 export function pvpTick(st: PvpState): boolean {
-  if (st.over || st.phase !== "question" || st.qLocked) return false;
-  if (Date.now() < st.qEndsAt) return false;
-  return pvpTimeout(st);
+  if (st.over) return false;
+  if (st.phase === "question" && !st.qLocked) {
+    if (Date.now() < st.qEndsAt) return false;
+    return pvpTimeout(st);
+  }
+  if (st.phase === "card" && Date.now() >= st.cardEndsAt) {
+    pushFx(st, st.turn, "出牌超时,自动结束回合", "#ff8800", "timeout");
+    return pvpEndTurn(st, st.turn);
+  }
+  return false;
 }

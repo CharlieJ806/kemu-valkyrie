@@ -6,11 +6,19 @@ import type { PvpAct, PvpSide, PvpState } from "./pvp";
 
 export type PvpPeerInfo = { name: string; valkId: number; deck: string[] };
 
+export type PvpDeckMode = "fair" | "own";
+
 export type PvpNetEvt =
   | { t: "joined"; side: PvpSide; room: string }
   | { t: "peer"; peer: PvpPeerInfo }
   | { t: "act"; act: PvpAct }
   | { t: "state"; snap: PvpState }
+  | { t: "pick"; valkId: number }
+  | { t: "ready"; on: boolean; pick: number }
+  | { t: "again" }
+  | { t: "quit" }
+  | { t: "mode"; deckMode: PvpDeckMode }
+  | { t: "promoted" }
   | { t: "left"; reason: string }
   | { t: "err"; msg: string };
 
@@ -77,6 +85,11 @@ export class PvpNet {
   /** 推送快照(宿主 → 客机) */
   sendState(snap: PvpState): void {
     this.send({ v: 1, t: "state", snap });
+  }
+
+  /** 房间信令(选人/准备/再来/认输/模式等,经服务器原样转发给对方) */
+  sendMsg(m: Record<string, unknown>): void {
+    this.send({ v: 1, ...m });
   }
 
   private send(m: unknown): void {

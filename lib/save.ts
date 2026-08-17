@@ -27,6 +27,26 @@ export function sanitizeTeam(
 export const META_KEY = "kemuValkyrie_meta";
 export const RUN_KEY = "kemuValkyrie_save";
 export const IMPORTED_KEY = "kemuValkyrie_importedQuestions";
+/** 对战昵称记忆(轻量键值,非存档) */
+export const PVP_NAME_KEY = "kemuValkyrie_pvpName";
+
+export function loadPvpName(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    return localStorage.getItem(PVP_NAME_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
+export function savePvpName(name: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(PVP_NAME_KEY, name);
+  } catch {
+    /* ignore */
+  }
+}
 
 export function defaultMeta(): MetaState {
   return {
@@ -336,6 +356,7 @@ export function wipeAll(): void {
     localStorage.removeItem(META_KEY);
     localStorage.removeItem(RUN_KEY);
     localStorage.removeItem(IMPORTED_KEY);
+    localStorage.removeItem(PVP_NAME_KEY);
   } catch {
     /* ignore */
   }

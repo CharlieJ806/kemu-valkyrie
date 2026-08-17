@@ -553,3 +553,21 @@
 .pvp-me-sprite{height:46%;max-height:170px;object-fit:contain;margin-left:5%;margin-bottom:6px}
 .pvp-fx-list{position:absolute;top:8px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:2px;font-size:12px;font-weight:700;text-align:center;pointer-events:none;text-shadow:0 1px 2px #fff}
 .pvp-wait{padding:8px;text-align:center;font-size:13px;font-weight:700;color:var(--purple);background:rgba(180,140,240,.1)}
+
+/* ---------- PvP 批1: 备战区/横幅/濒死/KO/等待方 ---------- */
+.pvp-room-code-row{display:flex;align-items:center;gap:10px;justify-content:center;margin-top:12px}
+.pvp-prep{display:flex;flex-direction:column;gap:10px;margin:10px 0}
+.pvp-prep-side{border:1px solid var(--line);border-radius:12px;padding:8px;background:var(--panel)}
+.pvp-prep-title{font-size:12px;font-weight:700;text-align:center;margin-bottom:6px;color:var(--cyan)}
+.pvp-peer-pick{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:13px;font-weight:700}
+.pvp-peer-pick img{width:56px;height:74px;object-fit:contain}
+.pvp-turn-banner{position:absolute;top:38%;left:50%;transform:translateX(-50%);z-index:30;font-size:26px;font-weight:900;color:var(--gold);text-shadow:0 2px 8px rgba(0,0,0,.25);animation:pvpBanner .9s ease forwards;pointer-events:none}
+@keyframes pvpBanner{0%{opacity:0;transform:translateX(-50%) scale(.6)}25%{opacity:1;transform:translateX(-50%) scale(1.08)}70%{opacity:1;transform:translateX(-50%) scale(1)}100%{opacity:0;transform:translateX(-50%) scale(1)}}
+.pvp-hp-bar.low i{animation:pvpHpBlink .7s ease-in-out infinite}
+@keyframes pvpHpBlink{0%,100%{filter:brightness(1)}50%{filter:brightness(1.9) saturate(1.6)}}
+.pvp-me-sprite.ko,.pvp-opp-sprite.ko{filter:grayscale(1) brightness(.75);transform:rotate(8deg) translateY(14px);opacity:.6;transition:all .6s ease}
+.pvp-stage{background:url('/art/bg-battle.webp') center/cover no-repeat,radial-gradient(ellipse at 50% 80%,var(--panel2),transparent 70%)}
+.pvp-surrender{margin-left:6px;padding:2px 8px;font-size:12px}
+.pvp-wait-live{display:flex;flex-direction:column;gap:8px;padding:10px}
+.pvp-wait-q{font-size:13px;color:var(--txt);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;max-height:30vh;overflow-y:auto;line-height:1.5}
+.btn-mini.active{border-color:var(--cyan);color:var(--cyan);font-weight:700}
