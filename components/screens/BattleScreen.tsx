@@ -384,7 +384,12 @@ export default function BattleScreen() {
         </div>
       </div>
 
-      <div className={`battle-stage${fxOk ? " fx-3d" : ""}`} id="battle-stage">
+      <div
+        className={`battle-stage${fxOk ? " fx-3d" : ""}${
+          run.turnPhase === "question" ? " q-phase" : ""
+        }`}
+        id="battle-stage"
+      >
         {/* 3D 战斗场景(学员入场/攻击/受击/倒下动画) */}
         <canvas ref={fxCanvasRef} id="battle-fx-canvas" />
 
@@ -523,42 +528,45 @@ export default function BattleScreen() {
               limit={run.qTimeLimit ?? BATTLE_Q_TIME_MS}
               onExpire={() => useGameStore.getState().timeoutQuestion()}
             />
-            <div className="battle-q-text">
-              {run.currentQ ? (
-                <>
-                  {qCat && (
-                    <span className="attr-badge" style={attrBadgeStyle(qCat)}>
-                      {ATTR_SHORT[qCat]}
-                    </span>
-                  )}{" "}
-                  [⚡已获得{run.turnCorrect}能量] {run.currentQ.q}
-                </>
-              ) : (
-                "准备答题..."
-              )}
-            </div>
-            <div className="battle-options">
-              {run.currentQ?.opts.map((opt, i) => (
-                <button
-                  key={i}
-                  className={
-                    "battle-opt-btn" +
-                    (answerState?.picked === i
-                      ? answerState.correct
-                        ? " correct"
-                        : " wrong"
-                      : "") +
-                    (answerState && i === run.currentQ?.ans && !answerState.correct
-                      ? " reveal"
-                      : "") +
-                    (answerState ? " disabled" : "")
-                  }
-                  disabled={!!answerState}
-                  onClick={() => handleAnswer(i)}
-                >
-                  {opt}
-                </button>
-              ))}
+            {/* 题目+选项:长题内部滚动,保证显示完整 */}
+            <div className="battle-q-scroll">
+              <div className="battle-q-text">
+                {run.currentQ ? (
+                  <>
+                    {qCat && (
+                      <span className="attr-badge" style={attrBadgeStyle(qCat)}>
+                        {ATTR_SHORT[qCat]}
+                      </span>
+                    )}{" "}
+                    [⚡已获得{run.turnCorrect}能量] {run.currentQ.q}
+                  </>
+                ) : (
+                  "准备答题..."
+                )}
+              </div>
+              <div className="battle-options">
+                {run.currentQ?.opts.map((opt, i) => (
+                  <button
+                    key={i}
+                    className={
+                      "battle-opt-btn" +
+                      (answerState?.picked === i
+                        ? answerState.correct
+                          ? " correct"
+                          : " wrong"
+                        : "") +
+                      (answerState && i === run.currentQ?.ans && !answerState.correct
+                        ? " reveal"
+                        : "") +
+                      (answerState ? " disabled" : "")
+                    }
+                    disabled={!!answerState}
+                    onClick={() => handleAnswer(i)}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
             </div>
           </>
         ) : (

@@ -32,8 +32,11 @@
 /* 战斗精灵与信息区 */
 /* 3D 战斗场景:固定高度、不透明实心舞台(上浅下深:天空→地面) */
 #scr-battle .battle-stage{flex:none;height:min(54vh,520px);display:flex;flex-direction:column}
+/* 答题阶段压缩舞台,给题目留出更多空间(长题内部滚动) */
+#scr-battle .battle-stage.q-phase{height:min(32vh,340px);transition:height .3s}
 @media (max-height:640px){
   #scr-battle .battle-stage{height:min(44vh,360px)}
+  #scr-battle .battle-stage.q-phase{height:min(28vh,250px)}
 }
 #battle-fx-canvas{
   position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0;
@@ -92,7 +95,7 @@
 .hand-area{background:linear-gradient(180deg,rgba(242,248,255,.9),rgba(231,242,253,.94))}
 
 /* ---------- 战斗屏(卡牌版布局) ---------- */
-#scr-battle .battle-topbar{position:static;display:flex;align-items:center;padding:calc(8px + var(--safe-t)) 12px 8px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.88)}
+#scr-battle .battle-topbar{position:static;display:flex;align-items:center;padding:calc(8px + var(--safe-t)) 12px 8px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.88);flex:none}
 .battle-combo{font-weight:900;color:var(--gold);margin-left:auto;font-size:14px}
 .battle-enemy{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 12px 4px}
 .enemy-sprite-wrap img{width:96px;height:80px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 0 14px rgba(255,82,82,.45))}
@@ -108,7 +111,9 @@
 .battle-player-info{font-size:12px;color:var(--dim);margin-top:3px}
 
 /* ---------- 答题区 ---------- */
-.battle-q-area{background:linear-gradient(180deg,var(--bg2),var(--bg));border-top:1px solid var(--line);padding:16px 12px 10px;display:flex;flex-direction:column;gap:8px;transition:opacity .3s}
+/* 答题区占据剩余空间;长题在 .battle-q-scroll 内部滚动,倒计时条固定在顶部 */
+.battle-q-area{background:linear-gradient(180deg,var(--bg2),var(--bg));border-top:1px solid var(--line);padding:10px 12px;display:flex;flex-direction:column;gap:8px;transition:opacity .3s;flex:1;min-height:0;overflow:hidden}
+.battle-q-scroll{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:2px}
 .battle-q-text{font-size:15px;line-height:1.55;min-height:44px}
 .battle-options{display:flex;flex-direction:column;gap:8px}
 .battle-opt-btn{display:block;width:100%;text-align:left;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font-size:14px;line-height:1.4;cursor:pointer;transition:.12s;font-family:inherit}
@@ -121,7 +126,7 @@
 .battle-options:has(.battle-opt-btn.correct) .battle-opt-btn{pointer-events:none}
 
 /* ---------- 手牌 ---------- */
-.hand-area{display:flex;gap:8px;overflow-x:auto;padding:10px 12px;min-height:118px;background:linear-gradient(180deg,var(--bg),rgba(240,248,255,.85));border-top:1px solid var(--line);scroll-snap-type:x mandatory}
+.hand-area{display:flex;gap:8px;overflow-x:auto;padding:10px 12px;min-height:118px;background:linear-gradient(180deg,var(--bg),rgba(240,248,255,.85));border-top:1px solid var(--line);scroll-snap-type:x mandatory;flex:none}
 .hand-card{flex:0 0 auto;width:96px;scroll-snap-align:start;border-radius:12px;padding:8px 6px;border:1px solid var(--line);background:linear-gradient(180deg,var(--panel2),var(--panel));text-align:center;cursor:pointer;transition:.12s;position:relative;display:flex;flex-direction:column;gap:3px}
 .hand-card:active{transform:scale(.93);border-color:var(--cyan)}
 .hand-card.unaffordable{opacity:.45;filter:grayscale(.4)}
@@ -472,23 +477,24 @@
   padding:6px 12px calc(8px + var(--safe-b));
   align-items:center;
   gap:10px;
+  flex:none;
 }
 .energy-display{margin-right:auto;flex:none}
 
 /* 短屏/横屏:压缩答题与手牌区,保证控制条始终可见 */
 @media (max-height:640px){
   .hand-area{min-height:84px;padding:8px 10px}
-  .battle-q-area{padding:14px 10px 8px;gap:6px}
+  .battle-q-area{padding:8px 10px;gap:6px}
+  .battle-q-scroll{gap:6px}
   .battle-q-text{min-height:28px;font-size:14px}
   .battle-options{gap:6px}
   .battle-opt-btn{padding:9px 12px;font-size:13px}
   .battle-actions{padding:4px 10px calc(6px + var(--safe-b))}
 }
 
-/* 答题倒计时条(限时答题):悬浮于答题区顶部,不占布局高度 */
-.battle-q-area{position:relative}
+/* 答题倒计时条(限时答题):固定在答题区顶部,不随题目滚动 */
 .battle-timer{
-  position:absolute;top:0;left:0;right:0;height:14px;z-index:2;
+  flex:none;height:14px;z-index:2;
   background:rgba(16,32,56,.15);border-radius:0 0 6px 6px;overflow:hidden;
 }
 .battle-timer-fill{
