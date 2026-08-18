@@ -19,6 +19,7 @@
 - **成就系统**：16 项成就，达成发放养成金币
 - **科目一模拟考试**：100 题 / 45 分钟 / 90 分合格 · 错题本(答对即移出) · 学习中心 · 题库导入 · 存档导出/导入
 - **PWA 离线**：支持添加到主屏幕离线游玩 · 音量独立调节 · GitHub Actions CI
+- **线上对战（KOF 车轮制）**：房码约战 · 出场队伍编排 · 胜者守擂继承残血 · 可选独立中继服务
 
 ## 🎮 玩法
 
@@ -54,3 +55,12 @@ Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · zustand 5（loca
 npm install
 npm run dev   # http://localhost:3000
 ```
+
+对战中继（可选，联机对战用）：
+
+```bash
+cd server && npm install && npm start    # ws://localhost:8787
+# 两个浏览器窗口打开 http://localhost:3000/?pvp=ws://localhost:8787 对打
+```
+
+生产部署（Docker + 反代）见 [server/README.md](server/README.md)。
