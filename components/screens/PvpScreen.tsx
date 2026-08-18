@@ -5,8 +5,8 @@ import { useGameStore } from "@/lib/store";
 import { VALKYRIES, getValkById } from "@/data";
 import { DECK_MAX } from "@/data/constants";
 import { getValkName, getValkRole, VALKYRIE_ROLE_NAMES } from "@/lib/formulas";
-import { ALL_CARDS, CARD_CAT_NAMES, hydrateCard, STARTER_CARD_IDS } from "@/lib/cards";
-import { PVP_BALANCE, PVP_MAX_Q, type PvpState } from "@/lib/pvp";
+import { ALL_CARDS, CARD_CAT_NAMES, findCard, hydrateCard } from "@/lib/cards";
+import { PVP_BALANCE, PVP_STARTER_CARD_IDS, isPvpBannedCard, type PvpState } from "@/lib/pvp";
 import { usePvpStore, pvpHostTick, pvpGuestTick } from "@/lib/pvp-store";
 import { pvpServerUrl } from "@/lib/pvp-net";
 import { getPassiveById } from "@/lib/valkskills";
@@ -116,16 +116,12 @@ export default function PvpScreen() {
       ? meta.pvpDeckIds
       : meta.builtDeckIds && meta.builtDeckIds.length > 0
         ? meta.builtDeckIds
-        : [...STARTER_CARD_IDS];
-    return [...saved];
+        : [...PVP_STARTER_CARD_IDS];
+    // 对战全卡解锁;仅剔除对战中禁用的跳过回合类卡
+    return [...saved].filter((id) => !isPvpBannedCard(findCard(id)));
   });
 
-  /** 已拥有的卡牌集合(初始五张基础技始终可用) */
-  const ownedCards = new Set(
-    Object.keys(meta.ownedCards || {}).filter((id) => meta.ownedCards?.[id]),
-  );
-
-  /** 备战牌组增删(5-12 张,改动即持久化;仅「各自牌组」模式生效) */
+  /** 备战牌组增删(5-12 张,改动即持久化;仅「各自牌组」模式生效;对战全卡解锁) */
   const togglePvpCard = (id: string) => {
     AudioEngine.sfx("click");
     const next = pvpDeck.includes(id)
@@ -138,8 +134,8 @@ export default function PvpScreen() {
   };
   const resetPvpDeck = () => {
     AudioEngine.sfx("click");
-    setPvpDeckLocal([...STARTER_CARD_IDS]);
-    setPvpDeck([...STARTER_CARD_IDS]);
+    setPvpDeckLocal([...PVP_STARTER_CARD_IDS]);
+    setPvpDeck([...PVP_STARTER_CARD_IDS]);
   };
 
   const stageRef = useRef<HTMLDivElement>(null);
@@ -678,14 +674,18 @@ export default function PvpScreen() {
                 </div>
                 <div className="pvp-deck-pool">
                   {ALL_CARDS.map((c) => {
-                    const has = ownedCards.has(c.id);
+                    const banned = isPvpBannedCard(c);
                     const inDeck = pvpDeck.includes(c.id);
                     return (
                       <button
                         key={c.id}
-                        className={`pvp-deck-card ${inDeck ? "in" : ""} ${!has ? "locked" : ""}`}
-                        title={`${c.name} · 费${c.cost} · ${CARD_CAT_NAMES[c.cat] || c.type} · ${c.desc}${has ? "" : "(未拥有)"}`}
-                        disabled={deckMode !== "own" || !has}
+                        className={`pvp-deck-card ${inDeck ? "in" : ""} ${banned ? "banned" : ""}`}
+                        title={
+                          banned
+                            ? `${c.name} · 对战中禁用(跳过敌方回合类:${c.desc})`
+                            : `${c.name} · 费${c.cost} · ${CARD_CAT_NAMES[c.cat] || c.type} · ${c.desc}`
+                        }
+                        disabled={deckMode !== "own" || banned}
                         onClick={() => togglePvpCard(c.id)}
                       >
                         <span>{c.icon}</span>
@@ -829,8 +829,7 @@ export default function PvpScreen() {
                     style={{ width: `${(remainMs / Q_TIME_MS) * 100}%` }}
                   />
                   <span className="battle-timer-text">
-                    ⏱ {Math.ceil(remainMs / 1000)}s · 第 {Math.min(st.turnQIdx + 1, PVP_MAX_Q)}/
-                    {PVP_MAX_Q} 题 · ⚡{st.turnCorrect}
+                    ⏱ {Math.ceil(remainMs / 1000)}s · 第 {st.turnQIdx + 1} 题 · ⚡{st.turnCorrect}
                   </span>
                 </div>
                 <div className="battle-q-scroll">
@@ -958,7 +957,7 @@ export default function PvpScreen() {
         <div className="pvp-wait pvp-wait-live">
           <div>
             ⏳ 对方行动中(
-            {st.phase === "question" ? `第 ${Math.min(st.turnQIdx + 1, PVP_MAX_Q)}/${PVP_MAX_Q} 题 · ⚡${st.turnCorrect}` : "出牌阶段"}
+            {st.phase === "question" ? `第 ${st.turnQIdx + 1} 题 · ⚡${st.turnCorrect}` : "出牌阶段"}
             )
           </div>
           {/* 对方本阶段倒计时(宿主取引擎时钟,客机本地递减;归零兜底提示) */}
