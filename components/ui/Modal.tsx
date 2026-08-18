@@ -284,7 +284,19 @@ export default function Modal() {
                 </>
               )}
               {pkm.flavor ? <><br />{pkm.flavor}</> : null}
-              {!isMonster && inTeam ? (isActive ? "<br/>📍 出战学员" : "<br/>📍 已在队伍中") : ""}
+              {!isMonster && inTeam ? (
+                isActive ? (
+                  <>
+                    <br />
+                    📍 出战学员
+                  </>
+                ) : (
+                  <>
+                    <br />
+                    📍 已在队伍中
+                  </>
+                )
+              ) : null}
             </div>
             {!isMonster && (
               <div className="m-actions">
