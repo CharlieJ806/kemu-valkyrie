@@ -1,5 +1,9 @@
 /* 对战 WebSocket 客户端:原生 API,零依赖。
- * 地址策略:默认同域推导 wss/ws + 路径 /ws;?pvp= 查询参数覆盖(开发调试用)。
+ * 地址策略(优先级从高到低):
+ *   1. ?pvp= 查询参数(开发调试/临时指定);
+ *   2. NEXT_PUBLIC_PVP_SERVER 构建环境变量(自建中继的站点用它覆盖);
+ *   3. 同域推导 wss/ws + 路径 /ws(仅限自带中继的域名,如 valkyrie.lwair.cn / localhost);
+ *   4. 方案A 默认对战服务器(朋友托管的中继,Cloudflare 静态站点等无自带 /ws 时走它)。
  * 服务器为纯中继:join 为控制消息,配对后其余消息原样转发给同房另一端。 */
 
 import type { PvpAct, PvpSide, PvpState } from "./pvp";
@@ -23,13 +27,28 @@ export type PvpNetEvt =
   | { t: "left"; reason: string }
   | { t: "err"; msg: string };
 
-/** 对战服务器地址:同域推导,?pvp= 覆盖 */
+/** 自带对战中继的域名(同域 /ws 可用);列表外站点默认走方案A中继 */
+const SELF_RELAY_HOSTS = new Set(["valkyrie.lwair.cn", "localhost", "127.0.0.1"]);
+/** 方案A 默认对战服务器(朋友托管的中继,已验证放行各站点 Origin) */
+const DEFAULT_PVP_SERVER = "wss://valkyrie.lwair.cn/ws";
+
+/** 对战服务器地址(点"对战"即生效,无需手动加参数) */
 export function pvpServerUrl(): string {
   if (typeof window === "undefined") return "";
+  // 1. ?pvp= 查询参数(最高优先级)
   const q = new URLSearchParams(window.location.search).get("pvp");
   if (q) return q;
-  const proto = window.location.protocol === "https:" ? "wss" : "ws";
-  return `${proto}://${window.location.host}/ws`;
+  // 2. 构建环境变量覆盖(自建中继时在构建平台设 NEXT_PUBLIC_PVP_SERVER)
+  const env = process.env.NEXT_PUBLIC_PVP_SERVER;
+  if (env) return env;
+  // 3. 自带中继的域名 → 同域推导
+  const host = window.location.host;
+  if (SELF_RELAY_HOSTS.has(host)) {
+    const proto = window.location.protocol === "https:" ? "wss" : "ws";
+    return `${proto}://${host}/ws`;
+  }
+  // 4. 方案A:默认走朋友托管的中继
+  return DEFAULT_PVP_SERVER;
 }
 
 export class PvpNet {

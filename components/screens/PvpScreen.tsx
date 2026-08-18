@@ -8,6 +8,7 @@ import { getValkName, getValkRole, VALKYRIE_ROLE_NAMES } from "@/lib/formulas";
 import { ALL_CARDS, CARD_CAT_NAMES, hydrateCard, STARTER_CARD_IDS } from "@/lib/cards";
 import { PVP_BALANCE, PVP_MAX_Q, type PvpState } from "@/lib/pvp";
 import { usePvpStore, pvpHostTick, pvpGuestTick } from "@/lib/pvp-store";
+import { pvpServerUrl } from "@/lib/pvp-net";
 import { getPassiveById } from "@/lib/valkskills";
 import { loadPvpName, savePvpName } from "@/lib/save";
 import { poseUrl, portraitUrl } from "@/lib/portrait";
@@ -452,6 +453,9 @@ export default function PvpScreen() {
             />
           </div>
           <div className="pvp-note">创建或加入房间后,在房间内选择学员对战</div>
+          <div className="pvp-note" style={{ color: "var(--dim)", fontSize: 11 }}>
+            📡 对战服务器: {pvpServerUrl()}
+          </div>
           <div className="set-row">
             <span>房间码</span>
             <input
