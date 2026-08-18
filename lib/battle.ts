@@ -11,10 +11,19 @@ import {
 import { getQuestionCat, getValkById, type AttrKey, type Valkyrie } from "@/data";
 import {
   getEnemyStats,
-  getPlayerAtk,
+  getValkAtk,
   rand,
   shuffle,
 } from "./formulas";
+import {
+  skillAnswerHeal,
+  skillAnswerStatusChance,
+  skillCardAtkBonus,
+  skillCardPhaseBonus,
+  skillComboBonus,
+  skillFirstTurnMult,
+  skillHurtReduce,
+} from "./valkskills";
 import {
   AFFIX_NAMES,
   BATTLE_Q_TIME_MS,
@@ -87,7 +96,7 @@ export function applyLinkEffect(
   metaAtkLv: number,
 ): CardFxEvent | null {
   if (attr === "law") {
-    const amount = Math.floor(valk.atk * 1.25) + (metaAtkLv || 0);
+    const amount = Math.floor(getValkAtk(valk.id, metaAtkLv) * 1.25);
     const dealt = dealEnemyDamage(run, amount);
     return { type: "link", valkId: valk.id, valkName: valk.c, amount: dealt.dealt, bonus: "dmg" };
   }
@@ -119,6 +128,19 @@ export function drawCardsInto(run: RunState, n: number): void {
       run.hand.push(id);
     }
   }
+}
+
+/* ============ 出战角色(属性/技能差异化) ============ */
+
+/** 当前出战学员(无则 null) */
+export function activeValk(run: RunState): Valkyrie | null {
+  const id = run.team[run.activeIdx ?? 0];
+  return id != null ? getValkById(id) : null;
+}
+
+/** 当前出战学员的攻击力(角色基础 atk + 养成) */
+export function activeAtk(run: RunState, metaAtkLv: number): number {
+  return getValkAtk(run.team[run.activeIdx ?? 0] ?? 1, metaAtkLv);
 }
 
 /* ============ 队伍出战(多学员上阵) ============ */
@@ -229,12 +251,16 @@ export function damagePlayer(run: RunState, amount: number): number {
     run.block -= blocked;
     actual -= blocked;
   }
-  run.hp = Math.max(0, run.hp - Math.floor(actual));
-  if (Math.floor(actual) > 0) run.chapterDamaged = true;
+  actual = Math.floor(actual);
+  // 被动·安全壁垒:出战学员受击固定减免(至少造成 1 点)
+  const reduce = skillHurtReduce(activeValk(run));
+  if (actual > 0) actual = Math.max(1, actual - reduce);
+  run.hp = Math.max(0, run.hp - actual);
+  if (actual > 0) run.chapterDamaged = true;
   if (run.hp <= 0 && run.team.length > 1) {
     switchToNextAlive(run);
   }
-  return Math.floor(actual);
+  return actual;
 }
 
 /* ============ 抽题(迁移自 nextBattleQuestion) ============ */
@@ -327,8 +353,11 @@ export function enterCardPhase(run: RunState): void {
   run.turnPhase = "card";
   run.energy = run.turnCorrect;
   run.questionAnswered = true;
+  // 被动:出牌阶段额外指令/抽牌(绿波调度 / 全域绿波)
+  const bonus = skillCardPhaseBonus(activeValk(run));
+  run.energy += bonus.energy;
   if (run.drawPile.length === 0) run.drawPile = shuffle(run.deck);
-  drawCardsInto(run, 5);
+  drawCardsInto(run, 5 + bonus.draw);
 }
 
 export type EndTurnResult = {
@@ -359,9 +388,9 @@ export function endTurn(
     run.energy = run.turnCorrect;
   }
 
-  // 泄能:剩余能量 × 攻击力
+  // 泄能:剩余能量 × 攻击力(出战学员个体攻击)
   if (run.energy > 0 && run.enemyHp > 0) {
-    const dump = run.energy * getPlayerAtk(metaAtkLv);
+    const dump = run.energy * activeAtk(run, metaAtkLv);
     if (dump > 0) {
       const r = dealEnemyDamage(run, dump);
       if (r.revived) res.revived = true;
@@ -554,6 +583,10 @@ export function playCardOn(
   run.energy -= card.cost;
   run.cardPlayedThisTurn = true;
 
+  // 被动·事故重演:攻击牌伤害加成(计入 ctx.atk)
+  const valk = activeValk(run);
+  const cardBonus = skillCardAtkBonus(valk, card);
+
   // Boss 机制:出牌前钩子(信号干扰 +1 费;必杀卡不受干扰)
   const taxMsg = run.enemyPkm
     ? getBossMechanic(run.enemyPkm.id)?.onPlayCard?.(run) ?? null
@@ -573,7 +606,7 @@ export function playCardOn(
     enemyAtkMult: run.enemyAtkMult,
     enemyWeakTurns: run.enemyWeakTurns,
     enemyStatus: run.enemyStatus,
-    atk: getPlayerAtk(metaAtkLv),
+    atk: activeAtk(run, metaAtkLv) + cardBonus,
     draw: (n) => drawCardsInto(run, n),
     dodge: enemyDodges(run),
     dmgMult: bossDmgMult(run),
@@ -676,14 +709,29 @@ export function answerBattle(
     if (run.combo > run.maxCombo) run.maxCombo = run.combo;
     run.score += 5;
 
-    // 攻击伤害随连击成长
-    const baseDmg = 3 + Math.floor(run.combo / 3) * 2 + getPlayerAtk(metaAtkLv);
-    const comboMult = 1 + (run.combo - 1) * 0.15;
+    // 攻击伤害随连击成长(攻击取出战学员个体值;被动·执法先锋提升连击倍率)
+    const valk = activeValk(run);
+    const baseDmg = 3 + Math.floor(run.combo / 3) * 2 + activeAtk(run, metaAtkLv);
+    const comboMult = 1 + (run.combo - 1) * (0.15 + skillComboBonus(valk));
     const totalDmg = Math.floor(baseDmg * comboMult * run.playerDmgMult);
     const dmgRes = dealEnemyDamage(run, totalDmg);
     res.combo = run.combo;
     res.dmg = dmgRes.dealt;
     res.revived = dmgRes.revived;
+
+    // 被动·晴空暖意:答对回血
+    const heal = skillAnswerHeal(valk);
+    if (heal > 0) run.hp = Math.min(run.maxHp, run.hp + heal);
+
+    // 被动·夜路心灯:答对概率眩目敌方 1 回合(敌方存活且无异常时)
+    if (!run.enemyStatus && run.enemyHp > 0) {
+      const sc = skillAnswerStatusChance(valk);
+      if (sc.confuse > 0 && Math.random() < sc.confuse) {
+        run.enemyStatus = { type: "confuse", turns: 1 };
+      } else if (sc.freeze > 0 && Math.random() < sc.freeze) {
+        run.enemyStatus = { type: "freeze", turns: 1 };
+      }
+    }
 
     if (run.enemyHp <= 0) res.enemyDead = true;
   } else {
@@ -787,4 +835,8 @@ export function startBattleOn(
   run.discardPile = [];
 
   startTurn(run, allQuestions);
+
+  // 被动·绝对制动:本场战斗首回合伤害倍率(startTurn 会把倍率重置为 1,故在其后设置)
+  const firstMult = skillFirstTurnMult(activeValk(run));
+  if (firstMult != null) run.playerDmgMult = firstMult;
 }

@@ -39,6 +39,8 @@ type PvpStore = {
   peerReady: boolean;
   /** 对方出场队伍(有序) */
   peerPicks: number[];
+  /** 对方出战牌组(随 ready 信令同步;公平模式下不使用) */
+  peerDeck: string[];
   /** 赛制队伍人数(1/3/5) */
   teamSize: number;
   deckMode: PvpDeckMode;
@@ -70,6 +72,7 @@ const INITIAL_ROOM = {
   myReady: false,
   peerReady: false,
   peerPicks: [] as number[],
+  peerDeck: [] as string[],
   againMe: false,
   againPeer: false,
 };
@@ -115,7 +118,7 @@ export const usePvpStore = create<PvpStore>((set, get) => ({
   setReady: (on, myCfg) => {
     myCfgSaved = myCfg;
     set({ myReady: on });
-    net?.sendMsg({ t: "ready", on, picks: myCfg.valkIds });
+    net?.sendMsg({ t: "ready", on, picks: myCfg.valkIds, deck: myCfg.deck });
     const st0 = get();
     if (on && st0.side === "host" && st0.peerReady) startMatch(set);
   },
@@ -186,10 +189,11 @@ function startMatch(set: SetFn, rematch = false): void {
     valkIds: hostIds.length > 0 ? hostIds : [1],
     deck: fair ? [] : myCfgSaved.deck,
   };
+  const peerDeck = st0.peerDeck.length > 0 ? st0.peerDeck : st0.peer.deck;
   const guestCfg: PvpCfg = {
     name: st0.peer.name,
     valkIds: peerIds.slice(0, size),
-    deck: fair ? [] : st0.peer.deck,
+    deck: fair ? [] : peerDeck,
   };
   AudioEngine.sfx("boss");
   engine = createPvpState(
@@ -292,7 +296,7 @@ function handleEvt(evt: PvpNetEvt): void {
   } else if (evt.t === "pick") {
     set({ peerPicks: evt.picks, peerReady: false });
   } else if (evt.t === "ready") {
-    set({ peerReady: evt.on, peerPicks: evt.picks });
+    set({ peerReady: evt.on, peerPicks: evt.picks, peerDeck: evt.deck ?? [] });
     const st0 = usePvpStore.getState();
     if (evt.on && st0.side === "host" && st0.myReady) startMatch(set);
   } else if (evt.t === "teamSize") {

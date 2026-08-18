@@ -40,6 +40,37 @@ export type CardFxLike = {
   draw?: number;
 };
 
+/** 角色技能效果字段(被动技能专属,与卡牌 CardFxLike 互补) */
+export type SkillFx = {
+  /** 连击倍率额外加成:每层连击在基础 0.15 上追加(如 0.05 → 每层 0.20) */
+  comboBonus?: number;
+  /** 答对时回复的固定生命 */
+  answerHeal?: number;
+  /** 答对时使敌方「远光眩目」1 回合的概率 0-1 */
+  answerConfuseChance?: number;
+  /** 答对时使敌方「冻结车流」1 回合的概率 0-1 */
+  answerFreezeChance?: number;
+  /** 每回合进入出牌阶段时额外获得的指令(能量) */
+  cardPhaseEnergy?: number;
+  /** 每回合进入出牌阶段时额外抽的牌数 */
+  cardPhaseDraw?: number;
+  /** 攻击牌(带 dmg 的牌)伤害加成 */
+  cardAtkBonus?: number;
+  /** 受到伤害时的固定减免(至少造成 1 点) */
+  hurtReduce?: number;
+  /** 每场对决/每场战斗首回合伤害倍率 */
+  firstTurnMult?: number;
+};
+
+/** 角色技能:被动(常驻触发)/主动(必杀大招) */
+export type ValkSkill = {
+  id: string;
+  name: string;
+  kind: "passive" | "active";
+  desc: string;
+  fx: SkillFx;
+};
+
 /** 女武神(学员)/违章魔物 共用结构 */
 export type Valkyrie = {
   id: number;
@@ -57,6 +88,8 @@ export type Valkyrie = {
   flavor: string;
   /** 章节 Boss(固定出现在章节末节点,不进入普通魔物池) */
   boss?: boolean;
+  /** 角色技能(学员拥有;魔物无技能) */
+  skills?: ValkSkill[];
 };
 
 

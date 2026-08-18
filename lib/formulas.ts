@@ -2,6 +2,7 @@ import {
   MONSTERS,
   VALKYRIES,
   VALKYRIES_BY_ID,
+  isValkyrie,
   type Valkyrie,
   type Rarity,
 } from "@/data";
@@ -146,20 +147,58 @@ export function getPlayerAtk(metaAtkLv: number): number {
   return 1 + (metaAtkLv || 0) * ATK_PER_LEVEL;
 }
 
+/**
+ * 学员定位(强度平衡·按策划分配):
+ * 速攻(赤红/刹/深夜)= 高攻低血;均衡(蔚蓝/晴岚/藏青)= 中攻中血;坦克(白银/格瑞)= 低攻高血。
+ * 定位决定 PvE 面板(HP 80/100/120、攻击 4/3/2),同一强度预算,强度差异主要由技能与板块提供。
+ * 养成等级仍生效(HP +3/级、攻击 +0.5/级),但只作用于 PvE,不进对战。
+ */
+export type ValkRole = "atk" | "bal" | "tank";
+
+export const VALKYRIE_ROLE: Record<number, ValkRole> = {
+  1: "atk", // 赤红
+  2: "bal", // 蔚蓝
+  3: "tank", // 白银
+  4: "atk", // 深夜
+  5: "bal", // 藏青
+  6: "tank", // 格瑞
+  7: "bal", // 晴岚
+  8: "atk", // 刹
+};
+
+export const VALKYRIE_ROLE_NAMES: Record<ValkRole, string> = {
+  atk: "速攻",
+  bal: "均衡",
+  tank: "坦克",
+};
+
+export function getValkRole(id: number): ValkRole {
+  return VALKYRIE_ROLE[id] ?? "bal";
+}
+
+/** 定位 → PvE 面板(攻/血基准,养成在其上叠加) */
+const ROLE_PVE_STATS: Record<ValkRole, { hp: number; atk: number }> = {
+  atk: { hp: 80, atk: 4 },
+  bal: { hp: 100, atk: 3 },
+  tank: { hp: 120, atk: 2 },
+};
+
+export function getValkAtk(valkId: number, metaAtkLv: number): number {
+  const v = getValkById(valkId);
+  const lv = metaAtkLv || 0;
+  if (!v || !isValkyrie(valkId)) return 3 + Math.floor(lv / 2);
+  return ROLE_PVE_STATS[getValkRole(valkId)].atk + Math.floor(lv / 2);
+}
+
 export function getMaxHpFromMeta(metaHpLv: number): number {
   return STARTING_HP + (metaHpLv || 0) * HP_PER_LEVEL;
 }
 
-/**
- * 玩家队伍中某名学员的最大 HP:养成基础 × 稀有度倍率 × 个体 hp 因子。
- * 个体因子 hp/80(女武神 hp 60~170):同稀有度下 hp 越高的角色越能扛,
- * 与敌方 getEnemyStats 的 BST 公式风格一致。
- */
-export function getValkMaxHp(pkmId: number, metaHpLv: number): number {
-  const pkm = getValkById(pkmId);
-  const mult = RARITY_HP_MULT[pkm?.r || "c"] || 1;
-  const hpFactor = (pkm?.hp ?? 80) / 80;
-  return Math.round(getMaxHpFromMeta(metaHpLv) * mult * hpFactor);
+/** 学员最大 HP(按定位):速攻 80 / 均衡 100 / 坦克 120,养成等级 +3/级 */
+export function getValkMaxHp(valkId: number, metaHpLv: number): number {
+  const v = getValkById(valkId);
+  if (!v || !isValkyrie(valkId)) return getMaxHpFromMeta(metaHpLv);
+  return getMaxHpFromMeta(metaHpLv) + (ROLE_PVE_STATS[getValkRole(valkId)].hp - 80);
 }
 
 export function upgradeCost(level: number): number {

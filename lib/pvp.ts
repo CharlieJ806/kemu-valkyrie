@@ -8,13 +8,24 @@ import { QUESTIONS, getValkById, isValkyrie } from "@/data";
 import { BATTLE_Q_TIME_MS } from "@/data/constants";
 import {
   applyCardFx,
+  buildUltCard,
   findCard,
   STARTER_CARD_IDS,
   STATUS_NAMES,
+  ULT_GAUGE_MAX,
   ULT_PREFIX,
   type BattleCtx,
 } from "./cards";
 import { shuffle } from "./formulas";
+import {
+  skillAnswerHeal,
+  skillAnswerStatusChance,
+  skillCardAtkBonus,
+  skillCardPhaseBonus,
+  skillComboBonus,
+  skillFirstTurnMult,
+  skillHurtReduce,
+} from "./valkskills";
 import type { EnemyStatus, Question } from "./types";
 
 export type PvpSide = "host" | "guest";
@@ -27,17 +38,23 @@ export const PVP_MAX_ROUNDS = 30;
 export const PVP_CARD_TIME_MS = 60_000;
 /** 冻结/禁行被跳过后,接下来 N 个自己回合免疫同类控制 */
 export const PVP_CTRL_IMMUNE_TURNS = 2;
+/** 必杀直接伤害在 PvP 中的缩放比例(平衡表 HP 远低于 PvE,避免一击秒杀) */
+export const ULT_PVP_DMG_SCALE = 0.6;
 
-/** PvP 平衡表(速攻型用血量换攻击;未知 id 兜底 80/2) */
-const PVP_BALANCE: Record<number, { hp: number; atk: number }> = {
-  1: { hp: 72, atk: 3 }, // 赤红 · 速攻
-  2: { hp: 84, atk: 2 }, // 蔚蓝
-  3: { hp: 88, atk: 2 }, // 白银 · 最坦
-  4: { hp: 80, atk: 2 }, // 深夜
-  5: { hp: 76, atk: 2 }, // 藏青
-  6: { hp: 84, atk: 2 }, // 格瑞
-  7: { hp: 72, atk: 3 }, // 晴岚 · 速攻
-  8: { hp: 80, atk: 2 }, // 刹
+/** PvP 平衡表(按学员定位差异化,策划分配):
+ * 速攻(赤红/刹/深夜)= 76 HP / 3 攻 · 均衡(蔚蓝/晴岚/藏青)= 80 HP / 2 攻 ·
+ * 坦克(白银/格瑞)= 88 HP / 1 攻(配防御向被动与必杀补足)。
+ * 与养成完全解耦:本模块(及其调用的 pvp-net/pvp-store)不读取 metaHpLv/metaAtkLv
+ * 等任何养成/图鉴字段,对战中只有定位差异,不受玩家进度影响。 */
+export const PVP_BALANCE: Record<number, { hp: number; atk: number }> = {
+  1: { hp: 76, atk: 3 }, // 赤红 · 速攻
+  2: { hp: 80, atk: 2 }, // 蔚蓝 · 均衡
+  3: { hp: 88, atk: 1 }, // 白银 · 坦克
+  4: { hp: 76, atk: 3 }, // 深夜 · 速攻
+  5: { hp: 80, atk: 2 }, // 藏青 · 均衡
+  6: { hp: 88, atk: 1 }, // 格瑞 · 坦克
+  7: { hp: 80, atk: 2 }, // 晴岚 · 均衡
+  8: { hp: 76, atk: 3 }, // 刹 · 速攻
 };
 
 /** 对战方(镜像 PvE 玩家侧字段;deck/hand 等均为卡 id) */
@@ -68,6 +85,10 @@ export type PvpFighter = {
   discardPile: string[];
   combo: number;
   maxCombo: number;
+  /** 必杀槽(每出一张牌 +1,满槽后本场对决可释放一次必杀) */
+  ultGauge: number;
+  ultMax: number;
+  ultUsed: boolean;
 };
 
 /** 飘字事件(seq 单调递增,屏幕按 seq 播放新增条目) */
@@ -136,6 +157,7 @@ export type PvpAct =
   | { act: "answer"; pick: number }
   | { act: "enterCard" }
   | { act: "play"; handIdx: number }
+  | { act: "ult" }
   | { act: "endTurn" };
 
 /* ============ 工具 ============ */
@@ -199,6 +221,9 @@ function buildFighter(name: string, valkId: number, deck: string[]): PvpFighter 
     discardPile: [],
     combo: 0,
     maxCombo: 0,
+    ultGauge: 0,
+    ultMax: ULT_GAUGE_MAX,
+    ultUsed: false,
   };
 }
 
@@ -288,6 +313,9 @@ function hit(
     def.block -= blocked;
     amt -= blocked;
   }
+  // 被动·安全壁垒:受击固定减免(至少造成 1 点)
+  const reduce = skillHurtReduce(getValkById(def.valkId));
+  if (amt > 0) amt = Math.max(1, amt - reduce);
   def.hp = Math.max(0, def.hp - amt);
   return amt;
 }
@@ -334,6 +362,11 @@ function beginTurn(st: PvpState, side: PvpSide): void {
   st.skipNote = null;
   f.combo = 0; // L1:连击是回合内爆发手段,跨回合清零
   f.dmgMult = 1;
+  // 被动·绝对制动:本对决首个自己回合伤害倍率(KOF 换人后的新对决同样生效)
+  if (st.turnNo === st.duelStartTurnNo) {
+    const m = skillFirstTurnMult(getValkById(f.valkId));
+    if (m != null) f.dmgMult = m;
+  }
   f.defMult = 1;
   f.block = 0;
   f.energy = 0;
@@ -427,11 +460,14 @@ function enterCardPhase(st: PvpState, side: PvpSide): void {
   f.energy = f.status?.type === "para" ? Math.floor(base / 2) : base;
   // L4:本对决后手的首个回合补偿 1 能量(挑战者节奏补偿)
   if (st.turnNo - st.duelStartTurnNo === 1) f.energy += 1;
+  // 被动:出牌阶段额外指令/抽牌(绿波调度 / 全域绿波)
+  const bonus = skillCardPhaseBonus(getValkById(f.valkId));
+  f.energy += bonus.energy;
   if (f.status?.type === "para" && base > 0) {
     pushFx(st, side, "限速减速:能量减半", "#8fb7ff");
   }
   if (f.drawPile.length === 0) f.drawPile = shuffle(f.deck);
-  drawInto(f, 5);
+  drawInto(f, 5 + bonus.draw);
   // L5:出牌阶段总时限
   st.cardEndsAt = Date.now() + PVP_CARD_TIME_MS;
 }
@@ -448,12 +484,29 @@ export function pvpAnswer(st: PvpState, side: PvpSide, pick: number): boolean {
     f.combo++;
     st.turnCorrect++;
     if (f.combo > f.maxCombo) f.maxCombo = f.combo;
-    // 伤害公式与 PvE answerBattle 一致(攻击取平衡表数值)
+    // 伤害公式与 PvE answerBattle 一致(攻击取平衡表数值;被动·执法先锋提升连击倍率)
     const baseDmg = 3 + Math.floor(f.combo / 3) * 2 + f.atk;
-    const comboMult = 1 + (f.combo - 1) * 0.15;
+    const comboMult = 1 + (f.combo - 1) * (0.15 + skillComboBonus(getValkById(f.valkId)));
     const crit = f.combo > 0 && f.combo % 5 === 0;
     const dealt = hit(st, side, Math.floor(baseDmg * comboMult * (crit ? 1.5 : 1)));
     pushFx(st, side, crit ? "暴击!" : `连击${f.combo}`, crit ? "#ffd700" : "#ff6688", "answer", dealt, crit);
+
+    // 被动·晴空暖意:答对回血
+    const heal = skillAnswerHeal(getValkById(f.valkId));
+    if (heal > 0) {
+      f.hp = Math.min(f.maxHp, f.hp + heal);
+      pushFx(st, side, `晴空暖意 +${heal}`, "#4ec98c", "heal");
+    }
+    // 被动·夜路心灯:答对概率眩目对方 1 回合(对方存活且无异常时)
+    const foe0 = fighterOf(st, other(side));
+    if (!foe0.status && foe0.hp > 0) {
+      const sc = skillAnswerStatusChance(getValkById(f.valkId));
+      if (sc.confuse > 0 && Math.random() < sc.confuse) {
+        foe0.status = { type: "confuse", turns: 1 };
+        pushFx(st, side, "夜路心灯:远光眩目!", "#c76fd8", "status");
+      }
+    }
+
     if (checkKO(st, other(side))) return true; // 击倒对方 → 换人/终局接管流转
     st.turnQIdx += 1;
     if (st.turnQIdx >= PVP_MAX_Q) {
@@ -497,27 +550,14 @@ export function pvpEnterCard(st: PvpState, side: PvpSide): boolean {
   return true;
 }
 
-/** 出牌:费用校验 → 远光眩目 30% 打空 → applyCardFx 结算 */
-export function pvpPlayCard(st: PvpState, side: PvpSide, handIdx: number): boolean {
-  if (st.over || st.turn !== side || st.phase !== "card") return false;
+/** 构建 applyCardFx 所需的双端上下文(出牌/必杀共用) */
+function buildCtx(st: PvpState, side: PvpSide): {
+  f: PvpFighter;
+  foe: PvpFighter;
+  ctx: BattleCtx;
+} {
   const f = fighterOf(st, side);
   const foe = fighterOf(st, other(side));
-  const id = f.hand[handIdx];
-  const card = id ? findCard(id) : undefined;
-  if (!card) return false;
-  if (f.energy < card.cost) return false;
-  st.fxSeq += 1;
-
-  f.hand.splice(handIdx, 1);
-  f.discardPile.push(id!);
-  f.energy -= card.cost;
-
-  // 远光眩目:30% 概率打空(牌已消耗)
-  if (f.status?.type === "confuse" && Math.random() < 0.3) {
-    pushFx(st, side, "远光眩目,打空了…", "#8fb7ff");
-    return true;
-  }
-
   // ctx 映射:行动方=player 字段,对方=enemy 字段;
   // ctx.dmgMult 承载对方 weakMult(出伤削弱)×defMult(受伤减免)
   const ctx: BattleCtx = {
@@ -537,6 +577,32 @@ export function pvpPlayCard(st: PvpState, side: PvpSide, handIdx: number): boole
     dmgMult: foe.weakMult * foe.defMult,
     draw: (n) => drawInto(f, n),
   };
+  return { f, foe, ctx };
+}
+
+/** 出牌:费用校验 → 远光眩目 30% 打空 → applyCardFx 结算 */
+export function pvpPlayCard(st: PvpState, side: PvpSide, handIdx: number): boolean {
+  if (st.over || st.turn !== side || st.phase !== "card") return false;
+  const { f, foe, ctx } = buildCtx(st, side);
+  const id = f.hand[handIdx];
+  const card = id ? findCard(id) : undefined;
+  if (!card) return false;
+  if (f.energy < card.cost) return false;
+  st.fxSeq += 1;
+
+  f.hand.splice(handIdx, 1);
+  f.discardPile.push(id!);
+  f.energy -= card.cost;
+
+  // 远光眩目:30% 概率打空(牌已消耗)
+  if (f.status?.type === "confuse" && Math.random() < 0.3) {
+    pushFx(st, side, "远光眩目,打空了…", "#8fb7ff");
+    return true;
+  }
+
+  // 被动·事故重演:攻击牌伤害加成(计入 ctx.atk)
+  ctx.atk += skillCardAtkBonus(getValkById(f.valkId), card);
+
   const prevFoeStatus = foe.status;
   const events = applyCardFx(card, ctx);
 
@@ -564,6 +630,11 @@ export function pvpPlayCard(st: PvpState, side: PvpSide, handIdx: number): boole
   if (foe.hp <= 0 && checkKO(st, other(side))) return true; // 击倒对方 → 换人/终局
   if (f.hp <= 0 && checkKO(st, side)) return true; // 自伤致倒 → 我方换人
 
+  // 必杀槽:每出一张牌 +1(满槽解锁必杀,释放后清零)
+  if (!f.ultUsed) {
+    f.ultGauge = Math.min(f.ultMax, f.ultGauge + 1);
+  }
+
   // 飘字:伤害/回复/状态摘要
   for (const e of events) {
     if (e.type === "dmg") pushFx(st, side, `${card.name}`, "#ff6688", "card", e.amount);
@@ -575,6 +646,55 @@ export function pvpPlayCard(st: PvpState, side: PvpSide, handIdx: number): boole
 
   // 板块联动:与当前出战学员主板块相同的牌 → 联动出击(每回合每板块限 1 次)
   applyLink(st, side, card);
+  return true;
+}
+
+/** 必杀(主动技):必杀槽满后本对决可释放一次 — 复用 applyCardFx 结算,PvP 数值按比例缩放 */
+export function pvpUlt(st: PvpState, side: PvpSide): boolean {
+  if (st.over || st.turn !== side || st.phase !== "card") return false;
+  const { f, foe, ctx } = buildCtx(st, side);
+  if (f.ultUsed || f.ultGauge < f.ultMax) return false;
+  const valk = getValkById(f.valkId);
+  if (!valk || !valk.ult?.name) return false;
+  st.fxSeq += 1;
+
+  const ult = buildUltCard(valk);
+  // PvP 平衡:必杀直接伤害按比例缩放(通用数值段,避免一击秒杀)
+  const card = {
+    ...ult,
+    fx: {
+      ...ult.fx,
+      dmg: typeof ult.fx.dmg === "number" ? Math.floor(ult.fx.dmg * ULT_PVP_DMG_SCALE) : ult.fx.dmg,
+    },
+  };
+  const prevFoeStatus = foe.status;
+  const events = applyCardFx(card, ctx);
+
+  // 结算回写
+  f.block = ctx.block;
+  f.hp = ctx.hp;
+  f.energy = ctx.energy;
+  f.dmgMult = ctx.playerDmgMult;
+  f.defMult = ctx.playerDefMult;
+  foe.hp = ctx.enemyHp;
+  foe.block = ctx.enemyBlock;
+  foe.weakMult = ctx.enemyAtkMult;
+  foe.weakTurns = ctx.enemyWeakTurns;
+  foe.status = ctx.enemyStatus;
+  if (foe.ctrlImmuneTurns > 0 && foe.status && (foe.status.type === "freeze" || foe.status.type === "sleep")) {
+    foe.status = prevFoeStatus;
+  }
+
+  f.ultGauge = 0;
+  f.ultUsed = true;
+
+  const totalDmg = events.reduce(
+    (sum, e) => (e.type === "dmg" ? sum + e.amount : sum),
+    0,
+  );
+  pushFx(st, side, `必杀!${card.name}`, "#ffd700", "card", totalDmg > 0 ? totalDmg : undefined);
+  if (foe.hp <= 0 && checkKO(st, other(side))) return true;
+  if (f.hp <= 0 && checkKO(st, side)) return true;
   return true;
 }
 
@@ -614,7 +734,7 @@ export function pvpEndTurn(st: PvpState, side: PvpSide): boolean {
   return true;
 }
 
-/** 宿主动作分发(answer/enterCard/play/endTurn 统一入口) */
+/** 宿主动作分发(answer/enterCard/play/ult/endTurn 统一入口) */
 export function pvpApply(st: PvpState, side: PvpSide, act: PvpAct): boolean {
   switch (act.act) {
     case "answer":
@@ -623,6 +743,8 @@ export function pvpApply(st: PvpState, side: PvpSide, act: PvpAct): boolean {
       return pvpEnterCard(st, side);
     case "play":
       return pvpPlayCard(st, side, act.handIdx);
+    case "ult":
+      return pvpUlt(st, side);
     case "endTurn":
       return pvpEndTurn(st, side);
   }

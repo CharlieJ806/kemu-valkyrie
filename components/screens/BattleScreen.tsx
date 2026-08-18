@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useGameStore } from "@/lib/store";
-import { getValkName, getPlayerAtk } from "@/lib/formulas";
+import { getValkName, getValkAtk } from "@/lib/formulas";
 import { hydrateCard, buildUltCard, ULT_PREFIX } from "@/lib/cards";
 import { ICON } from "@/lib/icon";
 import { AudioEngine } from "@/lib/audio";
@@ -12,6 +12,7 @@ import { getQuestionCat, getValkById } from "@/data";
 import { ATTR_SHORT, attrBadgeStyle } from "@/lib/attr";
 import { getBossMechanic } from "@/lib/bossMechanics";
 import { AFFIX_NAMES, BATTLE_Q_TIME_MS } from "@/data/constants";
+import { getPassive } from "@/lib/valkskills";
 import type { Card } from "@/lib/types";
 
 function enemyStatusText(status: { type: string; turns: number } | null): string {
@@ -301,7 +302,8 @@ export default function BattleScreen() {
   const handCards: Card[] = run.hand
     .map((id) => cardOf(id, run.leaderId))
     .filter(Boolean) as Card[];
-  const atk = getPlayerAtk(meta.metaAtkLv);
+  const atk = getValkAtk(run.team[run.activeIdx ?? 0] ?? 1, meta.metaAtkLv);
+  const activePassive = getPassive(getValkById(run.team[run.activeIdx ?? 0] ?? 1));
 
   const handleAnswer = (idx: number) => {
     if (run.gameOver) return;
@@ -501,6 +503,11 @@ export default function BattleScreen() {
             <div className="player-name">
               {getValkName(run.team[run.activeIdx] ?? 1)}
               {run.team.length > 1 ? ` (${run.activeIdx + 1}/${run.team.length})` : ""}
+              {activePassive ? (
+                <span className="player-passive" title={`被动·${activePassive.name}: ${activePassive.desc}`}>
+                  被动·{activePassive.name}
+                </span>
+              ) : null}
             </div>
             <div className="battle-player-info">
               ❤️ {Math.ceil(run.hp)}

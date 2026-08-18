@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useGameStore } from "@/lib/store";
-import { VALKYRIES } from "@/data";
-import { getValkName } from "@/lib/formulas";
-import { hydrateCard } from "@/lib/cards";
-import { PVP_MAX_Q, type PvpState } from "@/lib/pvp";
+import { VALKYRIES, getValkById } from "@/data";
+import { DECK_MAX } from "@/data/constants";
+import { getValkName, getValkRole, VALKYRIE_ROLE_NAMES } from "@/lib/formulas";
+import { ALL_CARDS, CARD_CAT_NAMES, hydrateCard, STARTER_CARD_IDS } from "@/lib/cards";
+import { PVP_BALANCE, PVP_MAX_Q, type PvpState } from "@/lib/pvp";
 import { usePvpStore, pvpHostTick, pvpGuestTick } from "@/lib/pvp-store";
+import { getPassiveById } from "@/lib/valkskills";
 import { loadPvpName, savePvpName } from "@/lib/save";
 import { poseUrl, portraitUrl } from "@/lib/portrait";
 import { ICON } from "@/lib/icon";
@@ -16,7 +18,7 @@ import { spawnDmg, spawnFxText, domBurst } from "@/lib/dom-fx";
 const Q_TIME_MS = 15000;
 const CARD_TIME_MS = 60000;
 
-/** 血条(对战双方共用;濒死闪烁 + 车轮剩余人数点) */
+/** 血条(对战双方共用;濒死闪烁 + 车轮剩余人数点 + 必杀槽/被动) */
 function HpBar({
   f,
   label,
@@ -31,10 +33,17 @@ function HpBar({
   teamIdx?: number;
 }) {
   const low = f.hp / Math.max(1, f.maxHp) <= 0.25 && f.hp > 0;
+  const passive = getPassiveById(f.valkId);
+  const ultReady = !f.ultUsed && f.ultGauge >= f.ultMax;
   return (
     <div className="pvp-fighter">
       <div className="pvp-f-name" style={me ? { color: "var(--green)" } : undefined}>
         {label} · {f.name}
+        {passive ? (
+          <span className="pvp-skill-tag" title={`被动·${passive.name}: ${passive.desc}`}>
+            被动·{passive.name}
+          </span>
+        ) : null}
       </div>
       {teamIds && teamIds.length > 1 && (
         <div className="pvp-team-dots">
@@ -61,6 +70,7 @@ function HpBar({
         ❤️{Math.ceil(f.hp)}/{f.maxHp}
         {f.block > 0 ? ` 🛡️${f.block}` : ""}
         {f.combo > 0 ? ` 🔥${f.combo}` : ""}
+        {f.ultGauge > 0 ? ` ✨${f.ultGauge}/${f.ultMax}${ultReady ? " 可放" : ""}` : ""}
       </div>
     </div>
   );
@@ -69,12 +79,14 @@ function HpBar({
 export default function PvpScreen() {
   const meta = useGameStore((s) => s.meta);
   const setScreen = useGameStore((s) => s.setScreen);
+  const setPvpDeck = useGameStore((s) => s.setPvpDeck);
 
   const mode = usePvpStore((s) => s.mode);
   const side = usePvpStore((s) => s.side);
   const room = usePvpStore((s) => s.room);
   const peer = usePvpStore((s) => s.peer);
   const peerPicks = usePvpStore((s) => s.peerPicks);
+  const peerDeck = usePvpStore((s) => s.peerDeck);
   const peerReady = usePvpStore((s) => s.peerReady);
   const myReady = usePvpStore((s) => s.myReady);
   const teamSize = usePvpStore((s) => s.teamSize);
@@ -94,10 +106,40 @@ export default function PvpScreen() {
   const surrender = usePvpStore((s) => s.surrender);
   const leave = usePvpStore((s) => s.leave);
 
-  // 本地 UI 态:昵称(记忆)/队伍(出场顺序)/房码输入
+  // 本地 UI 态:昵称(记忆)/队伍(出场顺序)/房码输入/出战牌组(备战编辑,持久化)
   const [name, setName] = useState(() => loadPvpName());
   const [myTeam, setMyTeam] = useState<number[]>([]);
   const [roomIn, setRoomIn] = useState("");
+  const [pvpDeck, setPvpDeckLocal] = useState<string[]>(() => {
+    const saved = meta.pvpDeckIds && meta.pvpDeckIds.length > 0
+      ? meta.pvpDeckIds
+      : meta.builtDeckIds && meta.builtDeckIds.length > 0
+        ? meta.builtDeckIds
+        : [...STARTER_CARD_IDS];
+    return [...saved];
+  });
+
+  /** 已拥有的卡牌集合(初始五张基础技始终可用) */
+  const ownedCards = new Set(
+    Object.keys(meta.ownedCards || {}).filter((id) => meta.ownedCards?.[id]),
+  );
+
+  /** 备战牌组增删(5-12 张,改动即持久化;仅「各自牌组」模式生效) */
+  const togglePvpCard = (id: string) => {
+    AudioEngine.sfx("click");
+    const next = pvpDeck.includes(id)
+      ? pvpDeck.filter((x) => x !== id)
+      : pvpDeck.length >= DECK_MAX
+        ? pvpDeck
+        : [...pvpDeck, id];
+    setPvpDeckLocal(next);
+    setPvpDeck(next);
+  };
+  const resetPvpDeck = () => {
+    AudioEngine.sfx("click");
+    setPvpDeckLocal([...STARTER_CARD_IDS]);
+    setPvpDeck([...STARTER_CARD_IDS]);
+  };
 
   const stageRef = useRef<HTMLDivElement>(null);
   const meImgRef = useRef<HTMLImageElement>(null);
@@ -114,7 +156,7 @@ export default function PvpScreen() {
   const myCfg = {
     name: myName,
     valkIds: myTeam,
-    deck: (meta.builtDeckIds || []).filter((id) => meta.ownedCards?.[id]),
+    deck: pvpDeck,
   };
 
   /** 队伍编排:点击入队/再点移除(按点击顺序即出场顺序) */
@@ -166,6 +208,14 @@ export default function PvpScreen() {
           s.act({ act: "enterCard" });
         }
       } else if (cur.phase === "card") {
+        if (e.key === "q" || e.key === "Q") {
+          const f = s.side === "host" ? cur.host : cur.guest;
+          if (f && !f.ultUsed && f.ultGauge >= f.ultMax) {
+            e.preventDefault();
+            s.act({ act: "ult" });
+            return;
+          }
+        }
         if (e.key === "e" || e.key === "E" || e.key === " ") {
           e.preventDefault();
           s.act({ act: "endTurn" });
@@ -526,11 +576,40 @@ export default function PvpScreen() {
                       ),
                     )}
                   </div>
+                  {/* 队伍属性/技能一览(体现角色差异化) */}
+                  {myTeam.length > 0 && (
+                    <div className="pvp-team-stats">
+                      {myTeam.map((id) => {
+                        const v = getValkById(id);
+                        if (!v) return null;
+                        const bal = PVP_BALANCE[id] ?? { hp: 80, atk: 2 };
+                        const p = getPassiveById(id);
+                        const role = getValkRole(id);
+                        const roleName = VALKYRIE_ROLE_NAMES[role];
+                        return (
+                          <div
+                            key={id}
+                            className="pvp-stat-card"
+                            title={`${v.c} · ${roleName}\nPvP: ❤️${bal.hp} ⚔️${bal.atk}(不受养成影响)\n被动·${p?.name ?? "—"}: ${p?.desc ?? ""}\n必杀·${v.ult.name || "—"}: ${v.ult.desc || ""}`}
+                          >
+                            <img src={ICON(id)} alt="" />
+                            <div className="ps-name">{v.c}</div>
+                            <div className={`ps-role role-${role}`}>{roleName}</div>
+                            <div className="ps-stats">
+                              ❤️{bal.hp} ⚔️{bal.atk}
+                            </div>
+                            <div className="ps-skill">被动·{p?.name ?? "—"}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                   <div className="pvp-valk-grid">
                     {VALKYRIES.map((v) => (
                       <div
                         key={v.id}
                         className={`pvp-valk-cell ${myTeam.includes(v.id) ? "active" : ""}`}
+                        title={v.c}
                         onClick={() => toggleTeam(v.id)}
                       >
                         <img src={ICON(v.id)} alt={v.c} />
@@ -557,6 +636,59 @@ export default function PvpScreen() {
                       ),
                     )}
                   </div>
+                  {peerReady && (
+                    <div className="pvp-peer-deck-note">
+                      🃏 对方牌组已就绪({peerDeck.length}张) — 具体内容保密
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 出战牌组选择(备战编辑;「各自牌组」模式生效) */}
+              <div className="pvp-deck-box">
+                <div className="pvp-prep-title">
+                  出战牌组({pvpDeck.length}/{DECK_MAX})
+                  {deckMode === "fair" ? " · ⚖️公平模式使用标准牌组" : ""}
+                  <button className="btn-mini" style={{ marginLeft: 8 }} onClick={resetPvpDeck}>
+                    重置
+                  </button>
+                </div>
+                <div className="deck-active compact">
+                  {pvpDeck.length === 0 ? (
+                    <div style={{ color: "var(--dim)", fontSize: 12 }}>牌组为空(开局自动补基础技)</div>
+                  ) : (
+                    pvpDeck.map((id, idx) => {
+                      const c = ALL_CARDS.find((x) => x.id === id);
+                      if (!c) return null;
+                      return (
+                        <span
+                          key={`${id}-${idx}`}
+                          className="deck-chip"
+                          onClick={() => deckMode === "own" && togglePvpCard(id)}
+                        >
+                          {c.icon} {c.name}
+                        </span>
+                      );
+                    })
+                  )}
+                </div>
+                <div className="pvp-deck-pool">
+                  {ALL_CARDS.map((c) => {
+                    const has = ownedCards.has(c.id);
+                    const inDeck = pvpDeck.includes(c.id);
+                    return (
+                      <button
+                        key={c.id}
+                        className={`pvp-deck-card ${inDeck ? "in" : ""} ${!has ? "locked" : ""}`}
+                        title={`${c.name} · 费${c.cost} · ${CARD_CAT_NAMES[c.cat] || c.type} · ${c.desc}${has ? "" : "(未拥有)"}`}
+                        disabled={deckMode !== "own" || !has}
+                        onClick={() => togglePvpCard(c.id)}
+                      >
+                        <span>{c.icon}</span>
+                        <em>{c.name}</em>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -777,6 +909,23 @@ export default function PvpScreen() {
 
           <div className="battle-actions">
             <div className="energy-display">⚡ {me.energy}</div>
+            {st.phase === "card" && (
+              <button
+                className={`pvp-ult-btn ${!me.ultUsed && me.ultGauge >= me.ultMax ? "ready" : ""}`}
+                disabled={me.ultUsed || me.ultGauge < me.ultMax}
+                title={`必杀·${getValkById(me.valkId)?.ult.name ?? ""} — 每出一张牌 +1,满 ${me.ultMax} 可释放(每场对决 1 次)`}
+                onClick={() => {
+                  AudioEngine.sfx("click");
+                  act({ act: "ult" });
+                }}
+              >
+                {me.ultUsed
+                  ? "✨ 必杀已用"
+                  : me.ultGauge >= me.ultMax
+                    ? "✨ 必杀可放!"
+                    : `✨ 必杀 ${me.ultGauge}/${me.ultMax}`}
+              </button>
+            )}
             {st.phase === "question" ? (
               <button
                 className="end-turn-btn"

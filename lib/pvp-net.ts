@@ -14,7 +14,7 @@ export type PvpNetEvt =
   | { t: "act"; act: PvpAct }
   | { t: "state"; snap: PvpState }
   | { t: "pick"; picks: number[] }
-  | { t: "ready"; on: boolean; picks: number[] }
+  | { t: "ready"; on: boolean; picks: number[]; deck?: string[] }
   | { t: "teamSize"; n: number }
   | { t: "again" }
   | { t: "quit" }

@@ -591,3 +591,39 @@
 .pvp-wait-timer{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--purple)}
 .pvp-wait-timer .bar{flex:1;max-width:180px;height:6px;border-radius:4px;background:rgba(0,0,0,.12);overflow:hidden}
 .pvp-wait-timer .bar i{display:block;height:100%;background:var(--purple);border-radius:4px;transition:width .25s linear}
+
+/* ---------- PvP: 角色技能/属性展示 ---------- */
+.pvp-skill-tag{display:inline-block;margin-left:6px;padding:0 6px;border-radius:8px;font-size:10px;font-weight:600;color:var(--cyan);border:1px solid rgba(0,240,255,.4);background:rgba(0,240,255,.08);vertical-align:1px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pvp-team-stats{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0 2px}
+.pvp-stat-card{width:86px;padding:6px 4px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);text-align:center;cursor:default}
+.pvp-stat-card img{width:38px;height:50px;object-fit:contain;display:block;margin:0 auto 3px}
+.pvp-stat-card .ps-name{font-size:11px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pvp-stat-card .ps-role{font-size:10px;font-weight:800;margin-top:2px;letter-spacing:1px}
+.pvp-stat-card .ps-role.role-atk{color:#ff6b6b}
+.pvp-stat-card .ps-role.role-bal{color:#57c7a7}
+.pvp-stat-card .ps-role.role-tank{color:#4da6ff}
+.pvp-stat-card .ps-stats{font-size:10px;color:var(--dim);margin-top:2px}
+.pvp-stat-card .ps-skill{font-size:10px;color:var(--cyan);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pvp-peer-deck-note{font-size:11px;color:var(--dim);text-align:center;margin-top:6px}
+
+/* ---------- PvP: 备战牌组选择 ---------- */
+.pvp-deck-box{border:1px solid var(--line);border-radius:12px;padding:8px;background:var(--panel)}
+.pvp-deck-box .deck-active.compact{min-height:34px;max-height:96px;overflow-y:auto;padding:6px 2px}
+.pvp-deck-box .deck-active.compact .deck-chip{font-size:11px;padding:4px 10px}
+.pvp-deck-pool{display:flex;flex-wrap:wrap;gap:6px;max-height:150px;overflow-y:auto;padding:8px 2px 2px}
+.pvp-deck-card{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font-size:11px;cursor:pointer;font-family:inherit;transition:.12s}
+.pvp-deck-card span{font-size:13px}
+.pvp-deck-card em{font-style:normal}
+.pvp-deck-card:active{transform:scale(.94)}
+.pvp-deck-card.in{border-color:var(--cyan);background:rgba(0,240,255,.12)}
+.pvp-deck-card.locked{opacity:.35;cursor:not-allowed;filter:grayscale(.6)}
+
+/* ---------- PvP: 必杀按钮 ---------- */
+.pvp-ult-btn{padding:10px 14px;border-radius:12px;border:1px solid var(--gold);color:var(--gold);background:rgba(255,215,0,.1);font-weight:800;cursor:pointer;font-family:inherit;font-size:13px;transition:transform .12s,filter .12s}
+.pvp-ult-btn:active{transform:scale(.95)}
+.pvp-ult-btn:disabled{opacity:.4;cursor:default}
+.pvp-ult-btn.ready{border-color:#ffd700;background:linear-gradient(180deg,rgba(255,215,0,.35),rgba(255,215,0,.12));animation:pvpUltPulse 1s ease-in-out infinite}
+@keyframes pvpUltPulse{0%,100%{box-shadow:0 0 4px rgba(255,215,0,.4)}50%{box-shadow:0 0 14px rgba(255,215,0,.9)}}
+
+/* ---------- PvE: 出战学员被动标签 ---------- */
+.player-passive{display:inline-block;margin-left:6px;padding:0 7px;border-radius:8px;font-size:10px;font-weight:600;color:var(--cyan);border:1px solid rgba(0,240,255,.4);background:rgba(0,240,255,.08);vertical-align:1px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

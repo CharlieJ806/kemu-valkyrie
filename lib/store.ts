@@ -114,6 +114,9 @@ function ensureMetaDefaults(meta: MetaState): void {
   if (!Array.isArray(meta.builtDeckIds) || meta.builtDeckIds.length === 0) {
     meta.builtDeckIds = [...STARTER_CARD_IDS];
   }
+  if (!Array.isArray(meta.pvpDeckIds) || meta.pvpDeckIds.length === 0) {
+    meta.pvpDeckIds = [...(meta.builtDeckIds || STARTER_CARD_IDS)];
+  }
 }
 
 export type AnswerResult = {
@@ -184,6 +187,8 @@ type GameStore = {
   doGachaOnce: () => void;
   toggleDeckCard: (id: string) => void;
   resetBuiltDeck: () => void;
+  /** 对战备战:保存自定义出战牌组(5-12 张,持久化) */
+  setPvpDeck: (ids: string[]) => void;
   bumpWrongQ: (qid: string, n?: number) => void;
   clearWrongQ: (qid: string) => void;
   recordExamResult: (score: number, wrongIds: string[], correctIds?: string[]) => void;
@@ -495,6 +500,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ meta });
     persistMeta(meta);
     get().showToast("已重置为初始五张基础技", 1800);
+  },
+
+  setPvpDeck: (ids) => {
+    const meta = cloneMeta(get().meta);
+    meta.pvpDeckIds = ids.slice(0, DECK_MAX);
+    set({ meta });
+    persistMeta(meta);
   },
 
   bumpWrongQ: (qid, n = 1) => {

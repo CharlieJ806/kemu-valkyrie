@@ -8,8 +8,8 @@
       "i": 1,
       "attr": "law",
       "attr2": "signal",
-      "hp": 62,
-      "atk": 2,
+      "hp": 76,
+      "atk": 6,
       "bst": 360,
       "look": {
         "hair": "long",
@@ -27,7 +27,16 @@
           "enemyWeak": 0.25
         }
       },
-      "flavor": "热血交通骑警，违章者的天敌。口头禅是「扣分！罚款！吊销！」"
+      "flavor": "热血交通骑警，违章者的天敌。口头禅是「扣分！罚款！吊销！」",
+      "skills": [
+        {
+          "id": "akane-p",
+          "name": "执法先锋",
+          "kind": "passive",
+          "desc": "连击伤害加成提升：每层连击倍率 +20%（基础 +15%）。",
+          "fx": { "comboBonus": 0.05 }
+        }
+      ]
     },
     {
       "id": 2,
@@ -37,8 +46,8 @@
       "i": 1,
       "attr": "signal",
       "attr2": "safety",
-      "hp": 86,
-      "atk": 3,
+      "hp": 120,
+      "atk": 4,
       "bst": 455,
       "look": {
         "hair": "long",
@@ -56,7 +65,16 @@
           "energy": 3
         }
       },
-      "flavor": "冷静的信号调度员，一个手势能让千车让行。"
+      "flavor": "冷静的信号调度员，一个手势能让千车让行。",
+      "skills": [
+        {
+          "id": "aolan-p",
+          "name": "绿波调度",
+          "kind": "passive",
+          "desc": "每回合进入出牌阶段时额外获得 1 点指令。",
+          "fx": { "cardPhaseEnergy": 1 }
+        }
+      ]
     },
     {
       "id": 3,
@@ -66,8 +84,8 @@
       "i": 1,
       "attr": "safety",
       "attr2": "civility",
-      "hp": 122,
-      "atk": 4,
+      "hp": 170,
+      "atk": 2,
       "bst": 545,
       "look": {
         "hair": "long",
@@ -85,7 +103,16 @@
           "defMult": 0.5
         }
       },
-      "flavor": "驾校安全教练，车距永远留足，安全带永远系好。"
+      "flavor": "驾校安全教练，车距永远留足，安全带永远系好。",
+      "skills": [
+        {
+          "id": "byakugan-p",
+          "name": "安全壁垒",
+          "kind": "passive",
+          "desc": "受到伤害时额外减免 2 点（至少造成 1 点）。",
+          "fx": { "hurtReduce": 2 }
+        }
+      ]
     },
     {
       "id": 4,
@@ -95,7 +122,7 @@
       "i": 1,
       "attr": "civility",
       "attr2": "law",
-      "hp": 164,
+      "hp": 84,
       "atk": 5,
       "bst": 675,
       "look": {
@@ -114,7 +141,16 @@
           "statusTurns": 2
         }
       },
-      "flavor": "沉默的文明守护者，用灯光照亮夜路，也照亮人心。"
+      "flavor": "沉默的文明守护者，用灯光照亮夜路，也照亮人心。",
+      "skills": [
+        {
+          "id": "shinya-p",
+          "name": "夜路心灯",
+          "kind": "passive",
+          "desc": "答对时有 35% 概率使敌方「远光眩目」1 回合。",
+          "fx": { "answerConfuseChance": 0.35 }
+        }
+      ]
     },
     {
       "id": 5,
@@ -124,7 +160,7 @@
       "i": 1,
       "attr": "signal",
       "attr2": "safety",
-      "hp": 140,
+      "hp": 124,
       "atk": 4,
       "bst": 585,
       "look": {
@@ -143,7 +179,16 @@
           "draw": 2
         }
       },
-      "flavor": "高速路调度官，绿波带的女王。让车队永不减速。"
+      "flavor": "高速路调度官，绿波带的女王。让车队永不减速。",
+      "skills": [
+        {
+          "id": "zangqing-p",
+          "name": "全域绿波",
+          "kind": "passive",
+          "desc": "每回合进入出牌阶段时额外抽 1 张牌。",
+          "fx": { "cardPhaseDraw": 1 }
+        }
+      ]
     },
     {
       "id": 6,
@@ -153,8 +198,8 @@
       "i": 1,
       "attr": "safety",
       "attr2": "civility",
-      "hp": 156,
-      "atk": 5,
+      "hp": 160,
+      "atk": 3,
       "bst": 635,
       "look": {
         "hair": "short",
@@ -171,7 +216,16 @@
           "block": 40
         }
       },
-      "flavor": "事故鉴定官，看一眼刹车痕就知道事故全貌。"
+      "flavor": "事故鉴定官，看一眼刹车痕就知道事故全貌。",
+      "skills": [
+        {
+          "id": "gerui-p",
+          "name": "事故重演",
+          "kind": "passive",
+          "desc": "攻击牌伤害 +2。",
+          "fx": { "cardAtkBonus": 2 }
+        }
+      ]
     },
     {
       "id": 7,
@@ -181,8 +235,8 @@
       "i": 1,
       "attr": "civility",
       "attr2": "law",
-      "hp": 172,
-      "atk": 5,
+      "hp": 128,
+      "atk": 4,
       "bst": 690,
       "look": {
         "hair": "twin",
@@ -199,7 +253,16 @@
           "healPct": 0.2
         }
       },
-      "flavor": "阳光开朗的文明宣传员，远光灯能照亮整条夜路。"
+      "flavor": "阳光开朗的文明宣传员，远光灯能照亮整条夜路。",
+      "skills": [
+        {
+          "id": "qinglan-p",
+          "name": "晴空暖意",
+          "kind": "passive",
+          "desc": "每次答对回复 1 点生命。",
+          "fx": { "answerHeal": 1 }
+        }
+      ]
     },
     {
       "id": 8,
@@ -209,7 +272,7 @@
       "i": 1,
       "attr": "law",
       "attr2": "signal",
-      "hp": 190,
+      "hp": 80,
       "atk": 6,
       "bst": 750,
       "look": {
@@ -227,7 +290,16 @@
           "enemyWeak": 0.5
         }
       },
-      "flavor": "制动工程师，全城没有她踩不下来的车。"
+      "flavor": "制动工程师，全城没有她踩不下来的车。",
+      "skills": [
+        {
+          "id": "sha-p",
+          "name": "绝对制动",
+          "kind": "passive",
+          "desc": "每场对决（含车轮战换人后的新对决）首回合伤害 ×1.5。",
+          "fx": { "firstTurnMult": 1.5 }
+        }
+      ]
     }
   ],
   "monsters": [

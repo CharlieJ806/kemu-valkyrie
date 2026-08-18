@@ -4,7 +4,12 @@ import { useGameStore } from "@/lib/store";
 import {
   getValkById,
   getBST,
+  getValkAtk,
+  getValkMaxHp,
+  getValkRole,
+  VALKYRIE_ROLE_NAMES,
 } from "@/lib/formulas";
+import { PVP_BALANCE } from "@/lib/pvp";
 import {
   MAX_TEAM_SIZE,
   RARITY_COLORS,
@@ -15,6 +20,7 @@ import { ICON } from "@/lib/icon";
 import { AudioEngine } from "@/lib/audio";
 import { GAME_EVENTS, resolveChoiceText } from "@/lib/events";
 import { ATTR_NAMES, ATTR_SHORT, attrBadgeStyle } from "@/lib/attr";
+import { getPassive } from "@/lib/valkskills";
 
 export default function Modal() {
   const modal = useGameStore((s) => s.modal);
@@ -239,9 +245,42 @@ export default function Modal() {
                 </>
               ) : (
                 <>
-                  综合面板: {bst}
+                  综合面板: {bst} · 定位:{" "}
+                  <span style={{ color: "var(--gold)" }}>
+                    {VALKYRIE_ROLE_NAMES[getValkRole(pkm.id)]}
+                  </span>
                   <br />
-                  必杀: {pkm.ult.name || "—"}
+                  <span style={{ color: "var(--gold)" }}>
+                    ⚔️ 剧情属性: HP {getValkMaxHp(pkm.id, meta.metaHpLv)} · 攻击{" "}
+                    {getValkAtk(pkm.id, meta.metaAtkLv)}（含养成）
+                  </span>
+                  <br />
+                  <span style={{ fontSize: 11, opacity: 0.8 }}>
+                    ⚖️ 对战属性: HP {PVP_BALANCE[pkm.id]?.hp ?? 80} · 攻击{" "}
+                    {PVP_BALANCE[pkm.id]?.atk ?? 2}（按定位·不受养成影响）
+                  </span>
+                  <br />
+                  <span style={{ color: "var(--gold)" }}>
+                    ⚡必杀: {pkm.ult.name || "—"}
+                  </span>
+                  {pkm.ult.desc ? (
+                    <>
+                      <br />
+                      <span style={{ fontSize: 11, opacity: 0.85 }}>{pkm.ult.desc}</span>
+                    </>
+                  ) : null}
+                  {getPassive(pkm) ? (
+                    <>
+                      <br />
+                      <span style={{ color: "var(--cyan)" }}>
+                        🛡被动: {getPassive(pkm)!.name}
+                      </span>
+                      <br />
+                      <span style={{ fontSize: 11, opacity: 0.85 }}>
+                        {getPassive(pkm)!.desc}
+                      </span>
+                    </>
+                  ) : null}
                 </>
               )}
               {pkm.flavor ? <><br />{pkm.flavor}</> : null}

@@ -100,6 +100,8 @@ export type MetaState = {
   metaAtkLv: number;
   ownedCards: Record<string, boolean> | null;
   builtDeckIds: string[] | null;
+  /** 对战「各自牌组」模式使用的出战牌组(备战区编辑;缺省回退 builtDeckIds) */
+  pvpDeckIds: string[] | null;
   // ── 新字段(缺省填充) ──
   wrongQ: Record<string, number>;
   totalCorrect: number;
