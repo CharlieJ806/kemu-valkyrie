@@ -2291,9 +2291,6 @@
   "q0764": {
     "cat": "civility"
   },
-  "q0765": {
-    "cat": "civility"
-  },
   "q0766": {
     "cat": "safety"
   },
@@ -2351,22 +2348,10 @@
   "q0784": {
     "cat": "law"
   },
-  "q0785": {
-    "cat": "signal"
-  },
   "q0786": {
     "cat": "law"
   },
   "q0787": {
-    "cat": "safety"
-  },
-  "q0788": {
-    "cat": "law"
-  },
-  "q0789": {
-    "cat": "safety"
-  },
-  "q0790": {
     "cat": "safety"
   },
   "q0791": {
@@ -2432,9 +2417,6 @@
   "q0811": {
     "cat": "law"
   },
-  "q0812": {
-    "cat": "safety"
-  },
   "q0813": {
     "cat": "law"
   },
@@ -2455,9 +2437,6 @@
   },
   "q0819": {
     "cat": "law"
-  },
-  "q0820": {
-    "cat": "safety"
   },
   "q0821": {
     "cat": "safety"
@@ -2484,9 +2463,6 @@
     "cat": "safety"
   },
   "q0829": {
-    "cat": "safety"
-  },
-  "q0830": {
     "cat": "safety"
   },
   "q0831": {
@@ -3038,9 +3014,6 @@
   "q1013": {
     "cat": "safety"
   },
-  "q1014": {
-    "cat": "signal"
-  },
   "q1015": {
     "cat": "signal"
   },
@@ -3054,9 +3027,6 @@
     "cat": "safety"
   },
   "q1019": {
-    "cat": "safety"
-  },
-  "q1020": {
     "cat": "safety"
   },
   "q1021": {

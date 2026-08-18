@@ -88,6 +88,39 @@ assert(orphans.length === 0, `${orphans.length} 个孤儿分类 id`);
 const badCat = Object.values(cats).filter((c) => !ATTRS.includes(c?.cat));
 assert(badCat.length === 0, `${badCat.length} 条非法分类值`);
 
+/* 2b. questions.json 内容质量(题干/选项/答案一致性) */
+check("questions.json 内容质量");
+{
+  const idSeen = new Set();
+  for (const q of qs) {
+    assert(!idSeen.has(q.id), `重复题目 id ${q.id}`);
+    idSeen.add(q.id);
+    assert(typeof q.q === "string" && q.q.trim().length > 0, `${q.id} 题干为空`);
+    assert(Array.isArray(q.opts) && q.opts.length >= 2, `${q.id} 选项不足 2 个`);
+    assert(
+      Number.isInteger(q.ans) && q.ans >= 0 && q.ans < q.opts.length,
+      `${q.id} ans=${q.ans} 越界(0~${(q.opts || []).length - 1})`,
+    );
+    (q.opts || []).forEach((o, i) => {
+      assert(typeof o === "string" && o.trim().length > 0, `${q.id} 选项[${i}]为空`);
+      assert(!o.includes("undefined"), `${q.id} 选项[${i}]含 "undefined" 生成器残片`);
+      assert(!/Y:|N:/.test(o), `${q.id} 选项[${i}]含旧版 Y:/N: 格式(应统一为 正确/错误)`);
+    });
+  }
+  // 完全重复:题干+选项+答案 全一致
+  const seen = new Map();
+  for (const q of qs) {
+    const k =
+      (q.q || "").replace(/\s+/g, "") +
+      "|" +
+      (q.opts || []).map((o) => o.trim()).join("|") +
+      "|" +
+      q.ans;
+    if (seen.has(k)) assert(false, `${q.id} 与 ${seen.get(k)} 完全重复(题干+选项+答案一致)`);
+    else seen.set(k, q.id);
+  }
+}
+
 /* 3. portraits.json 与 valkyries 一致性(主立绘 + 动作 pose) */
 check("portraits.json");
 const portraits = JSON.parse(fs.readFileSync(path.join(DATA, "portraits.json"), "utf8"));
