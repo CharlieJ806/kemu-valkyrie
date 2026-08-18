@@ -10,7 +10,6 @@ import {
   applyCardFx,
   buildUltCard,
   findCard,
-  STARTER_CARD_IDS,
   STATUS_NAMES,
   ULT_GAUGE_MAX,
   ULT_PREFIX,
@@ -30,8 +29,8 @@ import type { EnemyStatus, Question } from "./types";
 
 export type PvpSide = "host" | "guest";
 
-/** 每回合答题上限(答满自动进入出牌阶段) */
-export const PVP_MAX_Q = 5;
+/** 答题不设数量上限(答错/主动停止才进入出牌阶段);一轮题库抽取的题量(耗尽自动续抽) */
+export const PVP_ROUND_Q_POOL = 12;
 /** 回合上限(一回合=双方各行动一次;超出按剩余 HP 比例判定) */
 export const PVP_MAX_ROUNDS = 30;
 /** 出牌阶段总时限(超时自动结束回合,防挂机拖延) */
@@ -40,6 +39,17 @@ export const PVP_CARD_TIME_MS = 60_000;
 export const PVP_CTRL_IMMUNE_TURNS = 2;
 /** 必杀直接伤害在 PvP 中的缩放比例(平衡表 HP 远低于 PvE,避免一击秒杀) */
 export const ULT_PVP_DMG_SCALE = 0.6;
+
+/** 对战中禁用的异常状态(跳过敌方回合类:禁行拘留 sleep / 冻结车流 freeze),防无限跳过 */
+export const PVP_BANNED_STATUSES: ReadonlySet<string> = new Set(["sleep", "freeze"]);
+
+/** 卡牌是否在对战中被禁用(带 sleep/freeze 状态的跳过回合类卡牌) */
+export function isPvpBannedCard(card: { fx?: { status?: string } } | null | undefined): boolean {
+  return !!card?.fx?.status && PVP_BANNED_STATUSES.has(card.fx.status);
+}
+
+/** 对战初始牌组(公平模式/补牌用;红灯停(sleep 跳过)替换为限速标志(para 减速)) */
+export const PVP_STARTER_CARD_IDS = ["jf_cf", "aqd", "lrxr", "xf_jf", "xsbz"];
 
 /** PvP 平衡表(按学员定位差异化,策划分配):
  * 速攻(赤红/刹/深夜)= 76 HP / 3 攻 · 均衡(蔚蓝/晴岚/藏青)= 80 HP / 2 攻 ·
@@ -183,11 +193,13 @@ function pushFx(
   if (st.lastFx.length > 8) st.lastFx.splice(0, st.lastFx.length - 8);
 }
 
-/** 净化牌组:过滤非法/必杀 id,不足 5 张补初始卡,上限 12 张 */
+/** 净化牌组:过滤非法/必杀/禁用卡 id,不足 5 张补对战初始卡,上限 12 张 */
 export function sanitizePvpDeck(deck: string[]): string[] {
-  let ids = deck.filter((id) => !id.startsWith(ULT_PREFIX) && !!findCard(id));
-  if (ids.length === 0) ids = [...STARTER_CARD_IDS];
-  for (const sid of STARTER_CARD_IDS) {
+  let ids = deck.filter(
+    (id) => !id.startsWith(ULT_PREFIX) && !!findCard(id) && !isPvpBannedCard(findCard(id)),
+  );
+  if (ids.length === 0) ids = [...PVP_STARTER_CARD_IDS];
+  for (const sid of PVP_STARTER_CARD_IDS) {
     if (ids.length >= 5) break;
     ids.push(sid);
   }
@@ -276,12 +288,12 @@ export function createPvpState(
 
 /* ============ 抽题 ============ */
 
-/** 新回合开始:抽 5 题(避开近期历史;同一回合双方共用同一组题,保证难度对称) */
+/** 新回合开始:抽一批题(避开近期历史;每方回合独立抽题,防上一方答完的题连同答案泄露给对方) */
 function refreshRoundQs(st: PvpState): void {
   const recent = st.qHistory.slice(-40);
   let pool = QUESTIONS.filter((q) => !recent.includes(q.id));
-  if (pool.length < 5) pool = QUESTIONS;
-  const picked = shuffle(pool).slice(0, PVP_MAX_Q);
+  if (pool.length < PVP_ROUND_Q_POOL) pool = QUESTIONS;
+  const picked = shuffle(pool).slice(0, PVP_ROUND_Q_POOL);
   for (const q of picked) st.qHistory.push(q.id);
   if (st.qHistory.length > 40) st.qHistory.splice(0, st.qHistory.length - 40);
   st.roundQs = picked;
@@ -376,8 +388,8 @@ function beginTurn(st: PvpState, side: PvpSide): void {
   f.discardPile = [...f.discardPile, ...f.hand];
   f.hand = [];
 
-  // 新回合(奇数次行动)抽 5 题:双方共用
-  if (st.turnNo % 2 === 1) refreshRoundQs(st);
+  // 每个回合都抽新一批题(各自独立,防上一方答过的题与答案泄露)
+  refreshRoundQs(st);
 
   // 冻结/禁行:跳过整回合(状态消耗 1 层),并获得控制免疫期
   const stt = f.status;
@@ -509,12 +521,12 @@ export function pvpAnswer(st: PvpState, side: PvpSide, pick: number): boolean {
 
     if (checkKO(st, other(side))) return true; // 击倒对方 → 换人/终局接管流转
     st.turnQIdx += 1;
-    if (st.turnQIdx >= PVP_MAX_Q) {
-      pushFx(st, side, "答题上限,进入出牌", "#ffd700");
-      enterCardPhase(st, side);
-    } else {
-      showQuestion(st);
+    // 答题不设上限:本批抽完自动续抽新一批(避开近期历史),继续答
+    if (st.roundQs[st.turnQIdx] == null) {
+      refreshRoundQs(st);
+      st.turnQIdx = 0;
     }
+    showQuestion(st);
   } else {
     f.combo = 0;
     st.qLocked = true;
@@ -604,7 +616,9 @@ export function pvpPlayCard(st: PvpState, side: PvpSide, handIdx: number): boole
   ctx.atk += skillCardAtkBonus(getValkById(f.valkId), card);
 
   const prevFoeStatus = foe.status;
-  const events = applyCardFx(card, ctx);
+  // PvP 规则:出牌严格扣费 — 卡牌"获得指令"类效果不生效(避免"能量没扣"的观感)
+  const pvpCard = { ...card, fx: { ...card.fx, energy: undefined } };
+  const events = applyCardFx(pvpCard, ctx);
 
   // 结算回写
   f.block = ctx.block;
@@ -659,12 +673,13 @@ export function pvpUlt(st: PvpState, side: PvpSide): boolean {
   st.fxSeq += 1;
 
   const ult = buildUltCard(valk);
-  // PvP 平衡:必杀直接伤害按比例缩放(通用数值段,避免一击秒杀)
+  // PvP 平衡:必杀直接伤害按比例缩放(通用数值段,避免一击秒杀);"获得指令"同样不生效
   const card = {
     ...ult,
     fx: {
       ...ult.fx,
       dmg: typeof ult.fx.dmg === "number" ? Math.floor(ult.fx.dmg * ULT_PVP_DMG_SCALE) : ult.fx.dmg,
+      energy: undefined,
     },
   };
   const prevFoeStatus = foe.status;

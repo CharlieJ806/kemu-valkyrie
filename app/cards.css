@@ -617,6 +617,7 @@
 .pvp-deck-card:active{transform:scale(.94)}
 .pvp-deck-card.in{border-color:var(--cyan);background:rgba(0,240,255,.12)}
 .pvp-deck-card.locked{opacity:.35;cursor:not-allowed;filter:grayscale(.6)}
+.pvp-deck-card.banned{opacity:.45;cursor:not-allowed;border-color:#ff6b81;filter:grayscale(.6);text-decoration:line-through}
 
 /* ---------- PvP: 必杀按钮 ---------- */
 .pvp-ult-btn{padding:10px 14px;border-radius:12px;border:1px solid var(--gold);color:var(--gold);background:rgba(255,215,0,.1);font-weight:800;cursor:pointer;font-family:inherit;font-size:13px;transition:transform .12s,filter .12s}
