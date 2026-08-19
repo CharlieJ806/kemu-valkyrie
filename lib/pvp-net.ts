@@ -1,5 +1,8 @@
 /* 对战 WebSocket 客户端:原生 API,零依赖。
- * 地址策略:默认同域推导 wss/ws + 路径 /ws;?pvp= 查询参数覆盖(开发调试用)。
+ * 地址策略(优先级从高到低):
+ *   1. ?pvp= 查询参数(开发调试/临时指定);
+ *   2. NEXT_PUBLIC_PVP_SERVER 构建环境变量(中继不在本站 /ws 时用它指定);
+ *   3. 同域推导 wss/ws + 路径 /ws(默认: 中继与站点同域部署时自动生效)。
  * 服务器为纯中继:join 为控制消息,配对后其余消息原样转发给同房另一端。 */
 
 import type { PvpAct, PvpSide, PvpState } from "./pvp";
@@ -23,11 +26,16 @@ export type PvpNetEvt =
   | { t: "left"; reason: string }
   | { t: "err"; msg: string };
 
-/** 对战服务器地址:同域推导,?pvp= 覆盖 */
+/** 对战服务器地址(点"对战"即生效):?pvp= 参数 > NEXT_PUBLIC_PVP_SERVER > 同域 /ws */
 export function pvpServerUrl(): string {
   if (typeof window === "undefined") return "";
+  // 1. ?pvp= 查询参数(最高优先级)
   const q = new URLSearchParams(window.location.search).get("pvp");
   if (q) return q;
+  // 2. 构建环境变量覆盖(中继不在本站时指定, 如 NEXT_PUBLIC_PVP_SERVER=wss://你的中继地址/ws)
+  const env = process.env.NEXT_PUBLIC_PVP_SERVER;
+  if (env) return env;
+  // 3. 默认同域推导(中继与站点同域部署时自动生效)
   const proto = window.location.protocol === "https:" ? "wss" : "ws";
   return `${proto}://${window.location.host}/ws`;
 }
