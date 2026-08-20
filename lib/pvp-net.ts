@@ -32,7 +32,7 @@ export function pvpServerUrl(): string {
   // 1. ?pvp= 查询参数(最高优先级)
   const q = new URLSearchParams(window.location.search).get("pvp");
   if (q) return q;
-  // 2. 构建环境变量覆盖(中继不在本站时指定, 如 NEXT_PUBLIC_PVP_SERVER=wss://pvp.example.com/ws)
+  // 2. 构建环境变量覆盖(中继不在本站时指定, 如 NEXT_PUBLIC_PVP_SERVER=wss://你的中继地址/ws)
   const env = process.env.NEXT_PUBLIC_PVP_SERVER;
   if (env) return env;
   // 3. 默认同域推导(中继与站点同域部署时自动生效)
